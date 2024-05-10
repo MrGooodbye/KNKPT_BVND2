@@ -1,0 +1,24 @@
+.category-scrollbar {
+    overflow: auto;
+}
+
+.category-scrollbar::-webkit-scrollbar{
+    width: 6px;
+}
+
+.category-scrollbar::-webkit-scrollbar-track{
+    // border-radius: 20px;
+    // background: black;
+    margin: 2px;
+     //cả cây scroll bar
+}
+
+.category-scrollbar::-webkit-scrollbar-thumb{
+    background-color: darkgrey;
+    border-radius: 4px;
+    //cây scroll bar đang nằm tại vị trí
+}
+
+.category-scrollbar::-webkit-scrollbar-thumb:hover{
+    background: #555; 
+}
