@@ -10,7 +10,7 @@ import BookMedical from './BookMedical';
 function MainMedicalRegister() {
   const [openModalInfoPantients, setOpenModalInfoPantients] = useState(false);
 
-  const [openModalHealthRecords, setOpenModalHealthRecords] = useState(false);
+  const [openModalExaminingSession, setOpenModalExaminingSession] = useState(false);
 
   const [openModalOldDisease, setOpenModalOldDisease] = useState(false);
 
@@ -21,11 +21,11 @@ function MainMedicalRegister() {
   }
 
   const handleBookMedical = () => {
-    if(openModalHealthRecords){
-      setOpenModalHealthRecords(false);
+    if(openModalExaminingSession){
+      setOpenModalExaminingSession(false);
     }
     else{
-      setOpenModalHealthRecords(true);
+      setOpenModalExaminingSession(true);
     }
   }
 
@@ -54,11 +54,11 @@ function MainMedicalRegister() {
       }
       else if(event.keyCode === 115){
         //f4 reset fields
-        openModalInfoPantients === true || openModalHealthRecords === true || openModalOldDisease === true ? event.preventDefault() : handleResetField();
+        openModalInfoPantients === true || openModalExaminingSession === true || openModalOldDisease === true ? event.preventDefault() : handleResetField();
       }
       else if(event.keyCode === 119){
         //f8 open modal old disease
-        openModalInfoPantients === true || openModalHealthRecords === true ? event.preventDefault() : handleOpenOldDiseaseModal();
+        openModalInfoPantients === true || openModalExaminingSession === true ? event.preventDefault() : handleOpenOldDiseaseModal();
       }
       else{
 
@@ -70,20 +70,20 @@ function MainMedicalRegister() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [openModalInfoPantients, openModalHealthRecords, openModalOldDisease]);
+  }, [openModalInfoPantients, openModalExaminingSession, openModalOldDisease]);
 
   return (
     <>
          <Container maxWidth="xl" sx={{mt: 11}}>
             <Box sx={{ bgcolor: '#fff', height: 'auto'}} >
-                <Grid container spacing={2} sx={{p: 0}}>
+                <Grid container spacing={2} sx={{pl: 1, pr: 1}}>
                     <Grid item xs={5}>
                       <ListPatientsRegister openModalInfoPantients={openModalInfoPantients} setOpenModalInfoPantients={setOpenModalInfoPantients}/>
                     </Grid>
             
                     <Grid item xs={7}>
                       <BookMedical 
-                        openModalHealthRecords={openModalHealthRecords} setOpenModalHealthRecords={setOpenModalHealthRecords} 
+                        openModalExaminingSession={openModalExaminingSession} setOpenModalExaminingSession={setOpenModalExaminingSession} 
                         openModalOldDisease={openModalOldDisease} setOpenModalOldDisease={setOpenModalOldDisease} 
                       />
                     </Grid>

@@ -15,12 +15,19 @@ import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
 import Box from '@mui/material/Box';
 import Badge from '@mui/material/Badge';
+import InputAdornment from '@mui/material/InputAdornment';
+import { Button, TextField } from '@mui/material';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 //moment
 import moment from 'moment';
 
 function ListPatientsRegister(props) {
 
-  const ListDataPatientsRegister = [
+  const ListDataPatientsRegisterFake = [
     {stt: 1, idPatients: '000001', name: 'Dương Anh Thơ', status: 0},
     {stt: 2, idPatients: '000002', name: 'Tạ Thị Phương Thảo', status: 1},
     {stt: 3, idPatients: '000003', name: 'GHI', status: 2},
@@ -28,46 +35,55 @@ function ListPatientsRegister(props) {
     {stt: 5, idPatients: '000005', name: 'MNO', status: 1},
     {stt: 6, idPatients: '000006', name: 'PQR', status: 2},
   ]
+  
+  const [listDataPatientsRegister, setListDataPatientsRegister] = useState(ListDataPatientsRegisterFake);
 
-  const Search = styled('div')(({ theme }) => ({
-    position: 'relative',
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: alpha(theme.palette.common.black, 0.15),
-    marginRight: theme.spacing(2),
-    width: '290px',
-    margin: 'auto',
-    marginBottom: 5,
-    // [theme.breakpoints.up('sm')]: {
-    //   marginLeft: theme.spacing(3),
-    //   width: '300px',
-    //   margin: 'auto',
-    //   marginBottom: 4,
-    // },
-  }));
-  
-  const SearchIconWrapper = styled('div')(({ theme }) => ({
-    padding: theme.spacing(0, 2),
-    height: '100%',
-    position: 'absolute',
-    pointerEvents: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  }));
-  
-  const StyledInputBase = styled(InputBase)(({ theme }) => ({
-    color: 'inherit',
-    '& .MuiInputBase-input': {
-      padding: theme.spacing(1, 1, 1, 0),
-      // vertical padding + font size from searchIcon
-      paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-      transition: theme.transitions.create('width'),
-      width: '28ch',
-      // [theme.breakpoints.up('md')]: {
-      //   width: '28ch',
-      // },
-    },
-  }));
+  //mui state menu
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  //mui state switch
+  const [switchState, setSwitchState] = useState({
+    status1: false,
+    status2: false,
+    status3: false,
+  });
+
+
+  const handleChange = (event) => {
+    const newSwitchState = {
+      ...switchState,
+      [event.target.name]: event.target.checked,
+    };
+
+    setSwitchState(newSwitchState);
+
+    // Sử dụng destructuring để trích xuất các giá trị của switch1, switch2, switch3 từ newSwitchState
+    const { status1, status2, status3 } = newSwitchState;
+
+    const enabledStatuses = [];
+    if (status1) enabledStatuses.push(0);
+    if (status2) enabledStatuses.push(1);
+    if (status3) enabledStatuses.push(2);
+
+    const sortListDataPatientsRegister = [...listDataPatientsRegister].sort((a, b) => {
+      if (enabledStatuses.includes(a.status) && !enabledStatuses.includes(b.status)) {
+        return -1;
+      }
+      if (!enabledStatuses.includes(a.status) && enabledStatuses.includes(b.status)) {
+        return 1;
+      }
+      return 0;
+    });
+
+    setListDataPatientsRegister(sortListDataPatientsRegister);
+  };
 
   const renderPatientsStatus = (status) => {
     if(status === 0){
@@ -107,11 +123,24 @@ function ListPatientsRegister(props) {
       <Typography variant='h6' sx={{color: 'red', mb: 1, fontWeight: 'bolder', fontSize: '1.16rem'}}>Bác sĩ khám hôm nay: Nguyễn Văn A</Typography>
       <TableContainer component={Paper} sx={{ maxHeight: 607, boxShadow: 5 }}>
         <Typography variant="h6" sx={{mt: 0.2, textAlign: 'center', fontSize: '1.18rem'}}>Danh sách đăng ký khám ngày {moment().format("DD/MM/YYYY")}</Typography>
-        <Search>
-            <SearchIconWrapper>
-              <SearchIcon /></SearchIconWrapper>
-              <StyledInputBase placeholder="Tìm với mã BN hoặc tên BN"/>
-        </Search>
+        
+        <Box sx={{display: 'flex', justifyContent: 'center', position: 'relative'}}>
+          <TextField sx={{mt: 0.2, mb: 1, width: 350, '& .MuiInputBase-inputSizeSmall': {textAlign: 'center'}}} size="small" variant="outlined" placeholder='Tìm với Mã BN hoặc Tên BN'
+            InputProps={{startAdornment: (
+              <InputAdornment position='start'><SearchIcon/></InputAdornment>
+            )}}>
+          </TextField>
+
+          <Box sx={{position: 'absolute', top: 3, right: 30, borderRadius: '8px', ':hover': {backgroundColor: 'rgba(25, 118, 210, 0.2)'}}}>
+            <Button onClick={handleClick}>Sắp xếp</Button>
+            <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+              <MenuItem><FormControlLabel control={<Switch checked={switchState.status1} onChange={handleChange} name="status1" color='error'/>} sx={{color: '#f44336'}} label="Chưa khám" /></MenuItem>
+              <MenuItem><FormControlLabel control={<Switch checked={switchState.status2} onChange={handleChange} name="status2" color='warning'/>} sx={{color: '#ff9800'}} label="Đang khám" /></MenuItem>
+              <MenuItem><FormControlLabel control={<Switch checked={switchState.status3} onChange={handleChange} name="status3" color='success'/>} sx={{color: '#4caf50'}} label="Đã khám" /></MenuItem>
+            </Menu>
+          </Box>
+        </Box>
+
         <Table stickyHeader >
           <TableHead>
             <TableRow sx={{"& th": {color: "rgba(96, 96, 96)", backgroundColor: "pink"}}}>
@@ -122,7 +151,7 @@ function ListPatientsRegister(props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {ListDataPatientsRegister.map((row) => (
+            {listDataPatientsRegister.map((row) => (
                 <TableRow hover role="checkbox" key={row.stt} sx={{cursor: 'pointer'}} onClick={() => [console.log(row), props.setOpenModalInfoPantients(true)]}>
                   <TableCell align='left' sx={{width: '20px'}}>{row.stt}</TableCell>
                   <TableCell align='left' sx={{width: '150px'}}>{row.idPatients}</TableCell>

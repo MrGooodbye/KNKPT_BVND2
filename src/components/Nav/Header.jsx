@@ -14,6 +14,7 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import MedicationLiquidIcon from '@mui/icons-material/MedicationLiquid';
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import HelpIcon from '@mui/icons-material/Help';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -23,7 +24,11 @@ import { withRouter } from 'react-router';
 import InputAdornment from '@mui/material/InputAdornment';
 import AddIcon from '@mui/icons-material/Add';
 
+//modal
+import UserManual from '../ManageUserManual/UserManual';
+
 function Header(props) {
+  const [openModalUserManual, setOpenModalUserManual] = useState(false);
 
   const handleChangeURL = (route) => {
     switch (route) {
@@ -50,10 +55,13 @@ function Header(props) {
               <BottomNavigationAction label="Khám bệnh" sx={{color: '#000', maxWidth: '100px'}} LinkComponent={NavLink} to="/doctor-examining" icon={<MedicationLiquidIcon sx={{ fontSize: 30 }}/>} />
               <BottomNavigationAction label="Thống kê" sx={{color: '#000', maxWidth: '83px'}} LinkComponent={NavLink} to="/dashboard" icon={<BarChartIcon sx={{ fontSize: 30 }}/>} />
           </BottomNavigation>
+          <HelpIcon titleAccess='Hướng dẫn' sx={{color: 'black', fontSize: '30px', cursor: 'pointer'}} onClick={() => setOpenModalUserManual(true)} />
           <NavLink exact to="/login"><Button sx={{textTransform: 'none', color: '#000'}}>Đăng nhập</Button></NavLink>       
           </Toolbar>
         </AppBar>
       </Box>
+
+      <UserManual openModalUserManual={openModalUserManual} setOpenModalUserManual={setOpenModalUserManual}/>
     </>
   )
 }
