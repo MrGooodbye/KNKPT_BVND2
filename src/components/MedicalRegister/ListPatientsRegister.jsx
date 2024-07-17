@@ -158,9 +158,9 @@ function ListPatientsRegister(props) {
           }));
           setListPantientChipState(updatedList);
         }
-        props.setComponent1Loading(false);
       }
     }
+    props.setComponent1Loading(false);
     setLoading(false);
   }
 
