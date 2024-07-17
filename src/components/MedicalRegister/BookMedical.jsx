@@ -1083,270 +1083,246 @@ function BookMedical(props) {
 
   const checkValidate = () => {
     let isValid = true;
-    
-    if(_.isEqual(dataPatientsRegister, dataPatientsRegisterDefault)){
-      setDataPatientsRegisterError(prevDataPatientsRegisterError => ({
-        ...prevDataPatientsRegisterError,
-        patientId: { ...prevDataPatientsRegisterError.fullName, isError: true },
-        fullName: { ...prevDataPatientsRegisterError.fullName, isError: true },
-        dayOfBirth: { ...prevDataPatientsRegisterError.dayOfBirth, isError: true },
-        gender: { ...prevDataPatientsRegisterError.gender, isError: true },
-        province: { ...prevDataPatientsRegisterError.province, isError: true },
-        district: { ...prevDataPatientsRegisterError.district, isError: true },
-        ward: { ...prevDataPatientsRegisterError.ward, isError: true },
-        address: { ...prevDataPatientsRegisterError.address, isError: true },
-        fullNameMother: { ...prevDataPatientsRegisterError.fullNameMother, isError: true },
-        phoneMother: { ...prevDataPatientsRegisterError.phoneMother, isError: true },
-        phoneFather: { ...prevDataPatientsRegisterError.phoneFather, isError: true },
-        height: { ...prevDataPatientsRegisterError.height, isError: true },
-        weight: { ...prevDataPatientsRegisterError.weight, isError: true },
-        headCircumference: { ...prevDataPatientsRegisterError.headCircumference, isError: true },
-        medicalType: { ...prevDataPatientsRegisterError.medicalType, isError: true },
-      }))
+    const _dataPatientsRegisterError = {...dataPatientsRegisterError}
 
+    if(dataPatientsRegisterError.identifier.title !== ''){
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.identifier.focus = true;
+        setFocusField('identifier');
+      }
       isValid = false;
     }
 
-    else{
-      const _dataPatientsRegisterError = {...dataPatientsRegisterError}
-      if(dataPatientsRegisterError.identifier.title !== ''){
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.identifier.focus = true;
-          setFocusField('identifier');
-        }
-        isValid = false;
+    if(dataPatientsRegister.patient.patientId === ''){
+      _dataPatientsRegisterError.patientId.title = 'Bạn chưa nhập mã bệnh nhân';
+      _dataPatientsRegisterError.patientId.openTooltip = true;
+      _dataPatientsRegisterError.patientId.isError = true;
+      if(Object.values(dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.patientId.focus = true;
+        setFocusField('patientId');
       }
-
-      if(dataPatientsRegister.patient.patientId === ''){
-        _dataPatientsRegisterError.patientId.title = 'Bạn chưa nhập mã bệnh nhân';
-        _dataPatientsRegisterError.patientId.openTooltip = true;
-        _dataPatientsRegisterError.patientId.isError = true;
-        if(Object.values(dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.patientId.focus = true;
-          setFocusField('patientId');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegisterError.patientId.title !== ''){
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.patientId.focus = true;
-          setFocusField('patientId');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegister.patient.fullName === ''){
-        _dataPatientsRegisterError.fullName.title = 'Bạn chưa nhập họ tên';
-        _dataPatientsRegisterError.fullName.openTooltip = true;
-        _dataPatientsRegisterError.fullName.isError = true;
-        if(Object.values(dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.fullName.focus = true;
-          setFocusField('fullName');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegister.patient.dayOfBirth === ''){
-        _dataPatientsRegisterError.dayOfBirth.title = 'Bạn chưa nhập ngày sinh';
-        _dataPatientsRegisterError.dayOfBirth.openTooltip = true;
-        _dataPatientsRegisterError.dayOfBirth.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.dayOfBirth.focus = true;
-          if (dateFieldRef.current) {
-            dateFieldRef.current.focus(); // Đặt focus vào dateField khi có lỗi
-          }
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegisterError.dayOfBirth.title !== ''){
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.dayOfBirth.focus = true;
-          if (dateFieldRef.current) {
-            dateFieldRef.current.focus(); // Đặt focus vào dateField khi có lỗi
-          }
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegister.patient.gender === ''){
-        _dataPatientsRegisterError.gender.title = 'Bạn chưa chọn giới tính';
-        _dataPatientsRegisterError.gender.openTooltip = true;
-        _dataPatientsRegisterError.gender.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.gender.focus = true;
-          setAutocompleteValue(prevAutocompleteValue => {
-            prevAutocompleteValue.gender.openOption = true
-            return {...prevAutocompleteValue}
-          })
-          setFocusField('gender');
-        }
-        isValid = false;
-      }
-
-      if(autocompleteValue.province.value === null){
-        _dataPatientsRegisterError.province.title = 'Bạn chưa chọn tỉnh thành';
-        _dataPatientsRegisterError.province.openTooltip = true;
-        _dataPatientsRegisterError.province.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.province.focus = true;
-          setAutocompleteValue(prevAutocompleteValue => {
-            prevAutocompleteValue.province.openOption = true
-            return {...prevAutocompleteValue}
-          })
-          setFocusField('province');
-        }
-        isValid = false;
-      }
-
-      if(autocompleteValue.district.value === null){
-        _dataPatientsRegisterError.district.title = 'Bạn chưa chọn quận huyện';
-        _dataPatientsRegisterError.district.openTooltip = true;
-        _dataPatientsRegisterError.district.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.district.focus = true;
-          setAutocompleteValue(prevAutocompleteValue => {
-            prevAutocompleteValue.district.openOption = true
-            return {...prevAutocompleteValue}
-          })
-          setFocusField('district');
-        }
-        isValid = false;
-      }
-
-      if(autocompleteValue.ward.value === null){
-        _dataPatientsRegisterError.ward.title = 'Bạn chưa chọn phường xã';
-        _dataPatientsRegisterError.ward.openTooltip = true;
-        _dataPatientsRegisterError.ward.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.ward.focus = true;
-          setAutocompleteValue(prevAutocompleteValue => {
-            prevAutocompleteValue.ward.openOption = true
-            return {...prevAutocompleteValue}
-          })
-          setFocusField('ward');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegister.patient.address === ''){
-        _dataPatientsRegisterError.address.title = 'Bạn chưa nhập địa chỉ';
-        _dataPatientsRegisterError.address.openTooltip = true;
-        _dataPatientsRegisterError.address.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.address.focus = true;
-          setFocusField('address');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegister.patient.fullNameMother === '' && dataPatientsRegister.patient.fullNameFather === ''){
-        _dataPatientsRegisterError.fullNameMother.title = 'Bạn chưa nhập tên phụ huynh';
-        _dataPatientsRegisterError.fullNameMother.openTooltip = true;
-        _dataPatientsRegisterError.fullNameMother.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.fullNameMother.focus = true;
-          setFocusField('fullNameMother');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegister.patient.phoneMother === '' && dataPatientsRegister.patient.phoneFather === ''){
-        _dataPatientsRegisterError.phoneMother.title = 'Bạn chưa nhập số điện thoại';
-        _dataPatientsRegisterError.phoneMother.openTooltip = true;
-        _dataPatientsRegisterError.phoneMother.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.phoneMother.focus = true;
-          setFocusField('phoneMother');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegisterError.phoneMother.title !== ''){
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.phoneMother.focus = true;
-          setFocusField('phoneMother');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegisterError.phoneFather.title !== ''){
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.phoneFather.focus = true;
-          setFocusField('phoneFather');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegister.height === ''){
-        _dataPatientsRegisterError.height.title = 'Bạn chưa nhập chiều cao';
-        _dataPatientsRegisterError.height.openTooltip = true;
-        _dataPatientsRegisterError.height.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.height.focus = true;
-          setFocusField('height');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegister.weight === ''){
-        _dataPatientsRegisterError.weight.title = 'Bạn chưa nhập cân nặng';
-        _dataPatientsRegisterError.weight.openTooltip = true;
-        _dataPatientsRegisterError.weight.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.weight.focus = true;
-          setFocusField('weight');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegister.headCircumference === ''){
-        _dataPatientsRegisterError.headCircumference.title = 'Bạn chưa nhập số vòng đầu';
-        _dataPatientsRegisterError.headCircumference.openTooltip = true;
-        _dataPatientsRegisterError.headCircumference.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.headCircumference.focus = true;
-          setFocusField('headCircumference');
-        }
-        isValid = false;
-      }
-
-      if(dataPatientsRegister.medicalTypeId === ''){
-        _dataPatientsRegisterError.medicalType.title = 'Bạn chưa chọn loại hình khám';
-        _dataPatientsRegisterError.medicalType.openTooltip = true;
-        _dataPatientsRegisterError.medicalType.isError = true;
-        if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-          _dataPatientsRegisterError.medicalType.focus = true;
-          setAutocompleteValue(prevAutocompleteValue => {
-            prevAutocompleteValue.medicalType.openOption = true
-            return {...prevAutocompleteValue}
-          })
-          setFocusField('medicalType');
-        }
-        isValid = false;
-      }
-
-      // if(dataPatientsRegister.reason === ''){
-      //   _dataPatientsRegisterError.reason.isError = true;
-      //   isValid = false;
-      // }
-
-      if(dataPatientsRegister.userIdDoctor === ''){
-        if(props.currentDoctorExamining.userIdDoctor === '') {
-          toast.error('Bạn chưa chọn bác sĩ khám cho ngày hôm nay!', {toastId: 'error1'});
-          isValid = false;
-        }
-
-        else if(props.currentDoctorExamining.userIdDoctor !== ''){
-          setDataPatientsRegister(prevDataPatientsRegister => {
-            prevDataPatientsRegister.userIdDoctor = props.currentDoctorExamining.userIdDoctor
-            return prevDataPatientsRegister
-          })
-        }
-      }
-      setDataPatientsRegisterError(_dataPatientsRegisterError);
+      isValid = false;
     }
+
+    if(dataPatientsRegisterError.patientId.title !== ''){
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.patientId.focus = true;
+        setFocusField('patientId');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegister.patient.fullName === ''){
+      _dataPatientsRegisterError.fullName.title = 'Bạn chưa nhập họ tên';
+      _dataPatientsRegisterError.fullName.openTooltip = true;
+      _dataPatientsRegisterError.fullName.isError = true;
+      if(Object.values(dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.fullName.focus = true;
+        setFocusField('fullName');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegister.patient.dayOfBirth === ''){
+      _dataPatientsRegisterError.dayOfBirth.title = 'Bạn chưa nhập ngày sinh';
+      _dataPatientsRegisterError.dayOfBirth.openTooltip = true;
+      _dataPatientsRegisterError.dayOfBirth.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.dayOfBirth.focus = true;
+        if (dateFieldRef.current) {
+          dateFieldRef.current.focus(); // Đặt focus vào dateField khi có lỗi
+        }
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegisterError.dayOfBirth.title !== ''){
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.dayOfBirth.focus = true;
+        if (dateFieldRef.current) {
+          dateFieldRef.current.focus(); // Đặt focus vào dateField khi có lỗi
+        }
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegister.patient.gender === ''){
+      _dataPatientsRegisterError.gender.title = 'Bạn chưa chọn giới tính';
+      _dataPatientsRegisterError.gender.openTooltip = true;
+      _dataPatientsRegisterError.gender.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.gender.focus = true;
+        setAutocompleteValue(prevAutocompleteValue => {
+          prevAutocompleteValue.gender.openOption = true
+          return {...prevAutocompleteValue}
+        })
+      setFocusField('gender');
+      }
+      isValid = false;
+    }
+
+    if(autocompleteValue.province.value === null){
+      _dataPatientsRegisterError.province.title = 'Bạn chưa chọn tỉnh thành';
+      _dataPatientsRegisterError.province.openTooltip = true;
+      _dataPatientsRegisterError.province.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.province.focus = true;
+        setAutocompleteValue(prevAutocompleteValue => {
+          prevAutocompleteValue.province.openOption = true
+          return {...prevAutocompleteValue}
+        })
+        setFocusField('province');
+      }
+      isValid = false;
+    }
+
+    if(autocompleteValue.district.value === null){
+      _dataPatientsRegisterError.district.title = 'Bạn chưa chọn quận huyện';
+      _dataPatientsRegisterError.district.openTooltip = true;
+      _dataPatientsRegisterError.district.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.district.focus = true;
+        setAutocompleteValue(prevAutocompleteValue => {
+          prevAutocompleteValue.district.openOption = true
+          return {...prevAutocompleteValue}
+        })
+        setFocusField('district');
+      }
+      isValid = false;
+    }
+
+    if(autocompleteValue.ward.value === null){
+      _dataPatientsRegisterError.ward.title = 'Bạn chưa chọn phường xã';
+      _dataPatientsRegisterError.ward.openTooltip = true;
+      _dataPatientsRegisterError.ward.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.ward.focus = true;
+        setAutocompleteValue(prevAutocompleteValue => {
+          prevAutocompleteValue.ward.openOption = true
+          return {...prevAutocompleteValue}
+        })
+        setFocusField('ward');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegister.patient.address === ''){
+      _dataPatientsRegisterError.address.title = 'Bạn chưa nhập địa chỉ';
+      _dataPatientsRegisterError.address.openTooltip = true;
+      _dataPatientsRegisterError.address.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.address.focus = true;
+        setFocusField('address');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegister.patient.fullNameMother === '' && dataPatientsRegister.patient.fullNameFather === ''){
+      _dataPatientsRegisterError.fullNameMother.title = 'Bạn chưa nhập tên phụ huynh';
+      _dataPatientsRegisterError.fullNameMother.openTooltip = true;
+      _dataPatientsRegisterError.fullNameMother.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.fullNameMother.focus = true;
+        setFocusField('fullNameMother');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegister.patient.phoneMother === '' && dataPatientsRegister.patient.phoneFather === ''){
+      _dataPatientsRegisterError.phoneMother.title = 'Bạn chưa nhập số điện thoại';
+      _dataPatientsRegisterError.phoneMother.openTooltip = true;
+      _dataPatientsRegisterError.phoneMother.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.phoneMother.focus = true;
+        setFocusField('phoneMother');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegisterError.phoneMother.title !== ''){
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.phoneMother.focus = true;
+        setFocusField('phoneMother');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegisterError.phoneFather.title !== ''){
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.phoneFather.focus = true;
+        setFocusField('phoneFather');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegister.height === ''){
+      _dataPatientsRegisterError.height.title = 'Bạn chưa nhập chiều cao';
+      _dataPatientsRegisterError.height.openTooltip = true;
+      _dataPatientsRegisterError.height.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.height.focus = true;
+        setFocusField('height');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegister.weight === ''){
+      _dataPatientsRegisterError.weight.title = 'Bạn chưa nhập cân nặng';
+      _dataPatientsRegisterError.weight.openTooltip = true;
+      _dataPatientsRegisterError.weight.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.weight.focus = true;
+        setFocusField('weight');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegister.headCircumference === ''){
+      _dataPatientsRegisterError.headCircumference.title = 'Bạn chưa nhập số vòng đầu';
+      _dataPatientsRegisterError.headCircumference.openTooltip = true;
+      _dataPatientsRegisterError.headCircumference.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.headCircumference.focus = true;
+        setFocusField('headCircumference');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegister.medicalTypeId === ''){
+      _dataPatientsRegisterError.medicalType.title = 'Bạn chưa chọn loại hình khám';
+      _dataPatientsRegisterError.medicalType.openTooltip = true;
+      _dataPatientsRegisterError.medicalType.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.medicalType.focus = true;
+        setAutocompleteValue(prevAutocompleteValue => {
+          prevAutocompleteValue.medicalType.openOption = true
+          return {...prevAutocompleteValue}
+        })
+        setFocusField('medicalType');
+      }
+      isValid = false;
+    }
+
+    // if(dataPatientsRegister.reason === ''){
+    //   _dataPatientsRegisterError.reason.isError = true;
+    //   isValid = false;
+    // }
+
+    if(dataPatientsRegister.userIdDoctor === ''){
+      if(props.currentDoctorExamining.userIdDoctor === '') {
+        toast.error('Bạn chưa chọn bác sĩ khám cho ngày hôm nay!', {toastId: 'error1'});
+        isValid = false;
+      }
+
+    else if(props.currentDoctorExamining.userIdDoctor !== ''){
+      setDataPatientsRegister(prevDataPatientsRegister => {
+        prevDataPatientsRegister.userIdDoctor = props.currentDoctorExamining.userIdDoctor
+          return prevDataPatientsRegister
+        })
+      }
+    }
+
+    setDataPatientsRegisterError(_dataPatientsRegisterError);
     return isValid;
   }
 
@@ -1497,11 +1473,10 @@ function BookMedical(props) {
 
           <ThemeProvider theme={tooltipTheme}>
             <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.identifier.title}</h6>} open={dataPatientsRegisterError.identifier.openTooltip} placement="left" PopperProps={{sx: { zIndex: 2 } }}> 
-              <div style={{width: '18%'}}>
+              <div style={{width: '18%', marginTop: '20px'}}>
                 <TextField error={true ? dataPatientsRegisterError.identifier.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
                   label="Mã định danh" variant="outlined" id='patientIdentifier'
                   inputRef={focusField === 'identifier' ? (input) => input && focusField === 'identifier' && input.focus() : firstFocusRef}
-                  sx={{'&.MuiTextField-root' : {marginTop: '20px'}}} 
                   onChange={(e) => onChangeIdentifier(e.target.value)}
                   onKeyDown={handleKeyDown}
                   onBlur={(e) => handleBlur(e.target.value, 'Identifier')}
@@ -1514,11 +1489,10 @@ function BookMedical(props) {
 
           <ThemeProvider theme={tooltipTheme}>
             <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.patientId.title}</h6>} open={dataPatientsRegisterError.patientId.openTooltip} placement="top" PopperProps={{sx: { zIndex: 2 } }}> 
-              <div style={{width: '18%'}}>
+              <div style={{width: '18%', marginTop: '20px'}}>
                 <TextField error={true ? dataPatientsRegisterError.patientId.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
                   label="Mã BN" variant="outlined" id='patientId'
                   inputRef={(input) => input && focusField === 'patientId' && input.focus()}
-                  sx={{'&.MuiTextField-root' : {marginTop: '20px'}}} 
                   onChange={(e) => onChangePatientId(e.target.value)}
                   onKeyDown={handleKeyDown}
                   onBlur={(e) => handleBlur(e.target.value, 'PatientId')}
@@ -1542,11 +1516,10 @@ function BookMedical(props) {
                   },
                 }} 
               > 
-                <div style={{width: '30%', display: 'inline-grid'}}>
+                <div style={{width: '30%', display: 'inline-grid', marginTop: '20px'}}>
                   <TextField error={true ? dataPatientsRegisterError.fullName.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
                     label="Họ tên" variant="outlined" id="patientFullName"                   
                     inputRef={(input) => input && focusField === 'fullName' && input.focus()}
-                    sx={{'&.MuiTextField-root' : {marginTop: '20px'}}} 
                     onChange={(e) => onChangeFullName(e.target.value)}
                     inputProps={{ style: { WebkitTextFillColor: dataPatientsRegister.oldDisease ? "#ff1744" :  "black"} }}
                     InputLabelProps={dataPatientsRegister.oldDisease === true ? {shrink: Boolean(true) } : null}
@@ -1584,10 +1557,9 @@ function BookMedical(props) {
 
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.gender.title}</h6>} open={dataPatientsRegisterError.gender.openTooltip} placement="top" PopperProps={{sx: { zIndex: 2 } }}>
-                <div style={{width: '12%'}}>
+                <div style={{width: '12%', marginTop: '20px'}}>
                   <Autocomplete disablePortal id='patientGender' disabled={dataPatientsRegister.oldDisease === true ? true : false}
                     value={autocompleteValue.gender.value}
-                    sx={{marginTop: '20px'}}
                     options={listGender} 
                     getOptionLabel={(option) => option.genderName}
                     renderOption={(props, option) => (
@@ -1618,10 +1590,9 @@ function BookMedical(props) {
 
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.province.title}</h6>} open={dataPatientsRegisterError.province.openTooltip} placement="left" PopperProps={{sx: { zIndex: 2 } }}>
-                <div style={{width: '19.2%'}}>
+                <div style={{width: '19.2%', marginTop: '20px'}}>
                   <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true ? true : false}
                     value={autocompleteValue.province.value}
-                    sx={{marginTop: '20px'}}
                     options={listProvince} 
                     noOptionsText={'Đang tải...'}
                     filterOptions={filterOptions}
@@ -1652,10 +1623,9 @@ function BookMedical(props) {
 
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.district.title}</h6>} open={dataPatientsRegisterError.district.openTooltip} placement="top" PopperProps={{sx: { zIndex: 2 } }}>
-                <div style={{width: '24%', }}>
+                <div style={{width: '24%', marginTop: '20px'}}>
                   <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true ? true : false}
                     value={autocompleteValue.district.value}
-                    sx={{marginTop: '20px'}}
                     options={listDistrict.list} 
                     noOptionsText={listDistrict.loading ? 'Đang tải...' : ''}
                     open={autocompleteValue.district.openOption}
@@ -1696,10 +1666,9 @@ function BookMedical(props) {
             <ThemeProvider theme={tooltipTheme}>
               <>
                 <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.ward.title}</h6>} open={dataPatientsRegisterError.ward.openTooltip} placement="bottom" PopperProps={{sx: { zIndex: 2 } }}>
-                  <div style={{width: '23.5%', }}>
+                  <div style={{width: '23.5%', marginTop: '20px'}}>
                     <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true ? true : false}
                       value={autocompleteValue.ward.value}
-                      sx={{marginTop: '20px'}}
                       options={listWard.list} 
                       noOptionsText={listWard.loading ? 'Đang tải...' : ''}
                       filterOptions={filterOptions}
@@ -1740,11 +1709,10 @@ function BookMedical(props) {
             
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.address.title}</h6>} open={dataPatientsRegisterError.address.openTooltip} placement="bottom" PopperProps={{sx: { zIndex: 2 } }}>
-                <div style={{width: '30%', display: 'inline-grid'}}>
+                <div style={{width: '30%', display: 'inline-grid', marginTop: '20px'}}>
                   <TextField error={true ? dataPatientsRegisterError.address.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
                     label="Địa chỉ" variant="outlined" id='patientAddress'
                     inputRef={(input) => input && focusField === 'address' && input.focus()}
-                    sx={{'&.MuiTextField-root' : {marginTop: '20px'}}} 
                     onChange={(e) => onChangeAddress(e.target.value)}
                     inputProps={{ style: { WebkitTextFillColor: dataPatientsRegister.oldDisease ? "#ff1744" :  "black"} }}
                     InputLabelProps={dataPatientsRegister.oldDisease === true ? {shrink: Boolean(true) } : null}
@@ -1755,12 +1723,11 @@ function BookMedical(props) {
             
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.fullNameMother.title}</h6>} open={dataPatientsRegisterError.fullNameMother.openTooltip} placement="left" PopperProps={{sx: { zIndex: 2 } }}>
-                <div style={{width: '30%', display: 'inline-grid'}}>
+                <div style={{width: '30%', display: 'inline-grid', marginTop: '20px'}}>
                   <TextField error={true ? dataPatientsRegisterError.fullNameMother.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
                     label="Họ tên mẹ" variant="outlined" id='patientFullNameMother'
                     inputRef={(input) => input && focusField === 'fullNameMother' && input.focus()}
                     autoFocus={dataPatientsRegisterError.fullNameMother.focus}
-                    sx={{'&.MuiTextField-root' : {marginTop: '20px'}}} 
                     onChange={(e) => onChangeFullNameMother(e.target.value)}
                     inputProps={{ style: { WebkitTextFillColor: dataPatientsRegister.oldDisease ? "#ff1744" :  "black"} }}
                     InputLabelProps={dataPatientsRegister.oldDisease === true ? {shrink: Boolean(true) } : null}
@@ -1771,11 +1738,10 @@ function BookMedical(props) {
             
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.phoneMother.title}</h6>} open={dataPatientsRegisterError.phoneMother.openTooltip} placement="bottom" PopperProps={{sx: { zIndex: 2 } }}>
-                <div style={{width: '18%'}}>
+                <div style={{width: '18%', marginTop: '20px'}}>
                   <TextField error={true ? dataPatientsRegisterError.phoneMother.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
                     label="Điện thoại" variant="outlined" id='patientPhoneMother' 
                     inputRef={(input) => input && focusField === 'phoneMother' && input.focus()}
-                    sx={{'&.MuiTextField-root' : {marginTop: '20px'}}} 
                     onChange={(e) => onChangePhoneMother(e.target.value)}
                     onKeyDown={handleKeyDown}
                     onBlur={(e) => handleBlur(e.target.value, 'PhoneMother')}
@@ -1797,11 +1763,10 @@ function BookMedical(props) {
             
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.phoneFather.title}</h6>} open={dataPatientsRegisterError.phoneFather.openTooltip}>
-                <div style={{width: '18%'}}>
+                <div style={{width: '18%', marginTop: '20px'}}>
                   <TextField label="Điện thoại" disabled={dataPatientsRegister.oldDisease === true ? true : false}
                     inputRef={(input) => input && focusField === 'phoneFather' && input.focus()}
                     variant="outlined" id='patientPhoneFather'
-                    sx={{'&.MuiTextField-root' : {marginTop: '20px'}}} 
                     onChange={(e) => onChangePhoneFather(e, e.target.value)}
                     onKeyDown={handleKeyDown}
                     onBlur={(e) => handleBlur(e.target.value, 'PhoneFather')}
@@ -1814,10 +1779,9 @@ function BookMedical(props) {
 
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.height.title}</h6>} open={dataPatientsRegisterError.height.openTooltip} placement='left' PopperProps={{sx: { zIndex: 2 } }}>
-                <div style={{width: '22%'}}>
+                <div style={{width: '22%', marginTop: '20px'}}>
                   <TextField label="Chiều cao bé" variant="outlined" id='patientHeight' error={true ? dataPatientsRegisterError.height.isError === true : false}
                     inputRef={(input) => input && focusField === 'height' && input.focus()}
-                    sx={{'&.MuiTextField-root' : {marginTop: '20px'}}} 
                     InputProps={{endAdornment: <InputAdornment position="end">(cm)</InputAdornment>}}
                     onChange={(e) => onChangeHeight(e.target.value)}
                   />
@@ -1827,10 +1791,9 @@ function BookMedical(props) {
             
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.weight.title}</h6>} open={dataPatientsRegisterError.weight.openTooltip} PopperProps={{sx: { zIndex: 2 } }}>
-                <div style={{width: '22%'}}>
+                <div style={{width: '22%', marginTop: '20px'}}>
                   <TextField label="Cân nặng bé" variant="outlined" id='patientWeight' error={true ? dataPatientsRegisterError.weight.isError === true : false}
                     inputRef={(input) => input && focusField === 'weight' && input.focus()}
-                    sx={{'&.MuiTextField-root' : {marginTop: '20px'}}} 
                     InputProps={{endAdornment: <InputAdornment position="end">(kg)</InputAdornment>}}
                     onChange={(e) => onChangeWeight(e.target.value)}
                   />
@@ -1851,10 +1814,9 @@ function BookMedical(props) {
                   },
                 }} 
               >
-                <div style={{width: '22%'}}>
+                <div style={{width: '22%', marginTop: '20px'}}>
                   <TextField label="Vòng đầu bé" variant="outlined" id='patientHeadCircumference' error={true ? dataPatientsRegisterError.headCircumference.isError === true : false}
                     inputRef={(input) => input && focusField === 'headCircumference' && input.focus()}
-                    sx={{'&.MuiTextField-root' : {marginTop: '20px'}}} 
                     InputProps={{endAdornment: <InputAdornment position="end">(cm)</InputAdornment>}}
                     onChange={(e) => onChangeHeadCircumference(e.target.value)}
                   />
@@ -1864,10 +1826,9 @@ function BookMedical(props) {
 
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.medicalType.title}</h6>} open={dataPatientsRegisterError.medicalType.openTooltip} placement='bottom' PopperProps={{sx: { zIndex: 2 } }}>
-                <div style={{width: '30.5%'}}>
+                <div style={{width: '30.5%', marginTop: '20px'}}>
                   <Autocomplete disablePortal id='patientMedicalType' disabled={dataPatientsRegister.oldDisease === true ? true : false}
                     value={autocompleteValue.medicalType.value}
-                    sx={{marginTop: '20px'}}
                     options={listMedicalType} 
                     getOptionLabel={(option) => option.medicalTypeName}
                     renderOption={(props, option) => (
