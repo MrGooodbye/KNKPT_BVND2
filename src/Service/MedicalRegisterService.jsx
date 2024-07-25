@@ -64,6 +64,42 @@ const createCurrentDoctorExamining = async (userIdDoctor) => {
     })
 }
 
+const createAddPredecessor = async (dataPredecessor) => {
+    const token = localStorage.getItem("jwt");
+    return await axios.post(`${backendURL}/api/Medical/AddPredecessor`, dataPredecessor,
+        {
+            headers: {
+                "content-type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    )
+    .then(function (response) {
+        return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
+const createAddMedicalBook = async (dataMedicalBook) => {
+    const token = localStorage.getItem("jwt");
+    return await axios.post(`${backendURL}/api/Medical/AddMedicalBook`, dataMedicalBook,
+        {
+            headers: {
+                "content-type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    )
+    .then(function (response) {
+        return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
 const getRegistersByDateNow = async () => {
     const config = createConfig();
     return await axios.get(`${backendURL}/api/Medical/GetRegistersByDateNow`, config)
@@ -119,6 +155,39 @@ const getCurrentDoctorExamining = async () => {
     })
 }
 
+const getMedicalDetailPatient = async (id) => {
+    const config = createConfig();
+    return await axios.get(`${backendURL}/api/Medical/DetailPatient/${id}`, config)
+    .then(function (response) {
+        return response.data
+    })
+    .catch(function (error) {
+        return error.response.status
+    })
+}
+
+const getMedicalBook = async (medicalBookId) => {
+    const config = createConfig();
+    return await axios.get(`${backendURL}/api/Medical/GetMediacalBook?medicalBookId=${medicalBookId}`, config)
+    .then(function (response) {
+        return response.data
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
+const getAppointmentDate = async (medicalRegisterId) => {
+    const config = createConfig();
+    return await axios.get(`${backendURL}/api/Medical/GetAppointmentDate/${medicalRegisterId}`, config)
+    .then(function (response) {
+        return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
 const updateMedicalRegister = async (dataPatientsRegister) => {
     const token = localStorage.getItem("jwt");
     return await axios.put(`${backendURL}/api/Medical/EditRegister`, dataPatientsRegister, {
@@ -135,8 +204,24 @@ const updateMedicalRegister = async (dataPatientsRegister) => {
     })
 }
 
+const updateMedicalState = async (id, state) => {
+    const token = localStorage.getItem("jwt");
+    return await axios.put(`${backendURL}/api/Medical/UpdateState?id=${id}&state=${state}`, {}, {
+        headers: {
+            "content-type": "text/plain; charset=utf-8",
+            Authorization: `Bearer ${token}`,
+        },
+    })
+    .then(function (response) {
+        return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
 export {
-    createMedicalRegister, createMedicalBackRegister, createCurrentDoctorExamining,
-    getRegistersByDateNow, getListMedicalExaminationsGiveRegister, getListOldDisease, getVaccinationByPatientId, getCurrentDoctorExamining,
-    updateMedicalRegister
+    createMedicalRegister, createMedicalBackRegister, createCurrentDoctorExamining, createAddPredecessor, createAddMedicalBook,
+    getRegistersByDateNow, getListMedicalExaminationsGiveRegister, getListOldDisease, getVaccinationByPatientId, getCurrentDoctorExamining, getMedicalDetailPatient, getMedicalBook, getAppointmentDate,
+    updateMedicalRegister, updateMedicalState
 }

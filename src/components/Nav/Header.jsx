@@ -2,8 +2,6 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 import { Link, NavLink, useHistory } from "react-router-dom";
 import { withRouter } from 'react-router';
-//modal
-import AlertProcessingBackdrop from '../ManageAlertProcessingBackdrop/AlertProcessingBackdrop';
 import UserManual from '../ManageUserManual/UserManual';
 //mui theme
 import Box from '@mui/material/Box';

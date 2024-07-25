@@ -50,10 +50,10 @@ function ExaminingSession(props) {
             setOpenAlertProcessing(false);
             if(response.status === 200){
                 toast.success(response.data);
-                props.handleResetField();
                 props.setIsContinueSelectedExaminingSession(false);
                 props.setCompleteMedicalRegister(true);
                 props.setOpenModalExaminingSession(false);
+                props.handleResetField();
             }
             else{
                 toast.error(response.data, {toastId: 'error1'});

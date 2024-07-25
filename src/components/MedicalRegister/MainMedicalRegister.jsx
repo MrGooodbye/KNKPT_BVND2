@@ -108,7 +108,7 @@ function MainMedicalRegister() {
                             onF2Press={handleOpenModalExaminingSession} setOnF2Press={setHandleOpenModalExaminingSession}
                             onF4Press={handleResetField} setOnF4Press={setHandleResetField}
                             onF8Press={handleOpenModalOldDisease} setOnF8Press={setHandleOpenModalOldDisease}
-                            setCompleteMedicalRegister={setCompleteMedicalRegister}
+                            completeMedicalRegister={completeMedicalRegister} setCompleteMedicalRegister={setCompleteMedicalRegister}
                             currentDoctorExamining={currentDoctorExamining}
                           />
                         }

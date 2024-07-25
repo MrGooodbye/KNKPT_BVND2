@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 
 function AlertProcessingBackdrop(props) {
     return (
-        <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={props.openAlertProcessingBackdrop}>
+        <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1, backgroundColor: props.changeBackground ? 'rgba(0, 0, 0, 0.25)' : 'rgba(0, 0, 0, 0.6)' }} open={props.openAlertProcessingBackdrop}>
             <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                 <CircularProgress color='inherit' />
                 <Typography sx={{mt: 1.4,}} variant='subtitle1'>{props.alertTitle}</Typography>

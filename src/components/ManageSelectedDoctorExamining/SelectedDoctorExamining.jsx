@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 //lodash
 import _ from 'lodash';
+//mui theme
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -12,6 +13,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Popper from '@mui/material/Popper';
+import CircularProgress from '@mui/material/CircularProgress';
 //toast
 import { toast } from 'react-toastify';
 //api
@@ -20,7 +22,7 @@ import { createCurrentDoctorExamining } from '../../Service/MedicalRegisterServi
 import { Box } from '@mui/material';
 
 function SelectedDoctorExamining(props) {
-
+    const [loading, setLoading] = useState(false);
     const [listDoctor, setListDoctor] = useState([]);
     const [selectedDoctor, setSelectedDoctor] = useState(null);
 
@@ -62,13 +64,14 @@ function SelectedDoctorExamining(props) {
     const handleGetGetListDoctor = async () => {
         const response = await getGetListDoctor();
         setListDoctor(response);
-        if(props.currentDoctorExamining){
+        if(props.currentDoctorExamining.userIdDoctor !== ''){
             const indexResponseListDoctor = response.findIndex(listDoctor => listDoctor.userId === props.currentDoctorExamining.userIdDoctor);
             setSelectedDoctor(response[indexResponseListDoctor]);
         }
     }
 
     useEffect(() => {
+        setLoading(true);
         if(props.openSelectedDoctorExaminingModal){
             if(listDoctor.length === 0){
                 handleGetGetListDoctor();
@@ -78,6 +81,7 @@ function SelectedDoctorExamining(props) {
                 setSelectedDoctor(listDoctor[indexResponseListDoctor]);
             }
         }
+        setLoading(false);
     }, [props.currentDoctorExamining, props.openSelectedDoctorExaminingModal])
 
     return (
@@ -88,35 +92,40 @@ function SelectedDoctorExamining(props) {
                     <CloseIcon fontSize='medium'/>
                 </IconButton>
                 <DialogContent dividers >
-                    <Box sx={{height: 'auto'}}>
-                        <Autocomplete 
-                            value={selectedDoctor}
-                            sx={{marginBottom: '10px'}}
-                            options={listDoctor}
-                            PopperComponent={CustomPopper}
-                            getOptionLabel={(option) => option.userFullName}
-                            renderOption={(props, option) => (
-                                <li {...props}>
-                                    {option.userFullName}
-                                </li>
-                            )}
-                            onChange={(e, value) => onSelectDoctor(e, value)}
-                            renderInput={(params) => (
-                                <TextField {...params} 
-                                    label={'Chọn một bác sĩ'} 
+                    {loading ? 
+                        <CircularProgress/>
+                    :
+                        <>
+                            <Box sx={{height: 'auto'}}>
+                                <Autocomplete 
+                                    value={selectedDoctor}
+                                    sx={{marginBottom: '10px'}}
+                                    options={listDoctor}
+                                    PopperComponent={CustomPopper}
+                                    getOptionLabel={(option) => option.userFullName}
+                                    renderOption={(props, option) => (
+                                        <li {...props}>
+                                            {option.userFullName}
+                                        </li>
+                                    )}
+                                    onChange={(e, value) => onSelectDoctor(e, value)}
+                                    renderInput={(params) => (
+                                        <TextField {...params} 
+                                            label={'Chọn một bác sĩ'} 
+                                        />
+                                    )}
+                                    disableClearable // Bỏ icon xóa
+                                    popupIcon={null} // Bỏ icon dropdown
                                 />
-                            )}
-                            disableClearable // Bỏ icon xóa
-                            popupIcon={null} // Bỏ icon dropdown
-                        />
 
-                        <Stack spacing={2} direction="column">
-                            <Button sx={{ width: '12ch' }} variant="contained" color="success" style={{ margin: 'auto' }} 
-                                onClick={() => handleCreateCurrentDoctorExamining()}>Lưu
-                            </Button>
-                        </Stack>
-                    </Box>
-            
+                                <Stack spacing={2} direction="column">
+                                    <Button sx={{ width: '12ch' }} variant="contained" color="success" style={{ margin: 'auto' }} 
+                                        onClick={() => handleCreateCurrentDoctorExamining()}>Lưu
+                                    </Button>
+                                </Stack>
+                            </Box>
+                        </>
+                    }
                 </DialogContent>
             </Dialog>
         </>

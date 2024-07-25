@@ -86,7 +86,7 @@ const UserProvider = ({ children }) => {
             </UserContext.Provider>
 
             <AlertProcessingBackdrop 
-                openAlertProcessingBackdrop={openAlertProcessingBackdrop} setOpenAlertProcessingBackdrop={setOpenAlertProcessingBackdrop}
+                openAlertProcessingBackdrop={openAlertProcessingBackdrop}
                 alertTitle={'Đang tải thông tin người dùng'}
             />
         </>

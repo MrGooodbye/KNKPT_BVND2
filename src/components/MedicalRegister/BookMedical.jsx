@@ -1369,6 +1369,7 @@ function BookMedical(props) {
 
     setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
     setOpenAlertProcessing(false);
+    setFocusField('height');
   }
 
   const handleResetField = () => {
@@ -1424,6 +1425,13 @@ function BookMedical(props) {
     handleGetListProvince();
     firstFocusRef.current.focus();
   }, [])
+
+  useEffect(() => {
+    if(props.completeMedicalRegister === true){
+      firstFocusRef.current.focus();
+      console.log('vao day');
+    }
+  }, [props.completeMedicalRegister])
 
   useEffect(() => {
     if(dataPatientsRegister.oldDisease === true){
