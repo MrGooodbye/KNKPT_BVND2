@@ -31,6 +31,7 @@ import './SCSS/Shared.scss';
 import moment from 'moment';
 //api
 import { getListProvince, getListDistrict, getListWard, getFullAddressByIdWard } from '../../Service/PlaceService';
+import { createMedicalBackRegister } from '../../Service/MedicalService';
 import { toast } from 'react-toastify';
 
 function BookMedical(props) {
@@ -1329,9 +1330,29 @@ function BookMedical(props) {
   const handleMedicalRegister = () => {
     setTimeout(() => {
       if(checkValidate()){
-        setOpenModalExaminingSession(true);
+        firstFocusRef.current.focus();
+        if(props.dataPantientAppointmentsToday){
+          handleMedicalBackRegister();
+        }
+        else{
+          setOpenModalExaminingSession(true);
+        }
       }
     }, 100)
+  }
+
+  const handleMedicalBackRegister = async () => {
+    setOpenAlertProcessing(true);
+    const responseCreateMedicalBackRegister = await createMedicalBackRegister(dataPatientsRegister);
+    if(responseCreateMedicalBackRegister.status === 200){
+      toast.success(responseCreateMedicalBackRegister.data, {toastId: 'success5'})
+      props.setCompleteMedicalRegister(true);
+      handleResetField();
+    }
+    else{
+      toast.error(responseCreateMedicalBackRegister.data, {toastId: 'error5'})
+    }
+    setOpenAlertProcessing(false);
   }
 
   const handleApplyPantientOldDiseaseData = async () => {
@@ -1372,6 +1393,44 @@ function BookMedical(props) {
     setFocusField('height');
   }
 
+  const handleApplyPantientAppointmentsTodayData = async () => {
+    setOpenAlertProcessing(true);
+    document.getElementById('patientIdentifier').value = props.dataPantientAppointmentsToday.patient.identifier;
+    document.getElementById('patientId').value = props.dataPantientAppointmentsToday.patient.patientId;
+    document.getElementById('patientFullName').value = props.dataPantientAppointmentsToday.patient.fullName;
+
+    const _autocompleteValue = {...autocompleteValue};
+    _autocompleteValue.dayOfBirth = moment(props.dataPantientAppointmentsToday.patient.dayOfBirth);
+
+    const response = await getFullAddressByIdWard(props.dataPantientAppointmentsToday.patient.codeWard);
+    const responseListDistrict = await getListDistrict(response.provinceCode);
+    const responseListWard = await getListWard(response.districtCode);
+
+    const indexListGender = listGender.findIndex(gender => gender.genderValue === props.dataPantientAppointmentsToday.patient.gender);
+    const indexListProvince = listProvince.findIndex(province => province.code === response.provinceCode);
+    const indexListDistrict = responseListDistrict.findIndex(district => district.code === response.districtCode);
+    const indexListWard = responseListWard.findIndex(ward => ward.code === response.wardCode);
+    const indexListMedicalType = listMedicalType.findIndex(medicalType => medicalType.medicalTypeId === props.dataPantientAppointmentsToday.medicalTypeId);
+    
+    _autocompleteValue.gender.value = listGender[indexListGender];
+    _autocompleteValue.province.value = listProvince[indexListProvince];
+    _autocompleteValue.district.value = responseListDistrict[indexListDistrict];
+    _autocompleteValue.ward.value = responseListWard[indexListWard];
+    _autocompleteValue.medicalType.value = listMedicalType[indexListMedicalType];
+    _autocompleteValue.vaccination = props.dataPantientAppointmentsToday.vaccination;
+    setAutocompleteValue(_autocompleteValue);
+
+    document.getElementById('patientAddress').value = props.dataPantientAppointmentsToday.patient.address;
+    document.getElementById('patientFullNameMother').value = props.dataPantientAppointmentsToday.patient.fullNameMother;
+    document.getElementById('patientPhoneMother').value = props.dataPantientAppointmentsToday.patient.phoneMother
+    document.getElementById('patientFullNameFather').value = props.dataPantientAppointmentsToday.patient.fullNameFather;
+    document.getElementById('patientPhoneFather').value = props.dataPantientAppointmentsToday.patient.phoneFather;
+
+    setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
+    setOpenAlertProcessing(false);
+    setFocusField('height');
+  }
+
   const handleResetField = () => {
     formRef.current.reset();
     const inputs = formRef.current.querySelectorAll('input, textarea');
@@ -1389,6 +1448,10 @@ function BookMedical(props) {
       prevListWard.list = []
       return {...prevListWard}
     })
+
+    if(props.dataPantientAppointmentsToday){
+      props.setDataPantientAppointmentsToday();
+    }
 
     setFocusField(null);
 
@@ -1427,17 +1490,17 @@ function BookMedical(props) {
   }, [])
 
   useEffect(() => {
-    if(props.completeMedicalRegister === true){
-      firstFocusRef.current.focus();
-      console.log('vao day');
-    }
-  }, [props.completeMedicalRegister])
-
-  useEffect(() => {
     if(dataPatientsRegister.oldDisease === true){
       handleApplyPantientOldDiseaseData();
     }
   }, [dataPatientsRegister.oldDisease])
+
+  useEffect(() => {
+    if(props.dataPantientAppointmentsToday){
+      setDataPatientsRegister(props.dataPantientAppointmentsToday);
+      handleApplyPantientAppointmentsTodayData();
+    }
+  }, [props.dataPantientAppointmentsToday]) 
 
   useEffect(() => {
     if(props.onF2Press){

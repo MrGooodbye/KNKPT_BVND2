@@ -16,6 +16,8 @@ import Stack from '@mui/material/Stack';
 import { DialogActions } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 //mui icon
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 //mui datepicker
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
@@ -29,7 +31,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 //css
 import './SCSS/CompleteExamining.scss';
 //api
-import { createAddPredecessor, createAddMedicalBook, getAppointmentDate } from '../../Service/MedicalRegisterService';
+import { createAddPredecessor, createAddMedicalBook, getAppointmentDate } from '../../Service/MedicalService';
 import { toast } from 'react-toastify';
 
 function CompleteExamining(props) {
@@ -60,6 +62,7 @@ function CompleteExamining(props) {
           return;
         }
         else{
+            //setMainDataExaminingForConclusion();
             props.setOpenModalCompleteExamining(false);
         }
       }
@@ -93,7 +96,7 @@ function CompleteExamining(props) {
 
     const handleSetDataCompleteExamining = async () => {
         const editDataExaminingForConclusion = _.clone(props.dataExaminingForConclusion);
-
+        
         editDataExaminingForConclusion.categories = editDataExaminingForConclusion.categories.map(categoriesItem => ({
             ...categoriesItem,
             // Lọc các categoryContents để giữ lại những phần tử có categoryContentQuestions không rỗng
@@ -116,29 +119,91 @@ function CompleteExamining(props) {
 
             setMainDataExaminingForConclusion(editDataExaminingForConclusion);
             setOpenAlertProcessing(false);
-            textareaRef.current.focus();
+            if(props.dataExaminingForConclusion.conclusion !== ''){
+                const length = textareaRef.current.value.length;
+                textareaRef.current.setSelectionRange(length, length);
+                textareaRef.current.focus();
+            }
+            else{
+                textareaRef.current.focus();
+            }
         }
     }
 
     const handleAddMedicalBook = async () => {
         if(checkValidate()){
             setOpenAlertProcessing(true);
-            if(mainDataExaminingForConclusion.categories.some(categoriesItem => categoriesItem.isPredecessor === true)){
-                const categoryPres = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isPredecessor === true)
-                const dataPredecessor = { patientId: mainDataExaminingForConclusion.patientId, categoryPres: categoryPres }
+            //tái khám hoặc mở khám lại
+            if(props.oldDataPredecessor){
+                mainDataExaminingForConclusion.categories.filter(cat2 => cat2.isPredecessor).forEach(cat2 => {
+                    let matchedCategory = props.oldDataPredecessor.find(cat1 => cat1.categoryName === cat2.categoryName && cat1.isPredecessor);
+                
+                    if (matchedCategory) {
+                      // If categoryName matches
+                      cat2.categoryContents.forEach(content2 => {
+                        let matchedContent = matchedCategory.categoryContents.find(content1 => content1.categoryContentTitle === content2.categoryContentTitle);
+                
+                        if (matchedContent) {
+                          // If categoryContentTitle matches
+                          content2.categoryContentQuestions.forEach(question2 => {
+                            let matchedQuestion = matchedContent.categoryContentQuestions.find(question1 => question1.categoryContentQuestionName === question2.categoryContentQuestionName);
+                
+                            if (matchedQuestion) {
+                              // If categoryContentQuestionName matches, update the question
+                              matchedQuestion.categoryContentAnswer = question2.categoryContentAnswer;
+                              matchedQuestion.categoryContentNote = question2.categoryContentNote;
+                            } else {
+                              // If categoryContentQuestionName doesn't match, push the new question
+                              matchedContent.categoryContentQuestions.push(question2);
+                            }
+                          });
+                        } else {
+                          // If categoryContentTitle doesn't match, push the new content
+                          matchedCategory.categoryContents.push(content2);
+                        }
+                      });
+                    } else {
+                      // If categoryName doesn't match, push the new category
+                      props.oldDataPredecessor.push(cat2);
+                    }
+                });
+
+                const dataPredecessor = { patientId: mainDataExaminingForConclusion.patientId, categoryPres: props.oldDataPredecessor }
+
                 await createAddPredecessor(dataPredecessor);
+
+                const categoriesHealthRecordExamining = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isHealthRecord === true)
+                mainDataExaminingForConclusion.categories = categoriesHealthRecordExamining
+                const responseAddMedicalBook = await createAddMedicalBook(mainDataExaminingForConclusion);
+                if(responseAddMedicalBook.status === 200){
+                    toast.success(responseAddMedicalBook.data, {toastId: 'success3'});
+                    props.handleCompleteExaminingForPantient();
+                    setMainDataExaminingForConclusion();
+                    props.setOpenModalCompleteExamining(false);
+                }
+                else{
+                    toast.error(responseAddMedicalBook.data, {toastId: 'error1'});
+                }
             }
-            const categoriesHealthRecordExamining = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isHealthRecord === true)
-            mainDataExaminingForConclusion.categories = categoriesHealthRecordExamining
-            const responseAddMedicalBook = await createAddMedicalBook(mainDataExaminingForConclusion);
-            if(responseAddMedicalBook.status === 200){
-                toast.success(responseAddMedicalBook.data, {toastId: 'success3'});
-                props.handleCompleteExaminingForPantient();
-                setMainDataExaminingForConclusion();
-                props.setOpenModalCompleteExamining(false);
-            }
+            //khám mới hoàn toàn
             else{
-                toast.error(responseAddMedicalBook.data, {toastId: 'error1'});
+                if(mainDataExaminingForConclusion.categories.some(categoriesItem => categoriesItem.isPredecessor === true)){
+                    const categoryPres = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isPredecessor === true)
+                    const dataPredecessor = { patientId: mainDataExaminingForConclusion.patientId, categoryPres: categoryPres }
+                    await createAddPredecessor(dataPredecessor);
+                }
+                const categoriesHealthRecordExamining = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isHealthRecord === true)
+                mainDataExaminingForConclusion.categories = categoriesHealthRecordExamining
+                const responseAddMedicalBook = await createAddMedicalBook(mainDataExaminingForConclusion);
+                if(responseAddMedicalBook.status === 200){
+                    toast.success(responseAddMedicalBook.data, {toastId: 'success3'});
+                    props.handleCompleteExaminingForPantient();
+                    setMainDataExaminingForConclusion();
+                    props.setOpenModalCompleteExamining(false);
+                }
+                else{
+                    toast.error(responseAddMedicalBook.data, {toastId: 'error1'});
+                }
             }
             setOpenAlertProcessing(false);
         }
@@ -175,8 +240,11 @@ function CompleteExamining(props) {
 
     return (
         <>
-            <Dialog fullWidth={true} maxWidth={'md'} open={props.openModalCompleteExamining} onClose={(event, reason) => handleCloseModalCompleteExamining(event, reason)}>
+            <Dialog fullWidth={true} maxWidth={'md'} open={props.openModalCompleteExamining} onClose={(event, reason) => handleCloseModalCompleteExamining(event, reason)} disableEscapeKeyDown={true}>
                 <DialogTitle sx={{ fontWeight: 'bolder', fontSize: '20px', textAlign: 'center', color: 'red', textTransform: 'uppercase' }}>Tóm tắt quá trình khám</DialogTitle>
+                <IconButton onClick={() => handleCloseModalCompleteExamining()} sx={{position: 'absolute', right: 5, top: 7}}>
+                    <CloseIcon fontSize='large'/>
+                </IconButton>
                 <DialogContent dividers sx={{pl: '15px', pr: '15px'}}>
                     <Box sx={{pl: 6, pr: 6}}>
                         <List sx={{p: 0}}>
@@ -273,11 +341,11 @@ function CompleteExamining(props) {
                     </Box>
                 </DialogContent>
 
-                <DialogActions>
+                <DialogActions sx={{borderTop: '1px solid black'}}>
                     {mainDataExaminingForConclusion ? 
                         mainDataExaminingForConclusion.categories.length !== 0 ?
                             <div style={{width: '100%', padding: '8px 50px 8px 50px'}}>
-                                <TextareaAutosize placeholder='Kết luận của bác sĩ' style={{width: '100%', padding: '15px', fontSize: '17px'}} onChange={(e) => onChangeExaminingConclusion(e.target.value)} ref={textareaRef} />
+                                <TextareaAutosize key={`pantientId ${mainDataExaminingForConclusion.patientId}`} placeholder='Kết luận của bác sĩ' style={{width: '100%', padding: '15px', fontSize: '17px'}} onChange={(e) => onChangeExaminingConclusion(e.target.value)} ref={textareaRef} defaultValue={mainDataExaminingForConclusion.conclusion} />
                             
                                     {mainDataExaminingForConclusion.appointmentDate ? 
                                     <>
@@ -285,7 +353,7 @@ function CompleteExamining(props) {
                                             <Typography variant='h6' sx={{mt: 'auto', mb: 'auto', mr: 2}}>Kỳ khám tiếp theo: <span style={{fontWeight: 'bolder', color: '#ff1744'}}>{mainDataExaminingForConclusion.nextExamName}</span></Typography>
                                             <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale="vi">
                                                 <DemoContainer components={['DatePicker']}>  
-                                                    <DatePicker label="Ngày khám dự kiến" 
+                                                    <DatePicker label="Ngày khám dự kiến" disablePast
                                                         format='DD/MM/YYYY' defaultValue={moment(mainDataExaminingForConclusion.appointmentDate)}
                                                         onChange={(value) => onChangeAppointmentDate(value)}
                                                         slotProps={{ 
@@ -303,9 +371,9 @@ function CompleteExamining(props) {
                                 <div style={{display: 'flex', justifyContent: 'center'}}>
                                     <Stack spacing={1} direction="row">
                                         <Button sx={{fontSize: '15px', textTransform: 'none'}} variant='contained' onClick={() => handleAddMedicalBook()}
-                                            >Lưu (F4)</Button>
+                                            >Lưu</Button>
                                         <Button sx={{fontSize: '15px', textTransform: 'none'}} variant='contained' color={'error'}
-                                            onClick={() => handleCloseModalCompleteExamining()}>Đóng (ESC)</Button>
+                                            onClick={() => handleCloseModalCompleteExamining()}>Đóng</Button>
                                     </Stack>
                                 </div>
                             </div>   

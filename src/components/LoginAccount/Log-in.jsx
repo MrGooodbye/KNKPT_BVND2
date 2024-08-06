@@ -22,9 +22,10 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { UserContext } from '../../context/UserContext';
 //api
 import { userLogin } from '../../Service/UserService';
+import { getCurrentDoctorExamining } from '../../Service/MedicalService';
 
 const Login = () => {
-    const { user, loginContext } = useContext(UserContext);
+    const { user, loadingContext, loginContext } = useContext(UserContext);
     const history = useHistory();
 
     const [openAlertProcessingBackdrop, setOpenAlertProcessingBackdrop] = useState(false);
@@ -68,17 +69,32 @@ const Login = () => {
                 toast.error(response.data);
             }
             else{
-                loginContext(
-                    {
-                        isAuthenticated: true, 
-                        isLogin: true,
-                        userId: response.data.userId,
-                        userFullName: response.data.userFullName,
-                        positionName: response.data.positionName
-                    }
-                )
-
                 localStorage.setItem('jwt', response.data.tokenDTO.token)
+                if(response.data.positionName === 'Doctor'){
+                    const responseCurrentDoctorExamining = await getCurrentDoctorExamining();
+                    if(responseCurrentDoctorExamining.status === 200){
+                        loginContext(
+                            {
+                                isAuthenticated: true, 
+                                isLogin: true,
+                                userId: response.data.userId,
+                                userFullName: response.data.userFullName,
+                                positionName: response.data.positionName,
+                                isCurrentDoctorExamining: response.data.userId === responseCurrentDoctorExamining.data.userIdDoctor ? true : false
+                            }
+                        )
+                    }
+                    else{
+                        loginContext(
+                            { isAuthenticated: true, isLogin: true, userId: response.data.userId, userFullName: response.data.userFullName, positionName: response.data.positionName, isCurrentDoctorExamining: false }
+                        )
+                    }
+                }
+                else{
+                    loginContext(
+                        { isAuthenticated: true, isLogin: true, userId: response.data.userId, userFullName: response.data.userFullName, positionName: response.data.positionName }
+                    )
+                }
 
                 if(response.data.positionName === 'Nursing'){
                     history.push('/medicalregister');

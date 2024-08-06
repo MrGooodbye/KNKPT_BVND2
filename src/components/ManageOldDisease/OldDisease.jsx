@@ -28,7 +28,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 //moment
 import moment from 'moment';
 //api
-import { getListOldDisease, getVaccinationByPatientId } from '../../Service/MedicalRegisterService';
+import { getListOldDisease, getVaccinationByPatientId } from '../../Service/MedicalService';
 
 function OldDisease(props) {
 

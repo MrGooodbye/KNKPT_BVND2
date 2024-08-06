@@ -21,7 +21,7 @@ import Typography from '@mui/material/Typography';
 //moment
 import moment from 'moment';
 //api
-import { getVaccinationByPatientId } from '../../Service/MedicalRegisterService';
+import { getVaccinationByPatientId } from '../../Service/MedicalService';
 
 function OldDiseaseForRegister(props) {
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import AlertProcessingBackdrop from '../components/ManageAlertProcessingBackdrop/AlertProcessingBackdrop';
 //api
 import { getUserLogin } from '../Service/UserService';
+import { getCurrentDoctorExamining } from '../Service/MedicalService';
 
 const UserContext = React.createContext(null);
 
@@ -15,26 +16,58 @@ const UserProvider = ({ children }) => {
     };
 
     const [user, setUser] = useState(userDefault);
+    const [loading, setLoading] = useState(true);
     const [openAlertProcessingBackdrop, setOpenAlertProcessingBackdrop] = useState(false);
 
     const loginContext = (userContextLogin) => {
         setUser({ ...userContextLogin });
+        setLoading(false);
     };
 
     const logoutContext = () => {
         setUser({ ...userDefault });
     }
 
+    const loadingContext = (loading) => {
+        setLoading(...loading);
+    }
+
     const fetchUser = async () => {
         setOpenAlertProcessingBackdrop(true);
         const response = await getUserLogin();
-        setUser({
-            isAuthenticated: true, 
-            isLogin: true,
-            userId: response.userId,
-            userFullName: response.userFullName,
-            positionName: response.positionName
-        })
+        if(response.positionName === 'Doctor'){
+            const responseCurrentDoctorExamining = await getCurrentDoctorExamining();
+            if(responseCurrentDoctorExamining.status === 200){
+                setUser({
+                    isAuthenticated: true, 
+                    isLogin: true,
+                    userId: response.userId,
+                    userFullName: response.userFullName,
+                    positionName: response.positionName,
+                    isCurrentDoctorExamining: response.userId === responseCurrentDoctorExamining.data.userIdDoctor ? true : false
+                })
+            }
+            else{
+                setUser({
+                    isAuthenticated: true, 
+                    isLogin: true,
+                    userId: response.userId,
+                    userFullName: response.userFullName,
+                    positionName: response.positionName,
+                    isCurrentDoctorExamining: false
+                })
+            }
+        }
+        else{
+            setUser({
+                isAuthenticated: true, 
+                isLogin: true,
+                userId: response.userId,
+                userFullName: response.userFullName,
+                positionName: response.positionName
+            }) 
+        }
+        setLoading(false);
         setOpenAlertProcessingBackdrop(false);
     }
 
@@ -81,7 +114,7 @@ const UserProvider = ({ children }) => {
 
     return (
         <>
-            <UserContext.Provider value={{ user, loginContext, logoutContext }}>
+            <UserContext.Provider value={{ user, loading, loadingContext, loginContext, logoutContext }}>
                 {children}
             </UserContext.Provider>
 

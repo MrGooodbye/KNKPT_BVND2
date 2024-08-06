@@ -10,11 +10,8 @@ const AppRoutes = (props) => {
   return (
     <>
       <HashRouter>
-        <Header />{" "}
+        {/* <Header />{" "} */}
         <Switch>
-          {/* <Route exact path="/KNKPT_BVND2">
-            home{" "}
-          </Route> */}
           <Route exact path="/">home{" "}</Route>
           <Route path="/login"><Login /></Route>
           <PrivateRoutes path="/medicalregister" component={MainMedicalRegister}></PrivateRoutes>

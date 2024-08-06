@@ -19,7 +19,7 @@ import CheckBoxIcon from '@mui/icons-material/CheckBox';
 //scss
 import './SCSS/PreviewLastExamining.scss'; 
 //api
-import { getMedicalBook } from '../../Service/MedicalRegisterService';
+import { getMedicalBook } from '../../Service/MedicalService';
 //moment
 import moment from 'moment';
 import 'moment/locale/vi'; 
@@ -87,36 +87,66 @@ function PreviewLastExamining(props) {
 
     const handleEditPrevDataExamining = async () => {
         setLoadingMedicalBook(true);
-
-        const responseMedicalBook = await getMedicalBook(props.prevDataExamining.healthRecords[0].medicalBookId);
-
-        //lấy phần tử thứ 0 của câu trả lời loại tiền căn
-        const categoryPresUpdatePagination = props.prevDataExamining.categoryPres.map((categoryPresItem) => ({...categoryPresItem, categoryContents: categoryPresItem.categoryContents[0], contentLength: categoryPresItem.categoryContents.length, currentContent: 1})) 
-        //lấy phần tử thứ 0 của câu trả lời loại sổ khám bệnh
-        const healthRecordUpdatePagination = responseMedicalBook.medicakBook.categories.map((categoriesHealthRecordItem) => ({...categoriesHealthRecordItem, categoryContents: categoriesHealthRecordItem.categoryContents[0], contentLength: categoriesHealthRecordItem.categoryContents.length, currentContent: 1})) 
-
-        //set full data tiền căn rồi set vào fullDataPredecessor để quản lý với kiểu pagination
-        setFullDataPredecessor(props.prevDataExamining.categoryPres.map((categoryPresItem) => ({...categoryPresItem, contentLength: categoryPresItem.categoryContents.length, currentContent: 1})))
-        //set full data sổ khám bệnh rồi set vào fullDataHealthRecord để lặp với kiểu pagination
-        setFullDataHealthRecord(responseMedicalBook.medicakBook.categories.map((categoriesHealthRecordItem) => ({...categoriesHealthRecordItem, contentLength: categoriesHealthRecordItem.categoryContents.length, currentContent: 1})));
-
-        const healthRecordsUpdate = {
-            ...props.prevDataExamining.healthRecords[0],
-            newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
-            appointmentDate: responseMedicalBook.medicakBook.appointmentDate,
-            nextExamName: responseMedicalBook.medicakBook.nextExamName,
-            medicakBook: healthRecordUpdatePagination
-        }
-        
-        setPreviewDataExamining(
-            {
-                categoryPres: categoryPresUpdatePagination,
-                healthRecords: healthRecordsUpdate,
-                medicalBookIdRecently: props.prevDataExamining.medicalBookIdRecently,
-                nutritionals: props.prevDataExamining.nutritionals,
-                vaccinationBook: props.prevDataExamining.vaccinationBook,
+        const responseMedicalBook = await getMedicalBook(props.prevDataExamining.healthRecords[props.prevDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null) ? 1 : 0].medicalBookId);
+        if(props.prevDataExamining.newPredecessor){
+            //lấy phần tử thứ 0 của câu trả lời loại sổ khám bệnh
+            const healthRecordUpdatePagination = responseMedicalBook.medicakBook.categories.map((categoriesHealthRecordItem) => ({...categoriesHealthRecordItem, categoryContents: categoriesHealthRecordItem.categoryContents[0], contentLength: categoriesHealthRecordItem.categoryContents.length, currentContent: 1})) 
+ 
+            //set full data tiền căn rồi set vào fullDataPredecessor để quản lý với kiểu pagination
+            setFullDataPredecessor(props.prevDataExamining.categoryPres.map((categoryPresItem) => ({...categoryPresItem, contentLength: categoryPresItem.categoryContents.length, currentContent: 1})))
+            //set full data sổ khám bệnh rồi set vào fullDataHealthRecord để lặp với kiểu pagination
+            setFullDataHealthRecord(responseMedicalBook.medicakBook.categories.map((categoriesHealthRecordItem) => ({...categoriesHealthRecordItem, contentLength: categoriesHealthRecordItem.categoryContents.length, currentContent: 1})));
+ 
+            const healthRecordsUpdate = {
+                ...props.prevDataExamining.healthRecords[props.prevDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null) ? 1 : 0],
+                newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
+                appointmentDate: responseMedicalBook.medicakBook.appointmentDate,
+                nextExamName: responseMedicalBook.medicakBook.nextExamName,
+                medicakBook: healthRecordUpdatePagination
             }
-        )
+             
+            setPreviewDataExamining(
+                {
+                    categoryPres: [],
+                    healthRecords: healthRecordsUpdate,
+                    medicalBookIdRecently: props.prevDataExamining.medicalBookIdRecently,
+                    nutritionals: props.prevDataExamining.nutritionals,
+                    vaccinationBook: props.prevDataExamining.vaccinationBook,
+                }
+            )
+        }
+        else{
+            if(props.prevDataExamining.categoryPres.length > 1){
+                props.prevDataExamining.categoryPres = props.prevDataExamining.categoryPres.sort((a, b) => a.categoryOrder - b.categoryOrder);
+            }
+            //lấy phần tử thứ 0 của câu trả lời loại tiền căn
+            const categoryPresUpdatePagination = props.prevDataExamining.categoryPres.map((categoryPresItem) => ({...categoryPresItem, categoryContents: categoryPresItem.categoryContents[0], contentLength: categoryPresItem.categoryContents.length, currentContent: 1})) 
+            //lấy phần tử thứ 0 của câu trả lời loại sổ khám bệnh
+            const healthRecordUpdatePagination = responseMedicalBook.medicakBook.categories.map((categoriesHealthRecordItem) => ({...categoriesHealthRecordItem, categoryContents: categoriesHealthRecordItem.categoryContents[0], contentLength: categoriesHealthRecordItem.categoryContents.length, currentContent: 1})) 
+
+            //set full data tiền căn rồi set vào fullDataPredecessor để quản lý với kiểu pagination
+            setFullDataPredecessor(props.prevDataExamining.categoryPres.map((categoryPresItem) => ({...categoryPresItem, contentLength: categoryPresItem.categoryContents.length, currentContent: 1})))
+            //set full data sổ khám bệnh rồi set vào fullDataHealthRecord để lặp với kiểu pagination
+            setFullDataHealthRecord(responseMedicalBook.medicakBook.categories.map((categoriesHealthRecordItem) => ({...categoriesHealthRecordItem, contentLength: categoriesHealthRecordItem.categoryContents.length, currentContent: 1})));
+
+            const healthRecordsUpdate = {
+                ...props.prevDataExamining.healthRecords[props.prevDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null) ? 1 : 0],
+                newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
+                appointmentDate: responseMedicalBook.medicakBook.appointmentDate,
+                nextExamName: responseMedicalBook.medicakBook.nextExamName,
+                medicakBook: healthRecordUpdatePagination
+            }
+            
+            setPreviewDataExamining(
+                {
+                    categoryPres: categoryPresUpdatePagination,
+                    healthRecords: healthRecordsUpdate,
+                    medicalBookIdRecently: props.prevDataExamining.medicalBookIdRecently,
+                    nutritionals: props.prevDataExamining.nutritionals,
+                    vaccinationBook: props.prevDataExamining.vaccinationBook,
+                }
+            )
+        }
         setLoadingMedicalBook(false);
     }
 
@@ -204,7 +234,7 @@ function PreviewLastExamining(props) {
                                                                             <Grid item xs={6.5} >
                                                                                 <div className='note-for-answer'>
                                                                                     <div className='suggest-note'>                                                                          
-                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled defaultValue={questionItem.categoryContentNote}/>
+                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
                                                                                     </div>
                                                                                 </div>
                                                                             </Grid>
@@ -214,7 +244,7 @@ function PreviewLastExamining(props) {
                                                                             <Grid item xs={8} >
                                                                                 <div className='note-for-answer'>
                                                                                     <div className='suggest-note'>                                                                          
-                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled defaultValue={questionItem.categoryContentNote}/>
+                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
                                                                                     </div>
                                                                                 </div>
                                                                             </Grid>
@@ -302,7 +332,7 @@ function PreviewLastExamining(props) {
                                                                             <Grid item xs={5.5} >
                                                                                 <div className='note-for-answer'>
                                                                                     <div className='suggest-note'>                                                                          
-                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled defaultValue={questionItem.categoryContentNote}/>
+                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
                                                                                     </div>
                                                                                 </div>
                                                                             </Grid>
@@ -312,7 +342,7 @@ function PreviewLastExamining(props) {
                                                                             <Grid item xs={8} >
                                                                                 <div className='note-for-answer'>
                                                                                     <div className='suggest-note'>                                                                          
-                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled defaultValue={questionItem.categoryContentNote}/>
+                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
                                                                                     </div>
                                                                                 </div>
                                                                             </Grid>

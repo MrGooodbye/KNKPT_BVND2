@@ -20,7 +20,7 @@ import AlertProcessing from '../ManageAlertProcessing/AlertProcessing';
 //toast
 import {toast} from 'react-toastify';
 //api
-import { createMedicalRegister, createMedicalBackRegister, getListMedicalExaminationsGiveRegister } from '../../Service/MedicalRegisterService';
+import { createMedicalRegister, createMedicalBackRegister, getListMedicalExaminationsGiveRegister } from '../../Service/MedicalService';
 
 function ExaminingSession(props) {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -43,22 +43,45 @@ function ExaminingSession(props) {
     }
 
     const handleMedicalRegister = async () => {
+        //bệnh cũ
         if(props.dataPatientsRegister.oldDisease === true){
-            setIsConfirmOpen(false);
-            setOpenAlertProcessing(true);
-            const response = await createMedicalBackRegister(props.dataPatientsRegister);
-            setOpenAlertProcessing(false);
-            if(response.status === 200){
-                toast.success(response.data);
-                props.setIsContinueSelectedExaminingSession(false);
-                props.setCompleteMedicalRegister(true);
-                props.setOpenModalExaminingSession(false);
-                props.handleResetField();
+            //là bênh mới đã đăng ký nhưng chưa từng khám bao giờ
+            if(listExaminingSession.isAppointment === false){
+                setIsConfirmOpen(false);
+                setOpenAlertProcessing(true);
+                const response = await createMedicalRegister(props.dataPatientsRegister);
+                setOpenAlertProcessing(false);
+                if(response.status === 200){
+                    toast.success(response.data);
+                    props.setIsContinueSelectedExaminingSession(false);
+                    props.setCompleteMedicalRegister(true);
+                    props.setOpenModalExaminingSession(false);
+                    props.handleResetField();
+                }
+                else{
+                    toast.error(response.data, {toastId: 'error1'});
+                }
             }
+            //có hẹn khám nhưng không nhắc khám hoặc đến trễ ngày hẹn khám
             else{
-                toast.error(response.data, {toastId: 'error1'});
+                setIsConfirmOpen(false);
+                setOpenAlertProcessing(true);
+                const response = await createMedicalBackRegister(props.dataPatientsRegister);
+                setOpenAlertProcessing(false);
+                if(response.status === 200){
+                    toast.success(response.data);
+                    props.setIsContinueSelectedExaminingSession(false);
+                    props.setCompleteMedicalRegister(true);
+                    props.setOpenModalExaminingSession(false);
+                    props.handleResetField();
+                }
+                else{
+                    toast.error(response.data, {toastId: 'error1'});
+                }
             }
-        }else{
+        }
+        //bệnh mới
+        else{
             setIsConfirmOpen(false);
             setOpenAlertProcessing(true);
             const response = await createMedicalRegister(props.dataPatientsRegister);
@@ -132,7 +155,7 @@ function ExaminingSession(props) {
                                         <Typography variant='h6' sx={{fontWeight: 'bolder'}}>Lịch sử khám</Typography>
                                         {listExaminingSession.oldExams ?
                                             listExaminingSession.oldExams.map((oldExamItem, oldExamIndex) => (
-                                                <Typography key={oldExamIndex} variant='subtitle1'>{oldExamItem}</Typography>
+                                                <Typography key={oldExamIndex} variant='subtitle1'>{oldExamItem.name}</Typography>
                                             ))
                                         :
                                             null
@@ -144,14 +167,18 @@ function ExaminingSession(props) {
                                     <Box sx={{border: '2px solid red', p: 1, height: '50vh'}}>
                                         <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center'}}>
                                             <Typography variant='h6' sx={{fontWeight: 'bolder', color: 'red'}}>Chọn kỳ khám</Typography>
-                                            {listExaminingSession.exams ? 
+                                            {listExaminingSession.exams && listExaminingSession.isAppointment === false ? 
                                                 <RadioGroup onChange={(e) => onChangeRadioSelect(e.target.value)}>
                                                     {listExaminingSession.exams.map((examItem, examIndex) => (
                                                         <FormControlLabel key={examIndex} value={examItem.id} control={<Radio />} label={examItem.name} />
                                                     ))}
                                                 </RadioGroup>
                                             :
-                                                null
+                                                <RadioGroup onChange={(e) => onChangeRadioSelect(e.target.value)}>
+                                                    {listExaminingSession.oldExams.map((examItem, examIndex) => (
+                                                        <FormControlLabel key={examIndex} value={examItem.id} control={<Radio />} label={examItem.name} disabled={examIndex === 0 ? true : false}/>
+                                                    ))}
+                                                </RadioGroup>
                                             }
                                             <Button variant='contained' sx={{mt: 0.5}} onClick={() => handleOpenConfirm()}>Tiếp tục (F2)</Button> 
                                         </div>

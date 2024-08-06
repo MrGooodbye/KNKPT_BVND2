@@ -31,7 +31,7 @@ import _ from 'lodash';
 import moment from 'moment';
 //api
 import { getListProvince, getListDistrict, getListWard, getFullAddressByIdWard } from '../../Service/PlaceService';
-import { updateMedicalRegister, getListMedicalExaminationsGiveRegister } from '../../Service/MedicalRegisterService';
+import { updateMedicalRegister, getListMedicalExaminationsGiveRegister } from '../../Service/MedicalService';
 
 function ManageInfoPantients(props) {
   const dataPatientInfoDefault = {

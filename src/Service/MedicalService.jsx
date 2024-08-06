@@ -177,6 +177,28 @@ const getMedicalBook = async (medicalBookId) => {
     })
 }
 
+const getUpdatePredecessor = async (patientId) => {
+    const config = createConfig();
+    return await axios.get(`${backendURL}/api/Medical/GetUpdatePredecessor/${patientId}`, config)
+    .then(function (response) {
+        return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
+const getUpdateMedicalBook = async (medicalBookId) => {
+    const config = createConfig();
+    return await axios.get(`${backendURL}/api/Medical/GetUpdateMedicalBook/${medicalBookId}`, config)
+    .then(function (response) {
+        return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
 const getAppointmentDate = async (medicalRegisterId) => {
     const config = createConfig();
     return await axios.get(`${backendURL}/api/Medical/GetAppointmentDate/${medicalRegisterId}`, config)
@@ -185,6 +207,17 @@ const getAppointmentDate = async (medicalRegisterId) => {
     })
     .catch(function (error) {
         return error.response
+    })
+}
+
+const getAppointmentsToday = async () => {
+    const config = createConfig();
+    return await axios.get(`${backendURL}/api/Medical/GetAppointmentsToday`, config)
+    .then(function (response) {
+        return response.data
+    })
+    .catch(function (error) {
+        return error.response.status
     })
 }
 
@@ -222,6 +255,6 @@ const updateMedicalState = async (id, state) => {
 
 export {
     createMedicalRegister, createMedicalBackRegister, createCurrentDoctorExamining, createAddPredecessor, createAddMedicalBook,
-    getRegistersByDateNow, getListMedicalExaminationsGiveRegister, getListOldDisease, getVaccinationByPatientId, getCurrentDoctorExamining, getMedicalDetailPatient, getMedicalBook, getAppointmentDate,
+    getRegistersByDateNow, getListMedicalExaminationsGiveRegister, getListOldDisease, getVaccinationByPatientId, getCurrentDoctorExamining, getMedicalDetailPatient, getMedicalBook, getUpdatePredecessor, getUpdateMedicalBook, getAppointmentDate, getAppointmentsToday,
     updateMedicalRegister, updateMedicalState
 }

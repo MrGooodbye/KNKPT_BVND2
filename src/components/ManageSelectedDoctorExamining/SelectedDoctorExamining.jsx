@@ -18,7 +18,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { toast } from 'react-toastify';
 //api
 import { getGetListDoctor } from '../../Service/UserService';
-import { createCurrentDoctorExamining } from '../../Service/MedicalRegisterService';
+import { createCurrentDoctorExamining } from '../../Service/MedicalService';
 import { Box } from '@mui/material';
 
 function SelectedDoctorExamining(props) {

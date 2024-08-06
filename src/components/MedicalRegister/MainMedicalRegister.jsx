@@ -10,7 +10,7 @@ import SelectedDoctorExamining from '../ManageSelectedDoctorExamining/SelectedDo
 import ListPatientsRegister from './ListPatientsRegister';
 import BookMedical from './BookMedical';
 //api
-import { getCurrentDoctorExamining } from '../../Service/MedicalRegisterService';
+import { getCurrentDoctorExamining } from '../../Service/MedicalService';
 
 function MainMedicalRegister() {
 
@@ -19,6 +19,7 @@ function MainMedicalRegister() {
   const currentDoctorExaminingDefault = {userFullName: '', userIdDoctor: ''};
 
   const [completeMedicalRegister, setCompleteMedicalRegister] = useState(false);
+  const [dataPantientAppointmentsToday, setDataPantientAppointmentsToday] = useState();
 
   const [handleResetField, setHandleResetField] = useState(false); //F2
   const [handleOpenModalExaminingSession, setHandleOpenModalExaminingSession] = useState(false); //F4
@@ -95,6 +96,7 @@ function MainMedicalRegister() {
                           currentDoctorExamining={currentDoctorExamining}
                           setOpenSelectedDoctorExaminingModal={setOpenSelectedDoctorExaminingModal}
                           component1Loading={component1Loading} setComponent1Loading={setComponent1Loading}
+                          dataPantientAppointmentsToday={dataPantientAppointmentsToday} setDataPantientAppointmentsToday={setDataPantientAppointmentsToday}
                         />
                       </Grid>
             
@@ -110,6 +112,7 @@ function MainMedicalRegister() {
                             onF8Press={handleOpenModalOldDisease} setOnF8Press={setHandleOpenModalOldDisease}
                             completeMedicalRegister={completeMedicalRegister} setCompleteMedicalRegister={setCompleteMedicalRegister}
                             currentDoctorExamining={currentDoctorExamining}
+                            dataPantientAppointmentsToday={dataPantientAppointmentsToday} setDataPantientAppointmentsToday={setDataPantientAppointmentsToday}
                           />
                         }
                       </Grid>

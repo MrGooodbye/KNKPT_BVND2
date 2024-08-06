@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 //info pantients modal
 import ManageInfoPantients from '../ManageInfoPantients/ManageInfoPantients';
+import AlertProcessingBackdrop from '../ManageAlertProcessingBackdrop/AlertProcessingBackdrop';
 //mui theme
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -29,7 +30,7 @@ import './SCSS/Shared.scss';
 //moment
 import moment from 'moment';
 //api
-import { getRegistersByDateNow } from '../../Service/MedicalRegisterService';
+import { getRegistersByDateNow, getAppointmentsToday, getVaccinationByPatientId } from '../../Service/MedicalService';
 
 function ListPatientsRegister(props) {
 
@@ -39,12 +40,16 @@ function ListPatientsRegister(props) {
   const [listPantientChipState, setListPantientChipState] = useState(
     [
       { chipLabel: 'BN chờ khám', chipContent: 0 },
+      { chipLabel: 'BN đã khám', chipContent: 0 },
       { chipLabel: 'BN hẹn khám', chipContent: 0 },
-      { chipLabel: 'BN đã khám', chipContent: 0 }
     ]
   )
+
+  const [openAlertProcessingBackdrop, setOpenAlertProcessingBackdrop] = useState(false);
   
   const [listDataPatientsRegister, setListDataPatientsRegister] = useState([]); 
+  const [listDataPatientsAppointmentsToday, setListDataPatientsAppointmentsToday] = useState([]); 
+  
   const [searchPatientsQuery, setSearchPatientsQuery] = useState("");
 
   const [listDataPatientsRegisterState, setListDataPatientsRegisterState] = useState([]);
@@ -81,19 +86,18 @@ function ListPatientsRegister(props) {
   const handleSelectedChip = (chipIndex, chipLabel) => {
     setActiveChip({chipOrder: chipIndex, chipLabel: chipLabel});
     if(chipIndex === 0){
-      const listPantientRegisterWaiting = listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1) //chờ khám và đang khám
+      const listPantientRegisterWaiting = listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1 || patientsRegisterItem.state === 3) //chờ khám và đang khám
       setListDataPatientsRegisterSort(listPantientRegisterWaiting);
       setListDataPatientsRegisterState(listPantientRegisterWaiting);
     }
     else if(chipIndex === 1){
-      const listPantientRegisterExamining = listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 3) //hẹn khám
-      setListDataPatientsRegisterSort(listPantientRegisterExamining);
-      setListDataPatientsRegisterState(listPantientRegisterExamining);
-    }
-    else{
       const listPantientRegisterDone = listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 2) //đã khám
       setListDataPatientsRegisterSort(listPantientRegisterDone);
       setListDataPatientsRegisterState(listPantientRegisterDone);
+    }
+    else if(chipIndex === 2){
+      setListDataPatientsRegisterSort(listDataPatientsAppointmentsToday);
+      setListDataPatientsRegisterState(listDataPatientsAppointmentsToday);
     }
   };
 
@@ -122,44 +126,91 @@ function ListPatientsRegister(props) {
     setOpenModalInfoPantients(true);
   }
 
+  const handleSelectedPantientAppointmentsToday = async (patientsRegisterSortItem) => {
+    setOpenAlertProcessingBackdrop(true);
+    const responseVaccinationByPatientId = await getVaccinationByPatientId(patientsRegisterSortItem.patient.patientId);
+    const dataPantientOldOldDiseaseRegister = {
+      examinationId: patientsRegisterSortItem.patient.nextExamId,
+      oldDisease: true,
+      height: '',
+      weight: '',
+      headCircumference: '',
+      reason: '',
+      vaccination: responseVaccinationByPatientId.vaccination,
+      medicalTypeId: responseVaccinationByPatientId.medicalTypeId,
+      userIdDoctor: '',
+      patient: patientsRegisterSortItem.patient
+    }
+    props.setDataPantientAppointmentsToday(dataPantientOldOldDiseaseRegister)
+    setOpenAlertProcessingBackdrop(false);
+  }
+
   const handleGetRegistersByDateNow = async () => {
     setLoading(true);
+
     const response = await getRegistersByDateNow();
+    const responseGetAppointmentsToday = await getAppointmentsToday();
+
+    let updatedList = [
+      { chipLabel: 'BN chờ khám', chipContent: 0 },
+      { chipLabel: 'BN đã khám', chipContent: 0 },
+      { chipLabel: 'BN hẹn khám', chipContent: responseGetAppointmentsToday.length }
+    ]
+
+    let _listDataPatientsAppointmentsToday
+    if(responseGetAppointmentsToday.length > 0){
+      _listDataPatientsAppointmentsToday = responseGetAppointmentsToday.map((item) => {
+        const result = {
+          patient : {
+            identifier: item.identifier,
+            patientId: item.patientId,
+            fullName: item.patientFullName,
+            gender: item.gender,
+            dayOfBirth: item.dateOfBirth,
+            fullNameMother: item.fullNameMother,
+            phoneMother: item.phoneMother,
+            fullNameFather: item.fullNameFather,
+            phoneFather: item.phoneFather,
+            address: item.address,
+            fullAddress: item.fullAddress,
+            codeWard: item.codeWard,
+            nextExamId: item.nextExamId
+          }
+        }
+        return result;
+      })
+      setListDataPatientsAppointmentsToday(_listDataPatientsAppointmentsToday);
+    }
+    else{
+      setListDataPatientsAppointmentsToday(responseGetAppointmentsToday)
+    }
+
     if(response !== 400){
       if(response.list.length !== 0){
         setListDataPatientsRegister(response.list);
         if(activeChip.chipOrder === 0){
-          const listPantientRegisterWaiting = response.list.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1) //chờ khám và đang khám
+          const listPantientRegisterWaiting = response.list.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1 || patientsRegisterItem.state === 3) //chờ khám và đang khám và tái khám
           setListDataPatientsRegisterSort(listPantientRegisterWaiting);
           setListDataPatientsRegisterState(listPantientRegisterWaiting);
-          const updatedList = listPantientChipState.map((item, index) => ({
-            ...item,
-            chipContent: response.listCountState[index]
-          }));
-          setListPantientChipState(updatedList);
+          updatedList[0].chipContent = response.listCountState[0];
+          updatedList[1].chipContent = response.listCountState[1];
         }
         else if(activeChip.chipOrder === 1){
-          const listPantientRegisterExamining = listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 3) //hẹn khám
-          setListDataPatientsRegisterSort(listPantientRegisterExamining);
-          setListDataPatientsRegisterState(listPantientRegisterExamining);
-          const updatedList = listPantientChipState.map((item, index) => ({
-            ...item,
-            chipContent: response.listCountState[index]
-          }));
-          setListPantientChipState(updatedList);
-        }
-        else{
           const listPantientRegisterDone = listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 2) //đã khám
           setListDataPatientsRegisterSort(listPantientRegisterDone);
           setListDataPatientsRegisterState(listPantientRegisterDone);
-          const updatedList = listPantientChipState.map((item, index) => ({
-            ...item,
-            chipContent: response.listCountState[index]
-          }));
-          setListPantientChipState(updatedList);
+          updatedList[0].chipContent = response.listCountState[0];
+          updatedList[1].chipContent = response.listCountState[1];
+        }
+        else if(activeChip.chipOrder === 2){
+          setListDataPatientsRegisterSort(_listDataPatientsAppointmentsToday);
+          setListDataPatientsRegisterState(_listDataPatientsAppointmentsToday);
+          updatedList[0].chipContent = response.listCountState[0];
+          updatedList[1].chipContent = response.listCountState[1];
         }
       }
     }
+    setListPantientChipState(updatedList);
     props.setComponent1Loading(false);
     setLoading(false);
   }
@@ -257,8 +308,14 @@ function ListPatientsRegister(props) {
               <Table stickyHeader sx={{ minWidth: 1200 }}>
                 <TableHead>
                   <TableRow sx={{"& th": {color: "rgba(96, 96, 96)", backgroundColor: "pink"}}}>
-                    <TableCell align="left" sx={{fontSize: '0.95rem', p: '10px'}}>Trạng thái</TableCell>
-                    <TableCell align='left' sx={{fontSize: '0.95rem'}}>STT</TableCell>
+                    {activeChip.chipOrder === 2 ? 
+                      null
+                    :
+                      <>
+                        <TableCell align="left" sx={{fontSize: '0.95rem', p: '10px'}}>Trạng thái</TableCell>
+                        <TableCell align='left' sx={{fontSize: '0.95rem'}}>STT</TableCell>
+                      </>
+                    }
                     <TableCell align='left' sx={{fontSize: '0.95rem'}}>Mã bệnh nhân</TableCell>
                     <TableCell align="left" sx={{fontSize: '0.95rem'}}>Họ tên</TableCell>
                     <TableCell align="left" sx={{fontSize: '0.95rem'}}>Giới tính</TableCell>
@@ -271,9 +328,15 @@ function ListPatientsRegister(props) {
                   {listDataPatientsRegisterSort.length !== 0 ?
                     <>
                       {listDataPatientsRegisterSort.map((patientsRegisterSortItem, patientsRegisterSortIndex) => (
-                        <TableRow hover role="checkbox" key={patientsRegisterSortIndex} sx={{cursor: 'pointer'}} onDoubleClick={() => handleSelectedPantientInfo(patientsRegisterSortItem)}>
-                          <TableCell align='center' sx={{width: '90px'}}>{renderPatientsStatus(patientsRegisterSortItem.state)}</TableCell>
-                          <TableCell align='left' sx={{width: '20px'}}>{patientsRegisterSortItem.order}</TableCell>
+                        <TableRow hover role="checkbox" key={patientsRegisterSortIndex} sx={{cursor: 'pointer'}} onDoubleClick={() => activeChip.chipOrder === 2 ? handleSelectedPantientAppointmentsToday(patientsRegisterSortItem) : handleSelectedPantientInfo(patientsRegisterSortItem)}>
+                          {activeChip.chipOrder === 2 ? 
+                            null
+                          :
+                            <>
+                              <TableCell align='center' sx={{width: '90px'}}>{renderPatientsStatus(patientsRegisterSortItem.state)}</TableCell>
+                              <TableCell align='left' sx={{width: '20px'}}>{patientsRegisterSortItem.order}</TableCell>
+                            </>
+                          }
                           <TableCell align='left' sx={{width: '150px'}}>{patientsRegisterSortItem.patient.patientId}</TableCell>
                           <TableCell align='left' sx={{width: '200px'}}>{patientsRegisterSortItem.patient.fullName}</TableCell>
                           <TableCell align='left' sx={{width: '110px'}}>{patientsRegisterSortItem.patient.gender === true ? 'Nam' : 'Nữ'}</TableCell>
@@ -297,6 +360,8 @@ function ListPatientsRegister(props) {
           </TableContainer>
       </Box>
       
+      <AlertProcessingBackdrop openAlertProcessingBackdrop={openAlertProcessingBackdrop} changeBackground={true}
+      />
 
       <ManageInfoPantients 
         openModalInfoPantients={openModalInfoPantients} setOpenModalInfoPantients={setOpenModalInfoPantients}
