@@ -247,24 +247,27 @@ function ListPatientsRegister(props) {
   return (
     <>
       <Box sx={{p: 0}}>
-        <Typography variant='h6' sx={{color: 'red', mb: 0, fontWeight: 'bolder', fontSize: '1.16rem'}}>
+        <Typography variant='h6' sx={{color: 'red', mb: 0, fontWeight: 'bolder', fontSize: '1.16rem', marginBottom: '5px'}}>
           {loading ? 
             <Skeleton /> 
           : 
-            props.currentDoctorExamining.userIdDoctor !== '' ?
+            <div style={{display: 'flex', height: '30px'}}>
+              {props.currentDoctorExamining.userIdDoctor !== '' ?
               <>
-                {`Bác sĩ khám hôm nay: ${props.currentDoctorExamining.userFullName}`} <IconButton onClick={() => props.setOpenSelectedDoctorExaminingModal(true)}> <EditIcon sx={{color: '#2e7d32', fontSize: '30px'}}/></IconButton>
+                <Typography variant='subbtitle1'>{`Bác sĩ khám hôm nay: ${props.currentDoctorExamining.userFullName}`}</Typography> <EditIcon sx={{color: '#2e7d32', fontSize: '26px', ml: 1, cursor: 'pointer'}} onClick={() => props.setOpenSelectedDoctorExaminingModal(true)} titleAccess='Sửa'/>
               </>
-            :
+              :
               <>
-                {`Chưa chọn bác sĩ khám hôm nay `} <IconButton onClick={() => props.setOpenSelectedDoctorExaminingModal(true)}> <EditIcon sx={{color: '#2e7d32', fontSize: '30px'}}/></IconButton>
-              </>
+                <Typography variant='subbtitle1'>Chưa chọn bác sĩ khám hôm nay</Typography> <EditIcon sx={{color: '#2e7d32', fontSize: '26px', ml: 1, cursor: 'pointer'}} onClick={() => props.setOpenSelectedDoctorExaminingModal(true)} titleAccess='Thêm'/>
+              </>}
+            </div>
           }
         </Typography>
-          <TableContainer component={Paper} sx={{ height: '548px', borderRadius: '10px', boxShadow: 5, overflowX: 'scroll' }}>
+
+        <div className='container' style={{border: '1px solid #fff', borderRadius: '10px', height: '562px', padding: 0, boxShadow: '0px 3px 5px -1px rgba(0,0,0,0.2),0px 5px 8px 0px rgba(0,0,0,0.14),0px 1px 14px 0px rgba(0,0,0,0.12)'}}>
           {loading ? 
-            <>
-              <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', backgroundColor: '#e0e0e0', height: '100%'}}>
+             <>
+              <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', height: '100%'}}>
                 <CircularProgress/>
                 <Typography variant='subtitle1' sx={{mt: 1}}>Đang tải dữ liệu, hãy chờ một chút...</Typography>
               </Box>        
@@ -281,83 +284,86 @@ function ListPatientsRegister(props) {
               </Stack>
 
               <Typography variant="h6" sx={{mt: 0.2, textAlign: 'center', fontSize: '1.12rem'}}>Danh sách {activeChip.chipLabel} ngày {moment().format("DD/MM/YYYY")}</Typography>
-        
+            
               <Box sx={{display: 'flex', justifyContent: 'center', position: 'relative'}}>
                 <TextField sx={{mt: 0.2, mb: 1, width: 360, '& .MuiInputBase-inputSizeSmall': {textAlign: 'center'}}} size="small" 
                   variant="outlined" placeholder='Tìm với Mã BN hoặc Tên BN hoặc SĐT' value={searchPatientsQuery} onChange={(e) => handleSearchPantient(e.target.value)}
                   InputProps={{ // <-- This is where the toggle button is added.
-                      startAdornment: (
-                        <InputAdornment position='start'><SearchIcon/></InputAdornment>  
-                      ),
-                      endAdornment: (
-                        <InputAdornment position='end'>
-                          {searchPatientsQuery !== '' ? 
-                            <CloseIcon sx={{cursor: 'pointer'}} 
-                              titleAccess='Xóa'
-                              onClick={() => [setSearchPatientsQuery(''), setListDataPatientsRegisterSort(listDataPatientsRegisterState)]}
-                            /> 
-                          : 
-                            null
-                          }
+                    startAdornment: (
+                      <InputAdornment position='start'><SearchIcon/></InputAdornment>  
+                    ),
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        {searchPatientsQuery !== '' ? 
+                          <CloseIcon sx={{cursor: 'pointer'}} 
+                            titleAccess='Xóa'
+                            onClick={() => [setSearchPatientsQuery(''), setListDataPatientsRegisterSort(listDataPatientsRegisterState)]}
+                          /> 
+                        : 
+                          null
+                        }
                         </InputAdornment>  
                       )
-                  }}>
-                </TextField>
+                    }}>
+                  </TextField>
               </Box>
 
-              <Table stickyHeader sx={{ minWidth: 1200 }}>
-                <TableHead>
-                  <TableRow sx={{"& th": {color: "rgba(96, 96, 96)", backgroundColor: "pink"}}}>
-                    {activeChip.chipOrder === 2 ? 
-                      null
-                    :
+              <TableContainer component={Paper} sx={{ height: '438px', overflowX: 'scroll', borderBottomLeftRadius: '10px', borderBottomRightRadius: '10px' }}>
+                <Table stickyHeader sx={{ minWidth: 1200 }}>
+                  <TableHead>
+                    <TableRow sx={{"& th": {color: "rgba(96, 96, 96)", backgroundColor: "pink"}}}>
+                      {activeChip.chipOrder === 2 ? 
+                        null
+                      :
+                        <>
+                          <TableCell align="left" sx={{fontSize: '0.95rem', p: '10px'}}>Trạng thái</TableCell>
+                          <TableCell align='left' sx={{fontSize: '0.95rem'}}>STT</TableCell>
+                        </>
+                      }
+                      <TableCell align='left' sx={{fontSize: '0.95rem'}}>Mã bệnh nhân</TableCell>
+                      <TableCell align="left" sx={{fontSize: '0.95rem'}}>Họ tên</TableCell>
+                      <TableCell align="left" sx={{fontSize: '0.95rem'}}>Giới tính</TableCell>
+                      <TableCell align="left" sx={{fontSize: '0.95rem'}}>Ngày sinh</TableCell>
+                      <TableCell align="left" sx={{fontSize: '0.95rem'}}>Số điện thoại</TableCell>
+                      <TableCell align="left" sx={{fontSize: '0.95rem'}}>Địa chỉ</TableCell>
+                    </TableRow>
+                  </TableHead>
+
+                  <TableBody>
+                    {listDataPatientsRegisterSort.length !== 0 ?
                       <>
-                        <TableCell align="left" sx={{fontSize: '0.95rem', p: '10px'}}>Trạng thái</TableCell>
-                        <TableCell align='left' sx={{fontSize: '0.95rem'}}>STT</TableCell>
+                        {listDataPatientsRegisterSort.map((patientsRegisterSortItem, patientsRegisterSortIndex) => (
+                          <TableRow hover role="checkbox" key={patientsRegisterSortIndex} sx={{cursor: 'pointer'}} onDoubleClick={() => activeChip.chipOrder === 2 ? handleSelectedPantientAppointmentsToday(patientsRegisterSortItem) : handleSelectedPantientInfo(patientsRegisterSortItem)}>
+                            {activeChip.chipOrder === 2 ? 
+                              null
+                            :
+                              <>
+                                <TableCell align='center' sx={{width: '90px'}}>{renderPatientsStatus(patientsRegisterSortItem.state)}</TableCell>
+                                <TableCell align='left' sx={{width: '20px'}}>{patientsRegisterSortItem.order}</TableCell>
+                              </>
+                            }
+                            <TableCell align='left' sx={{width: '150px'}}>{patientsRegisterSortItem.patient.patientId}</TableCell>
+                            <TableCell align='left' sx={{width: '200px'}}>{patientsRegisterSortItem.patient.fullName}</TableCell>
+                            <TableCell align='left' sx={{width: '110px'}}>{patientsRegisterSortItem.patient.gender === true ? 'Nam' : 'Nữ'}</TableCell>
+                            <TableCell align='left' sx={{width: '110px'}}>{moment(patientsRegisterSortItem.patient.dayOfBirth).format("DD/MM/YYYY")}</TableCell>
+                            <TableCell align='left' sx={{width: '140px'}}>{patientsRegisterSortItem.patient.phoneMother !== '' ? patientsRegisterSortItem.patient.phoneMother : patientsRegisterSortItem.patient.phoneFather}</TableCell>
+                            <TableCell align='left' sx={{whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120}}>
+                              <Tooltip title={<Typography variant='subtitle2'>{patientsRegisterSortItem.patient.fullAddress}</Typography>} >
+                                <span>{patientsRegisterSortItem.patient.fullAddress}</span>
+                              </Tooltip>
+                            </TableCell>
+                          </TableRow>
+                        ))} 
                       </>
-                    }
-                    <TableCell align='left' sx={{fontSize: '0.95rem'}}>Mã bệnh nhân</TableCell>
-                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Họ tên</TableCell>
-                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Giới tính</TableCell>
-                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Ngày sinh</TableCell>
-                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Số điện thoại</TableCell>
-                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Địa chỉ</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {listDataPatientsRegisterSort.length !== 0 ?
-                    <>
-                      {listDataPatientsRegisterSort.map((patientsRegisterSortItem, patientsRegisterSortIndex) => (
-                        <TableRow hover role="checkbox" key={patientsRegisterSortIndex} sx={{cursor: 'pointer'}} onDoubleClick={() => activeChip.chipOrder === 2 ? handleSelectedPantientAppointmentsToday(patientsRegisterSortItem) : handleSelectedPantientInfo(patientsRegisterSortItem)}>
-                          {activeChip.chipOrder === 2 ? 
-                            null
-                          :
-                            <>
-                              <TableCell align='center' sx={{width: '90px'}}>{renderPatientsStatus(patientsRegisterSortItem.state)}</TableCell>
-                              <TableCell align='left' sx={{width: '20px'}}>{patientsRegisterSortItem.order}</TableCell>
-                            </>
-                          }
-                          <TableCell align='left' sx={{width: '150px'}}>{patientsRegisterSortItem.patient.patientId}</TableCell>
-                          <TableCell align='left' sx={{width: '200px'}}>{patientsRegisterSortItem.patient.fullName}</TableCell>
-                          <TableCell align='left' sx={{width: '110px'}}>{patientsRegisterSortItem.patient.gender === true ? 'Nam' : 'Nữ'}</TableCell>
-                          <TableCell align='left' sx={{width: '110px'}}>{moment(patientsRegisterSortItem.patient.dayOfBirth).format("DD/MM/YYYY")}</TableCell>
-                          <TableCell align='left' sx={{width: '140px'}}>{patientsRegisterSortItem.patient.phoneMother !== '' ? patientsRegisterSortItem.patient.phoneMother : patientsRegisterSortItem.patient.phoneFather}</TableCell>
-                          <TableCell align='left' sx={{whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120}}>
-                            <Tooltip title={<Typography variant='subtitle2'>{patientsRegisterSortItem.patient.fullAddress}</Typography>} >
-                              <span>{patientsRegisterSortItem.patient.fullAddress}</span>
-                            </Tooltip>
-                          </TableCell>
-                        </TableRow>
-                      ))} 
-                    </>
                     :
                       null
-                  }
-                </TableBody>
-              </Table>
+                    }
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </>
           }
-          </TableContainer>
+        </div>
       </Box>
       
       <AlertProcessingBackdrop openAlertProcessingBackdrop={openAlertProcessingBackdrop} changeBackground={true}

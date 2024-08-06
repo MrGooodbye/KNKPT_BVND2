@@ -39,8 +39,8 @@ function SelectedDoctorExamining(props) {
             return;
         }
         else{
-            props.setOpenSelectedDoctorExaminingModal(false);
             setSelectedDoctor(null)
+            props.setOpenSelectedDoctorExaminingModal(false);
         }
     }
 
@@ -49,8 +49,8 @@ function SelectedDoctorExamining(props) {
             toast.error('Bạn chưa chọn bác sĩ khám!', {toastId: 'error1'})
         }
         else{
-            if(_.isEqual(props.currentDoctorExamining, selectedDoctor)){
-                toast.warning('Hiện không có gì để lưu', {toastId: 'warning1'})
+            if(props.currentDoctorExamining.userIdDoctor === selectedDoctor.userId){
+                toast.warning('Bác sĩ này đã được chọn khám cho ngày hôm nay', {toastId: 'warning1'})
             }
             else{
                 const response = await createCurrentDoctorExamining(selectedDoctor.userIdDoctor);
@@ -62,26 +62,28 @@ function SelectedDoctorExamining(props) {
     }
 
     const handleGetGetListDoctor = async () => {
-        const response = await getGetListDoctor();
-        setListDoctor(response);
-        if(props.currentDoctorExamining.userIdDoctor !== ''){
-            const indexResponseListDoctor = response.findIndex(listDoctor => listDoctor.userId === props.currentDoctorExamining.userIdDoctor);
-            setSelectedDoctor(response[indexResponseListDoctor]);
+        setLoading(true);
+        if(listDoctor.length === 0){
+            const response = await getGetListDoctor();
+            setListDoctor(response);
+            if(props.currentDoctorExamining.userIdDoctor !== ''){
+                const indexResponseListDoctor = response.findIndex(listDoctor => listDoctor.userId === props.currentDoctorExamining.userIdDoctor);
+                setSelectedDoctor(response[indexResponseListDoctor]);
+            }
         }
+        else{
+            const indexResponseListDoctor = listDoctor.findIndex(listDoctor => listDoctor.userId === props.currentDoctorExamining.userIdDoctor);
+            setSelectedDoctor(listDoctor[indexResponseListDoctor]);
+        }
+        setTimeout(() => {
+            setLoading(false);
+        }, 300)
     }
 
     useEffect(() => {
-        setLoading(true);
-        if(props.openSelectedDoctorExaminingModal){
-            if(listDoctor.length === 0){
-                handleGetGetListDoctor();
-            }
-            else{
-                const indexResponseListDoctor = listDoctor.findIndex(listDoctor => listDoctor.userId === props.currentDoctorExamining.userIdDoctor);
-                setSelectedDoctor(listDoctor[indexResponseListDoctor]);
-            }
+        if(props.openSelectedDoctorExaminingModal){   
+            handleGetGetListDoctor();   
         }
-        setLoading(false);
     }, [props.currentDoctorExamining, props.openSelectedDoctorExaminingModal])
 
     return (
@@ -93,7 +95,9 @@ function SelectedDoctorExamining(props) {
                 </IconButton>
                 <DialogContent dividers >
                     {loading ? 
-                        <CircularProgress/>
+                        <div style={{display: 'flex', justifyContent: 'center'}}>
+                            <CircularProgress />
+                        </div>
                     :
                         <>
                             <Box sx={{height: 'auto'}}>
