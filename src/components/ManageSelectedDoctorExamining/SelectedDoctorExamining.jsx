@@ -89,7 +89,7 @@ function SelectedDoctorExamining(props) {
     return (
         <>
             <Dialog fullWidth={true} maxWidth='xs' open={props.openSelectedDoctorExaminingModal} onClose={(event, reason) => handleCloseSelectedDoctorExaminingModal(event, reason)} disableEscapeKeyDown={true} >
-                <DialogTitle sx={{ m: 0, p: 1.4, fontWeight: 'bolder', fontSize: '22px' }}>{props.currentDoctorExamining ? 'Thay đổi bác sĩ khám' : 'Chọn bác sĩ khám'}</DialogTitle>
+                <DialogTitle sx={{ m: 0, p: 1.4, fontWeight: 'bolder', fontSize: '22px' }}>{props.currentDoctorExamining ? props.currentDoctorExamining.userIdDoctor !== '' ? 'Thay đổi bác sĩ khám' : 'Chọn bác sĩ khám' : null}</DialogTitle>
                 <IconButton onClick={() => props.setOpenSelectedDoctorExaminingModal(false)}sx={{position: 'absolute', right: 5, top: 7}}>
                     <CloseIcon fontSize='medium'/>
                 </IconButton>

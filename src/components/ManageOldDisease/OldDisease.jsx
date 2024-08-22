@@ -480,7 +480,9 @@ function OldDisease(props) {
                                                 {listFoundOldDisease ? 
                                                     listFoundOldDisease.map((foundOldDiseaseItem, foundOldDiseaseIndex) => (
                                                         <TableRow hover role="checkbox" key={foundOldDiseaseIndex} sx={{cursor: 'pointer'}} 
-                                                            selected={selectedRowIndex === foundOldDiseaseIndex} >
+                                                            selected={selectedRowIndex === foundOldDiseaseIndex} 
+                                                            onDoubleClick={() => handleApplyDataPatientOldDisease(foundOldDiseaseItem)}
+                                                        >
                                                             <TableCell align='left' >{foundOldDiseaseItem.patientId}</TableCell>
                                                             <TableCell align='left' >{foundOldDiseaseItem.fullName}</TableCell>
                                                             <TableCell align='left' >{moment(foundOldDiseaseItem.dayOfBirth).format('DD/MM/YYYY')}</TableCell>

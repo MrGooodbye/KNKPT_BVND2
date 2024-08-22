@@ -338,7 +338,11 @@ function ListPatientsRegister(props) {
                               null
                             :
                               <>
-                                <TableCell align='center' sx={{width: '90px'}}>{renderPatientsStatus(patientsRegisterSortItem.state)}</TableCell>
+                                <TableCell align='center' sx={{width: '90px'}}>
+                                  <Tooltip title={<Typography variant='subtitle2'>{patientsRegisterSortItem.state === 0 || patientsRegisterSortItem.state === 3 ? 'Chờ khám' : patientsRegisterSortItem.state === 2 ? 'Đang khám': 'Đã khám'}</Typography>} >
+                                    <span>{renderPatientsStatus(patientsRegisterSortItem.state)}</span>
+                                  </Tooltip>
+                                </TableCell>
                                 <TableCell align='left' sx={{width: '20px'}}>{patientsRegisterSortItem.order}</TableCell>
                               </>
                             }

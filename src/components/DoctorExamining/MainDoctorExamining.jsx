@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useRef } from 'react';
 //context
 import { UserContext } from '../../context/UserContext';
 //lodash
-import _ from "lodash";
+import _, { constant } from "lodash";
 //modal
 import CompleteExamining from '../ManageCompleteExamining/CompleteExamining';
 import AlertProcessingBackdrop from '../ManageAlertProcessingBackdrop/AlertProcessingBackdrop';
@@ -56,12 +56,15 @@ import { TbRulerMeasure } from "react-icons/tb";
 import CloseIcon from '@mui/icons-material/Close';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
+import BeenhereIcon from '@mui/icons-material/Beenhere';
+import VaccinesIcon from '@mui/icons-material/Vaccines';
 //moment
 import moment from 'moment';
 //scss
 import './SCSS/DoctorExamining.scss';
 //api
 import { 
+    createAddPredecessor,
     getMedicalDetailPatient,
     getRegistersByDateNow, getMedicalBook, getUpdatePredecessor, getUpdateMedicalBook,
     updateMedicalState
@@ -95,9 +98,6 @@ function MainDoctorExamining() {
     //state lưu tạm data các kỳ khám 
     const [prevDataExamining, setPrevDataExamining] = useState();
 
-    //state lưu main dataExamining không bao gồm data tiền căn cũ (dùng khi muốn chỉnh sửa tiền căn cũ)
-    const [prevDataExaminingWithoutOldPredecessor, setPrevDataExaminingWithoutOldPredecessor] = useState();
-
     //state đóng mở cây thư mục khám của sổ khám bệnh
     const [openCollapseHealthRecords, setOpenCollapseHealthRecords] = useState(false);
 
@@ -119,10 +119,16 @@ function MainDoctorExamining() {
 
     //state các câu hỏi được bác sĩ khám tích hoặc gõ vào
     const [dataExaminingForConclusion , setDataExaminingForConclusion ] = useState({});
+
     //state lưu tạm các data tiền căn của getUpdatePredecessor (bao gồm những data tiền căn đã chọn và chưa chọn)
     const [oldDataPredecessor, setOldDataPredecessor] = useState();
+
+    //dùng khi tái khám hoặc mở khám lại cho bệnh nhân có tiền căn đã đụng
+    const [newDataPredecessor, setNewDataPredecessor] = useState();
+
     //state lưu data tiền căn cũ (những data tiền căn đã chọn)  
     const [prevDataPredecessor, setPrevDataPredecessor] = useState();
+
     //state lưu các data đã chọn của mục khám trong sổ khám bệnh
     const [prevDataHealthRecords, setPrevDataHealthRecords] = useState();
 
@@ -197,7 +203,6 @@ function MainDoctorExamining() {
         setCurrentContentExamining(1);
         setDataExaminingForConclusion({});
         setPrevDataPredecessor();
-        setPrevDataExaminingWithoutOldPredecessor();
         setCurrentHealthRecordExamining();
         setOldDataPredecessor();
         handleGetRegistersByDateNow();
@@ -222,7 +227,6 @@ function MainDoctorExamining() {
             setCurrentContentExamining(1);
             setDataExaminingForConclusion({});
             setPrevDataPredecessor();
-            setPrevDataExaminingWithoutOldPredecessor();
             setCurrentHealthRecordExamining();
             setOldDataPredecessor()
             handleGetRegistersByDateNow();
@@ -235,43 +239,37 @@ function MainDoctorExamining() {
     }
 
     //hàm này dùng khi user đang khám mà bị ngáo lỡ nhấn f5
-    const handleReloadUIWhenExamining = async (findPantientExamining) => {
+    const handleReloadUIWhenExamining = async () => {
         setOpenAlertProcessingBackdrop(true);
+        const reDataPantientsReadyExamining = JSON.parse(sessionStorage.dataPantientsReadyExamining);
+        const reMainDataExamining = JSON.parse(sessionStorage.mainDataExamining);
+        const reDataExaminingForConclusion = JSON.parse(sessionStorage.dataExaminingForConclusion);
+        
+        setDataPantientsReadyExamining(_.cloneDeep(reDataPantientsReadyExamining));
+        setMainDataExamining(_.cloneDeep(reMainDataExamining));
+        setDataExaminingForConclusion(_.cloneDeep(reDataExaminingForConclusion));
 
-        const _dataPantientsReadyExamining = {...dataPantientsReadyExamining};
-        _dataPantientsReadyExamining.stt = findPantientExamining.order;
-        _dataPantientsReadyExamining.id = findPantientExamining.id;
-        _dataPantientsReadyExamining.status = 1;
-        _dataPantientsReadyExamining.patientsId = findPantientExamining.patient.patientId;
-        _dataPantientsReadyExamining.patientsName = findPantientExamining.patient.fullName;
-        _dataPantientsReadyExamining.patientsDOB = findPantientExamining.patient.dayOfBirth;
-        _dataPantientsReadyExamining.patientsMonthsOld = findPantientExamining.patient.monthsOfAge;
-        _dataPantientsReadyExamining.patientsGender = findPantientExamining.patient.gender;
-        _dataPantientsReadyExamining.patientsHeight = findPantientExamining.height;
-        _dataPantientsReadyExamining.patientsWeight = findPantientExamining.weight;
-        _dataPantientsReadyExamining.patientsHeadCircumference = findPantientExamining.headCircumference;
-        _dataPantientsReadyExamining.patientsHeadCircumference = findPantientExamining.headCircumference;
-        _dataPantientsReadyExamining.patientsPhone = findPantientExamining.patient.phoneMother ? findPantientExamining.patient.phoneMother : findPantientExamining.patient.phoneFather;
-        _dataPantientsReadyExamining.patientsAddress = findPantientExamining.patient.fullAddress;
-        _dataPantientsReadyExamining.editExamining = true
-        setDataPantientsReadyExamining(_dataPantientsReadyExamining);
-
-        const responseGetMedicalDetailPatient = await getMedicalDetailPatient(findPantientExamining.id);
-        if(responseGetMedicalDetailPatient.healthRecords.length === 1 && responseGetMedicalDetailPatient.healthRecords[0].medicalBookId !== null ){
-            setLoadingCategoryExamining(true);
-            const responseGetUpdateMedicalBook = await getUpdateMedicalBook(responseGetMedicalDetailPatient.healthRecords[0].medicalBookId);
-            if(responseGetUpdateMedicalBook.status === 200){
-                responseGetMedicalDetailPatient.healthRecords[0].categories = responseGetUpdateMedicalBook.data.categories
-                setMainDataExamining(responseGetMedicalDetailPatient);
-            }
-            else{
-                toast.error(responseGetUpdateMedicalBook.data, {toastId: 'error1'});
-            }
-            setLoadingCategoryExamining(false);
+        if(sessionStorage.currentHealthRecordExamining){
+            const reCurrentHealthRecordExamining = JSON.parse(sessionStorage.currentHealthRecordExamining);
+            setCurrentHealthRecordExamining(_.cloneDeep(reCurrentHealthRecordExamining));
         }
-        else if(responseGetMedicalDetailPatient.healthRecords.length === 1 && responseGetMedicalDetailPatient.healthRecords[0].medicalBookId !== null ){
 
+        if(sessionStorage.prevDataPredecessor){
+            const rePrevDataPredecessor = JSON.parse(sessionStorage.prevDataPredecessor);
+            setPrevDataPredecessor(_.cloneDeep(rePrevDataPredecessor));
         }
+
+        if(sessionStorage.oldDataPredecessor){
+            const reOldDataPredecessor = JSON.parse(sessionStorage.oldDataPredecessor);
+            setOldDataPredecessor(_.cloneDeep(reOldDataPredecessor));
+        }
+        
+        setNewDataPredecessor({
+            patientId: dataPantientsReadyExamining.patientsId,
+            categoryPres: []
+        })
+        
+        sessionStorage.clear();
         setOpenAlertProcessingBackdrop(false);
     }
 
@@ -290,10 +288,9 @@ function MainDoctorExamining() {
                         chipContent: response.listCountState[index]
                     }));
                     setListPantientChipState(updatedList);
-                    // const findPantientExamining = response.list.find(patientsRegisterItem => patientsRegisterItem.state === 1)
-                    // if(findPantientExamining){
-                    //     handleReloadUIWhenExamining(findPantientExamining);
-                    // }
+                    if(sessionStorage.dataPantientsReadyExamining){
+                        handleReloadUIWhenExamining();
+                    }
                 }
                 else if(activeChip.chipOrder === 1){
                     const listPantientRegisterDone = response.list.filter(patientsRegisterItem => patientsRegisterItem.state === 2) //đã khám
@@ -331,6 +328,7 @@ function MainDoctorExamining() {
         _dataPantientsReadyExamining.patientsHeadCircumference = dataPantientItem.headCircumference;
         _dataPantientsReadyExamining.patientsPhone = dataPantientItem.patient.phoneMother ? dataPantientItem.patient.phoneMother : dataPantientItem.patient.phoneFather;
         _dataPantientsReadyExamining.patientsAddress = dataPantientItem.patient.fullAddress;
+        _dataPantientsReadyExamining.vaccination = dataPantientItem.vaccination === true ? true : false;
         _dataPantientsReadyExamining.editExamining = dataPantientItem.state === 2 ? true : false;
         _dataPantientsReadyExamining.backRegister = dataPantientItem.state === 3 ? true : false;
         setDataPantientsReadyExamining(_dataPantientsReadyExamining);
@@ -341,7 +339,6 @@ function MainDoctorExamining() {
 
     //nhấn chọn bệnh nhân để load vào ô thông tin bn
     const handleSelectPantientExamining = async (dataPantientItem) => {
-        //console.log(dataPantientItem);
         if(dataPantientItem.state === 0 || dataPantientItem.state === 3 && dataPantientsReadyExamining.patientsName !== dataPantientItem.patient.fullName){
             if(dataPantientsReadyExamining.patientsId === '' || dataPantientsReadyExamining.patientsId !== '' && dataPantientsReadyExamining.status === 0){
                 await handleAppyPantientData(dataPantientItem);
@@ -370,6 +367,13 @@ function MainDoctorExamining() {
             _dataPantientsReadyExamining.status = 1;
             setDataPantientsReadyExamining(_dataPantientsReadyExamining);
             if(prevDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null)){
+
+                if(dataPantientsReadyExamining.backRegister){
+                    setPrevDataPredecessor(_.cloneDeep(prevDataExamining.categoryPres));
+                    //backup prevDataPredecessor để khi cần dùng
+                    setOldDataPredecessor(_.cloneDeep(prevDataExamining.categoryPres))
+                }
+
                 await handleGetRegistersByDateNow();
                 await handleSetMainDataExamining();
                 toast.success(`Đang khám cho bệnh nhân ${dataPantientsReadyExamining.patientsName}`, {toastId: 'success1'});
@@ -396,49 +400,73 @@ function MainDoctorExamining() {
         
         //tái khám và có tiền căn đã đụng
         if(dataPantientsReadyExamining.backRegister === true && prevDataExamining.newPredecessor === false){
-            const _oldDataPredecessor = _.cloneDeep(prevDataExamining);
+
             const responseGetUpdatePredecessor = await getUpdatePredecessor(dataPantientsReadyExamining.patientsId);
 
-            const _oldDataPredecessorUpdate = _oldDataPredecessor.categoryPres.map(category => ({       
+            const editPrevDataExaminingCategoryPres = responseGetUpdatePredecessor.data.map(responseGetUpdatePredecessorItem => {
+                const matchingPrevDataExamining = prevDataExamining.categoryPres.find(prevDataExaminingCategoryPresItem => prevDataExaminingCategoryPresItem.categoryOrder === responseGetUpdatePredecessorItem.categoryOrder);
+
+                return {
+                    ...responseGetUpdatePredecessorItem,
+                    isLock: true,
+                    categoryContents: responseGetUpdatePredecessorItem.categoryContents.filter(content2 => {
+                        return matchingPrevDataExamining && matchingPrevDataExamining.categoryContents.some(content1 => content1.categoryContentOrder === content2.categoryContentOrder);
+                    }).map(content2 => {
+                        const matchingContent1 = matchingPrevDataExamining.categoryContents.find(content1 => content1.categoryContentOrder === content2.categoryContentOrder);
+                        return {
+                            ...content2,
+                            isNullCategoryPres: matchingContent1 ? false : true,
+                            isLock: true,
+                            categoryContentQuestions: matchingContent1 ? matchingContent1.categoryContentQuestions : []
+                        };
+                    }),
+                };
+            })
+
+            prevDataExamining.categoryPres = editPrevDataExaminingCategoryPres
+
+            setNewDataPredecessor({
+                patientId: dataPantientsReadyExamining.patientsId,
+                categoryPres: []
+            })
+
+            const responseGetUpdateMedicalBook = await getMedicalBook(0);
+
+            prevDataExamining.healthRecords[0].categories = responseGetUpdateMedicalBook.medicakBook.categories
+
+            const updateHealthRecordsCategoriesForConclusion = prevDataExamining.healthRecords[0].categories.map(category => ({
                 categoryName: category.categoryName,
-                isPredecessor: true,
-                categoryOrder: category.categoryOrder,
+                isHealthRecord: true,
                 categoryContents: category.categoryContents.map(content => ({
-                    ...content,
-                    categoryContentQuestions: content.categoryContentQuestions.filter(q => q.categoryContentAnswer || q.categoryContentNote)
+                  ...content,
+                  categoryContentQuestions: []
                 })) 
             }))
     
-            setOldDataPredecessor(_oldDataPredecessorUpdate);
-
-            const _responseGetUpdatePredecessor = responseGetUpdatePredecessor.data
-            _responseGetUpdatePredecessor.forEach((predecessorItem, predecessorIndex) => {
-                predecessorItem.categoryContents = predecessorItem.categoryContents.map((categoryContentsItem) => {
-                    return {
-                        ...categoryContentsItem,
-                        categoryPresOrder: predecessorIndex,
-                        isLock: true
-                    }
-                })
-                return {...predecessorItem, ...predecessorItem.isLock = true, ...predecessorItem.newPredecessor = false, ...predecessorItem.categoryOrder }
+            //demo truớc data kết luận
+            const demoDataExaminingForConclusion = {
+                patientId: dataPantientsReadyExamining.patientsId,
+                isVaccination: prevDataExamining.vaccination,
+                medicalRegisterId: prevDataExamining.healthRecords[0].medicalRegisterId,
+                conclusion: prevDataExamining.healthRecords[0].conclusion,
+                categories: updateHealthRecordsCategoriesForConclusion
+            }
+    
+            setHealthRecordsContents({
+                healthRecordsName: prevDataExamining.healthRecords[0].examinationName,
+                categoryPatients: prevDataExamining.healthRecords[0].categories
+            })
+    
+            setCurrentHealthRecordExamining({
+                healthRecordsName: prevDataExamining.healthRecords[0].examinationName,
+                categoryPatients: prevDataExamining.healthRecords[0].categories
             })
 
-            setPrevDataPredecessor(_responseGetUpdatePredecessor);
-            
-            prevDataExamining.categoryPres = _responseGetUpdatePredecessor   
-
-            const editDataHealthRecordsForConclusion = prevDataExamining.healthRecords.find((healthRecordsItem) => healthRecordsItem.medicalBookId === null)
-    
-            setDataExaminingForConclusion({
-                patientId: dataPantientsReadyExamining.patientsId,
-                medicalRegisterId: editDataHealthRecordsForConclusion.medicalRegisterId,
-                conclusion: editDataHealthRecordsForConclusion.conclusion,
-                categories: [],
-            });
-
             setMainDataExamining(prevDataExamining);
-            setPrevDataExaminingWithoutOldPredecessor(_.cloneDeep(prevDataExamining));
+            setDataExaminingForConclusion(demoDataExaminingForConclusion);
+            //console.log(prevDataExamining);
             setPrevDataExamining();
+
         }
 
         //khám mới hoàn toàn hoặc tái khám có tiền căn chưa đụng
@@ -450,6 +478,7 @@ function MainDoctorExamining() {
                         categoryContentName: categoryContentsItem.categoryContentName,
                         categoryContentCheck: categoryContentsItem.categoryContentCheck,
                         categoryContentText: categoryContentsItem.categoryContentText,
+                        categoryContentOrder: categoryContentsItem.categoryContentOrder,
                         categoryContentQuestions: []
                     }
                     return categoryContents
@@ -469,6 +498,7 @@ function MainDoctorExamining() {
     
             setDataExaminingForConclusion({
                 patientId: dataPantientsReadyExamining.patientsId,
+                isVaccination: prevDataExamining.vaccination,
                 medicalRegisterId: editDataHealthRecordsForConclusion.medicalRegisterId,
                 conclusion: editDataHealthRecordsForConclusion.conclusion,
                 categories: editDataCategoryPresForConclusion,
@@ -516,23 +546,12 @@ function MainDoctorExamining() {
             _dataPantientsReadyExamining.status = 1;
             setDataPantientsReadyExamining(_dataPantientsReadyExamining);
 
-
-            const _oldDataPredecessor = _.cloneDeep(prevDataExamining);
-
-            const _oldDataPredecessorUpdate = _oldDataPredecessor.categoryPres.map(category => ({       
-                categoryName: category.categoryName,
-                isPredecessor: true,
-                categoryOrder: category.categoryOrder,
-                categoryContents: category.categoryContents.map(content => ({
-                    ...content,
-                    categoryContentQuestions: content.categoryContentQuestions.filter(q => q.categoryContentAnswer || q.categoryContentNote)
-                })) 
-            }))
-
             if(prevDataExamining.newPredecessor === false){
-                setOldDataPredecessor(_oldDataPredecessorUpdate);
+                setPrevDataPredecessor(_.cloneDeep(prevDataExamining.categoryPres));
+                //backup prevDataPredecessor để khi cần dùng
+                setOldDataPredecessor(_.cloneDeep(prevDataExamining.categoryPres))
             }
-
+            
             await handleSetMainDataReExamining(responseGetUpdateMedicalBook.data);
             toast.success(`Đang khám cho bệnh nhân ${dataPantientsReadyExamining.patientsName}`, {toastId: 'success1'});
         }
@@ -544,16 +563,6 @@ function MainDoctorExamining() {
 
     //chỉnh dữ liệu cây thư mục khám của chức năng mở khám lại
     const handleSetMainDataReExamining = async (responseGetUpdateMedicalBookData) => {
-        prevDataExamining.categoryPres.forEach((predecessorItem, predecessorIndex) => {
-            predecessorItem.categoryContents = predecessorItem.categoryContents.map((categoryContentsItem) => {
-                return {
-                    ...categoryContentsItem,
-                    categoryPresOrder: predecessorIndex,
-                    isLock: true
-                }
-            })
-            predecessorItem.isLock = true
-        })
         prevDataExamining.healthRecords[0].state = 1
         prevDataExamining.healthRecords[0].categories = responseGetUpdateMedicalBookData.categories
 
@@ -562,15 +571,14 @@ function MainDoctorExamining() {
             isHealthRecord: true,
             categoryContents: category.categoryContents.map(content => ({
               ...content,
-              categoryContentQuestions: content.categoryContentQuestions.some(q => q.categoryContentAnswer || q.categoryContentNote) 
-                ? content.categoryContentQuestions.filter(q => q.categoryContentAnswer && q.categoryContentNote) 
-                : []
+              categoryContentQuestions: []
             })) 
         }))
 
         //demo truớc data kết luận
         const demoDataExaminingForConclusion = {
             patientId: dataPantientsReadyExamining.patientsId,
+            isVaccination: prevDataExamining.vaccination,
             medicalRegisterId: dataPantientsReadyExamining.id !== prevDataExamining.healthRecords[0].medicalRegisterId ? dataPantientsReadyExamining.id : prevDataExamining.healthRecords[0].medicalRegisterId,
             conclusion: prevDataExamining.healthRecords[0].conclusion,
             categories: updateHealthRecordsCategoriesForConclusion
@@ -586,128 +594,523 @@ function MainDoctorExamining() {
             categoryPatients: prevDataExamining.healthRecords[0].categories
         })
 
+        //sửa categories của conclusion phần sổ khám bệnh
+        let updateCategoriesForConclusion = _.cloneDeep(prevDataExamining.healthRecords[0].categories);
+
+        updateCategoriesForConclusion = updateCategoriesForConclusion.map(category => {
+            category.categoryContents = category.categoryContents.map(content => {
+                const questions = content.categoryContentQuestions;
+    
+                // Check if all questions have both categoryContentAnswer and categoryContentNote as null
+                const allNull = questions.every(q => q.categoryContentAnswer === null && q.categoryContentNote === null);
+                    
+                if (allNull) {
+                  // Set categoryContentQuestions to an empty array
+                  content.categoryContentQuestions = [];                    
+                } else {
+                  // Filter out questions with both categoryContentAnswer and categoryContentNote as null
+                  content.categoryContentQuestions = questions.filter(q => q.categoryContentAnswer !== null || q.categoryContentNote !== null);
+                }
+                    
+                return content;
+            });
+                  
+            category.isHealthRecord = true
+            return category;
+        })
+
+        demoDataExaminingForConclusion.categories = updateCategoriesForConclusion
+
         const responseGetUpdatePredecessor = await getUpdatePredecessor(dataPantientsReadyExamining.patientsId);
+
         //tiền căn đợt trước đã đụng (newPredecessor = false)
         if(responseGetUpdatePredecessor.status === 200)
-        {
-            const _responseGetUpdatePredecessor = responseGetUpdatePredecessor.data
-            _responseGetUpdatePredecessor.forEach((predecessorItem, predecessorIndex) => {
-                predecessorItem.categoryContents = predecessorItem.categoryContents.map((categoryContentsItem) => {
-                    return {
-                        ...categoryContentsItem,
-                        categoryPresOrder: predecessorIndex,
-                        isLock: true
-                    }
-                })
-                return {...predecessorItem, ...predecessorItem.isLock = true, ...predecessorItem.newPredecessor = false, ...predecessorItem.categoryOrder }
+        {   
+            const editPrevDataExaminingCategoryPres = responseGetUpdatePredecessor.data.map(responseGetUpdatePredecessorItem => {
+                const matchingPrevDataExamining = prevDataExamining.categoryPres.find(prevDataExaminingCategoryPresItem => prevDataExaminingCategoryPresItem.categoryOrder === responseGetUpdatePredecessorItem.categoryOrder);
+
+                return {
+                    ...responseGetUpdatePredecessorItem,
+                    isLock: true,
+                    categoryContents: responseGetUpdatePredecessorItem.categoryContents.filter(content2 => {
+                        return matchingPrevDataExamining && matchingPrevDataExamining.categoryContents.some(content1 => content1.categoryContentOrder === content2.categoryContentOrder);
+                    }).map(content2 => {
+                        const matchingContent1 = matchingPrevDataExamining.categoryContents.find(content1 => content1.categoryContentOrder === content2.categoryContentOrder);
+                        return {
+                            ...content2,
+                            isNullCategoryPres: matchingContent1 ? false : true,
+                            isLock: true,
+                            categoryContentQuestions: matchingContent1 ? matchingContent1.categoryContentQuestions : []
+                        };
+                    }),
+                };
             })
 
-            setPrevDataPredecessor(_responseGetUpdatePredecessor);
-            prevDataExamining.categoryPres = _responseGetUpdatePredecessor   
+            prevDataExamining.categoryPres = editPrevDataExaminingCategoryPres
+
+            setNewDataPredecessor({
+                patientId: dataPantientsReadyExamining.patientsId,
+                categoryPres: []
+            })
 
             setMainDataExamining(prevDataExamining);
-            setPrevDataExaminingWithoutOldPredecessor(_.cloneDeep(prevDataExamining));
             setPrevDataExamining();
         }
+        
         //tiền căn đợt trước chưa đụng (newPredecessor = true) 
         else{
-            const responseGetMedicalDetailPatient = await getMedicalDetailPatient(dataPantientsReadyExamining.id);
+            //thêm tiền căn vào categories của conclusion
+            let updateCategoriesForConclusion = _.cloneDeep(prevDataExamining.categoryPres);
 
-            const editDataCategoryPresForConclusion = prevDataExamining.categoryPres.map((predecessorItem) => {
-                const mainCategoryContentsExamining = predecessorItem.categoryContents.map((categoryContentsItem) => {
-                    const categoryContents = {
-                        categoryContentTitle: categoryContentsItem.categoryContentTitle,
-                        categoryContentName: categoryContentsItem.categoryContentName,
-                        categoryContentCheck: categoryContentsItem.categoryContentCheck,
-                        categoryContentText: categoryContentsItem.categoryContentText,
+            updateCategoriesForConclusion = updateCategoriesForConclusion.map((item) => {
+                const editCategoryContents = item.categoryContents.map((itemCategoryContents) => {
+                    return {
+                        categoryContentCheck: itemCategoryContents.categoryContentCheck,
+                        categoryContentName: itemCategoryContents.categoryContentName,
+                        categoryContentOrder: itemCategoryContents.categoryContentOrder,
+                        categoryContentText: itemCategoryContents.categoryContentText,
+                        categoryContentTitle: itemCategoryContents.categoryContentTitle,
                         categoryContentQuestions: []
                     }
-                    return categoryContents
                 })
-    
-                const mainCategoryExamining = {
-                    categoryName: predecessorItem.categoryName,
-                    isPredecessor: true,
-                    categoryOrder: predecessorItem.categoryOrder,
-                    categoryContents: mainCategoryContentsExamining
+
+                return {
+                    categoryName: item.categoryName,
+                    categoryOrder: item.categoryOrder,
+                    categoryContents: editCategoryContents,
+                    isPredecessor: true
                 }
-    
-                return mainCategoryExamining
             })
+        
+            const newCategoriesDemoDataExaminingForConclusion = updateCategoriesForConclusion.concat(demoDataExaminingForConclusion.categories);
+            demoDataExaminingForConclusion.categories = newCategoriesDemoDataExaminingForConclusion
 
-            demoDataExaminingForConclusion.categories = editDataCategoryPresForConclusion.concat(updateHealthRecordsCategoriesForConclusion);
-
-            prevDataExamining.categoryPres = responseGetMedicalDetailPatient.categoryPres
             setMainDataExamining(prevDataExamining);
             setPrevDataExamining();
         }
 
-        setDataExaminingForConclusion(demoDataExaminingForConclusion);
+        setDataExaminingForConclusion(_.cloneDeep(demoDataExaminingForConclusion));
     }
 
     //sửa dữ liệu tiền căn cho mở khám lại hoặc tái khám
-    const handleEditDataPredecessor = async (categoryName) => {
+    const handleEditDataPredecessor = async (categoryName, categoryOrder) => {
         setOpenAlertProcessingBackdrop(true);
-        setTimeout(() => {
-            const findDataPredecessor = prevDataPredecessor.filter(predecessorItem => predecessorItem.categoryName === categoryName);
-                findDataPredecessor.forEach(dataPredecessorItem => ({
-                    ...dataPredecessorItem,
-                    ...dataPredecessorItem.isLock = false
-            }))
-            
-            const updatePredecessorCategoriesForConclusion = prevDataPredecessor.filter(category => category.categoryName === categoryName).map(category => ({
-                categoryName: category.categoryName,
-                isPredecessor: true,
-                categoryOrder: category.categoryOrder,
-                categoryContents: category.categoryContents.map(content => ({
-                    ...content,
-                    categoryContentQuestions: []
-                }))
-            }))
+        
+        const responseGetUpdatePredecessor = await getUpdatePredecessor(dataPantientsReadyExamining.patientsId);
 
-            dataExaminingForConclusion.categories.unshift(updatePredecessorCategoriesForConclusion[0]);
+        const findUpdatePredecessor = responseGetUpdatePredecessor.data.find(responseGetUpdatePredecessorItem => responseGetUpdatePredecessorItem.categoryOrder === categoryOrder);
 
-            mainDataExamining.categoryPres.forEach((categoryPresItem) => {
-                if(categoryPresItem.categoryName === findDataPredecessor[0].categoryName){      
-                    categoryPresItem.isLock = false
-                }
+        mainDataExamining.categoryPres.forEach((categoryPresItem) => {
+            if(categoryPresItem.categoryOrder === findUpdatePredecessor.categoryOrder){
+                categoryPresItem.categoryContents = findUpdatePredecessor.categoryContents
                 categoryPresItem.categoryContents.forEach((categoryContentsItem) => {
-                    if(categoryPresItem.categoryName === findDataPredecessor[0].categoryName){      
-                        categoryContentsItem.isLock = false
-                    }
+                    categoryContentsItem.isLock = false
                 })
-            })
+                categoryPresItem.isLock = false
+            }
+        })
 
-            handleSelectCategoryClick(findDataPredecessor[0])
-        }, 300)
+        const selectCategoryReExamining = mainDataExamining.categoryPres.find(categoryPresItem => categoryPresItem.categoryOrder === categoryOrder);
+        
+        if(!newDataPredecessor.categoryPres.some(categoryPresItem => categoryPresItem.categoryName === categoryName)){
+            newDataPredecessor.categoryPres = prevDataPredecessor
+        }
+
+        handleSelectCategoryClick(selectCategoryReExamining);
+
         setOpenAlertProcessingBackdrop(false);
     }
 
     //huỷ không sửa dữ liệu tiền căn nữa
-    const handleCancelEditDataPredecessor = (e, categoryName) => {
+    const handleCancelEditDataPredecessor = (categoryName, categoryOrder) => {
         setOpenAlertProcessingBackdrop(true);
 
         setTimeout(() => {
-            const findDataWithoutNewPredecessor = prevDataExaminingWithoutOldPredecessor.categoryPres.find(categoryPresItem => categoryPresItem.categoryName === categoryName);
-        
-            mainDataExamining.categoryPres.forEach((categoryPresItem) => {
-                if(categoryPresItem.categoryName === findDataWithoutNewPredecessor.categoryName){
-                    categoryPresItem.categoryContents = findDataWithoutNewPredecessor.categoryContents
-                    categoryPresItem.isLock = true
-                }
-                categoryPresItem.categoryContents.forEach((categoryContentsItem) => {
-                    if(categoryPresItem.categoryName === categoryName){      
-                        categoryContentsItem.isLock = true
+            const findPrevDataPredecessorByCategoryName = oldDataPredecessor.find(prevDataPredecessorItem => prevDataPredecessorItem.categoryOrder === categoryOrder);
+
+            if(findPrevDataPredecessorByCategoryName){
+                mainDataExamining.categoryPres.forEach((categoryPresItem) => {
+                    if(categoryPresItem.categoryOrder === findPrevDataPredecessorByCategoryName.categoryOrder){
+                        categoryPresItem.categoryContents = findPrevDataPredecessorByCategoryName.categoryContents
+                        categoryPresItem.categoryContents.forEach((categoryContentsItem) => {
+                            categoryContentsItem.isLock = true
+                        })
+                        categoryPresItem.isLock = true
                     }
                 })
-            })
-            
-            dataExaminingForConclusion.categories = dataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.categoryName !== categoryName);
-    
-            handleSelectCategoryClick(findDataWithoutNewPredecessor);
-    
+
+                newDataPredecessor.categoryPres.forEach((newDataPredecessorCategoryPresItem) => {
+                    if(newDataPredecessorCategoryPresItem.categoryOrder === findPrevDataPredecessorByCategoryName.categoryOrder){
+                        newDataPredecessorCategoryPresItem.categoryContents = findPrevDataPredecessorByCategoryName.categoryContents
+                    }
+                })
+            }
+            else{
+                mainDataExamining.categoryPres.forEach((categoryPresItem) => {
+                    if(categoryPresItem.categoryOrder === categoryOrder){
+                        categoryPresItem.categoryContents = [];
+                        categoryPresItem.isLock = true
+                    }
+                })
+
+                const _newDataPredecessor = {...newDataPredecessor};
+                const removeCategoryPredecessor = _newDataPredecessor.categoryPres.filter(categoryPresItem => categoryPresItem.categoryOrder !== categoryOrder);
+                newDataPredecessor.categoryPres = removeCategoryPredecessor
+            }
+
+            setPrevDataPredecessor(_.cloneDeep(oldDataPredecessor));
+
+            const selectCategoryReExamining = mainDataExamining.categoryPres.find(categoryPresItem => categoryPresItem.categoryOrder === categoryOrder);
+            handleSelectCategoryClick(selectCategoryReExamining)
+   
             setOpenAlertProcessingBackdrop(false);
-        }, 300)   
+        }, 300)       
+    }
+
+    //tạo data tiền căn để lưu lại khi tái khám hoặc mở khám lại
+    //câu trả lời dạng check chọn true false
+    const handleAnswerCheckQuestionPredecessorForReExamOrBackExam = (questionIndex, answer) => {
+        if(answer === null){
+            const _categorySelectedExamining = {...categorySelectedExamining};
+            _categorySelectedExamining.categoryContents[currentContentExamining - 1].categoryContentQuestions[questionIndex].categoryContentAnswer = true
+            setCategorySelectedExamining(_categorySelectedExamining);
+
+            createSelectedQuestionsPredecessorForReExamOrBackExam(_categorySelectedExamining.categoryContents[currentContentExamining - 1].categoryContentQuestions[questionIndex])
+        }
+        else if(answer === true){
+            const _categorySelectedExamining = {...categorySelectedExamining};
+            _categorySelectedExamining.categoryContents[currentContentExamining - 1].categoryContentQuestions[questionIndex].categoryContentAnswer = null
+            setCategorySelectedExamining(_categorySelectedExamining);
+
+            createSelectedQuestionsPredecessorForReExamOrBackExam(_categorySelectedExamining.categoryContents[currentContentExamining - 1].categoryContentQuestions[questionIndex])
+        }
+    }
+
+    //câu trả lời dạng check chọn sửa lại note
+    const handleNoteCheckQuestionPredecessorForReExamOrBackExam = (questionIndex, value) => {
+        const takenValue = value;
+
+        if(typingRef.current){
+            clearInterval(typingRef.current);
+        }
+
+        typingRef.current = setTimeout(() => {
+            const _categorySelectedExamining = {...categorySelectedExamining};
+            _categorySelectedExamining.categoryContents[currentContentExamining - 1].categoryContentQuestions[questionIndex].categoryContentNote = takenValue
+            setCategorySelectedExamining(_categorySelectedExamining);
+
+            createSelectedQuestionsPredecessorForReExamOrBackExam(_categorySelectedExamining.categoryContents[currentContentExamining - 1].categoryContentQuestions[questionIndex], takenValue)
+        }, 300)
+    }
+
+    //câu trả lời dạng giá trị, sửa lại note
+    const handleNoteValueQuestionPredecessorForReExamOrBackExam = (questionIndex, value) => {
+        const takenValue = value;
+
+        if(typingRef.current){
+            clearInterval(typingRef.current);
+        }
+
+        typingRef.current = setTimeout(() => {
+            const _categorySelectedExamining = {...categorySelectedExamining};
+            _categorySelectedExamining.categoryContents[currentContentExamining - 1].categoryContentQuestions[questionIndex].categoryContentNote = takenValue
+            setCategorySelectedExamining(_categorySelectedExamining);
+
+            createSelectedQuestionsValuePredecessorForReExamOrBackExam(_categorySelectedExamining.categoryContents[currentContentExamining - 1].categoryContentQuestions[questionIndex], takenValue)
+        }, 300)
+    }
+
+    const createSelectedQuestionsValuePredecessorForReExamOrBackExam = (categoryContentQuestion, takenValue) => {
+        const findNewDataPredecessorCategoryOrder = newDataPredecessor.categoryPres.find(newDataPredecessorCategoryPresItem => newDataPredecessorCategoryPresItem.categoryOrder === categorySelectedExamining.categoryOrder);
+
+        if(findNewDataPredecessorCategoryOrder){
+            // Nếu tìm thấy categoryOrder, tìm kiếm tiếp categoryContentOrder
+            const findNewDataPredecessorCategoryContents = findNewDataPredecessorCategoryOrder.categoryContents.find(newDataPredecessorCategoryContentsItem => newDataPredecessorCategoryContentsItem.categoryContentOrder === contentCategorySelectedExamining.categoryContentOrder)
+
+            if(findNewDataPredecessorCategoryContents){
+                // Nếu tìm thấy categoryContentOrder, kiểm tra xem có categoryContentQuestionOrder trùng không
+                const questionIndex = findNewDataPredecessorCategoryContents.categoryContentQuestions.findIndex(newDataPredecessorcategoryContentQuestionsItem => newDataPredecessorcategoryContentQuestionsItem.categoryContentQuestionOrder === categoryContentQuestion.categoryContentQuestionOrder && takenValue !== '');
+                const questionIndexRemove = findNewDataPredecessorCategoryContents.categoryContentQuestions.findIndex(newDataPredecessorcategoryContentQuestionsItem => newDataPredecessorcategoryContentQuestionsItem.categoryContentQuestionOrder === categoryContentQuestion.categoryContentQuestionOrder && takenValue === '');
+
+                if(questionIndex !== -1){
+                    // nếu tìm thấy câu hỏi cũ, và taken value khác rỗng => gán note cũ bằng note mới
+                    findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].categoryContentNote = takenValue;
+                }
+
+                else if(questionIndexRemove !== -1){
+                    // nếu tìm thấy câu hỏi cũ, và taken value bằng rỗng => bỏ note đó
+                    findNewDataPredecessorCategoryContents.categoryContentQuestions.splice(questionIndexRemove, 1);
+                }
+
+                else{
+                    //nếu không tìm thấy, đẩy note mới vào
+                    findNewDataPredecessorCategoryContents.categoryContentQuestions.push(categoryContentQuestion);
+                }
+            }
+
+            else{
+                // Nếu không tìm thấy categoryContentOrder, thêm content mới
+                const newDataPredecessorCategoryContents = {
+                    categoryContentCheck: contentCategorySelectedExamining.categoryContentCheck,
+                    categoryContentName: contentCategorySelectedExamining.categoryContentName,
+                    categoryContentOrder: contentCategorySelectedExamining.categoryContentOrder,
+                    categoryContentQuestions: [categoryContentQuestion],
+                    categoryContentText: contentCategorySelectedExamining.categoryContentText,
+                    categoryContentTitle: contentCategorySelectedExamining.categoryContentTitle
+                }
+
+                findNewDataPredecessorCategoryOrder.categoryContents.push(newDataPredecessorCategoryContents)
+            }
+        }
+
+        else{
+            // Nếu không tìm thấy categoryOrder, thêm mới categoryOrder
+            const newDataPredecessorCategoryContents = {
+                categoryContentCheck: contentCategorySelectedExamining.categoryContentCheck,
+                categoryContentName: contentCategorySelectedExamining.categoryContentName,
+                categoryContentOrder: contentCategorySelectedExamining.categoryContentOrder,
+                categoryContentQuestions: [categoryContentQuestion],
+                categoryContentText: contentCategorySelectedExamining.categoryContentText,
+                categoryContentTitle: contentCategorySelectedExamining.categoryContentTitle
+            }
+
+            const newDataPredecessorCategoryPres = {
+                categoryOrder: categorySelectedExamining.categoryOrder,
+                categoryName: categorySelectedExamining.categoryName,
+                newCategoryPre: categorySelectedExamining.newCategoryPre,
+                categoryContents: [newDataPredecessorCategoryContents]
+            }
+
+            newDataPredecessor.categoryPres.push(newDataPredecessorCategoryPres)
+        }         
+    }
+
+    const createSelectedQuestionsPredecessorForReExamOrBackExam = (categoryContentQuestion, takenValue) => {
+        if(takenValue){
+            //câu hỏi là dạng check đang là true, chỉ sửa note khác rỗng
+            if(categoryContentQuestion.categoryContentAnswer === true && categoryContentQuestion.categoryContentQuestionType === 'check' && takenValue.length !== 0){
+                const findNewDataPredecessorCategoryOrder = newDataPredecessor.categoryPres.find(newDataPredecessorCategoryPresItem => newDataPredecessorCategoryPresItem.categoryOrder === categorySelectedExamining.categoryOrder);
+
+                if(findNewDataPredecessorCategoryOrder){
+                    // Nếu tìm thấy categoryOrder, tìm kiếm tiếp categoryContentOrder
+                    const findNewDataPredecessorCategoryContents = findNewDataPredecessorCategoryOrder.categoryContents.find(newDataPredecessorCategoryContentsItem => newDataPredecessorCategoryContentsItem.categoryContentOrder === contentCategorySelectedExamining.categoryContentOrder)
+
+                    if(findNewDataPredecessorCategoryContents){
+                        // Nếu tìm thấy categoryContentOrder, kiểm tra xem có categoryContentQuestionOrder trùng không
+                        const questionIndex = findNewDataPredecessorCategoryContents.categoryContentQuestions.findIndex(newDataPredecessorcategoryContentQuestionsItem => newDataPredecessorcategoryContentQuestionsItem.categoryContentQuestionOrder === categoryContentQuestion.categoryContentQuestionOrder);
+                        if(questionIndex !== -1){
+                            // thay thế ghi chú bằng ghi chú mới
+                            findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].categoryContentNote = takenValue
+                        }
+                    }
+                }
+            }
+
+            //câu hỏi là dạng check đang là true, chỉ sửa note bằng rỗng
+            if(categoryContentQuestion.categoryContentAnswer === true && categoryContentQuestion.categoryContentQuestionType === 'check' && takenValue.length === 0){
+                const findNewDataPredecessorCategoryOrder = newDataPredecessor.categoryPres.find(newDataPredecessorCategoryPresItem => newDataPredecessorCategoryPresItem.categoryOrder === categorySelectedExamining.categoryOrder);
+
+                if(findNewDataPredecessorCategoryOrder){
+                    // Nếu tìm thấy categoryOrder, tìm kiếm tiếp categoryContentOrder
+                    const findNewDataPredecessorCategoryContents = findNewDataPredecessorCategoryOrder.categoryContents.find(newDataPredecessorCategoryContentsItem => newDataPredecessorCategoryContentsItem.categoryContentOrder === contentCategorySelectedExamining.categoryContentOrder)
+
+                    if(findNewDataPredecessorCategoryContents){
+                        // Nếu tìm thấy categoryContentOrder, kiểm tra xem có categoryContentQuestionOrder trùng không
+                        const questionIndex = findNewDataPredecessorCategoryContents.categoryContentQuestions.findIndex(newDataPredecessorcategoryContentQuestionsItem => newDataPredecessorcategoryContentQuestionsItem.categoryContentQuestionOrder === categoryContentQuestion.categoryContentQuestionOrder);
+                        if(questionIndex !== -1){
+                            // thay thế ghi chú bằng rỗng
+                            findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].categoryContentNote = ''
+                        }
+                    }
+                }
+            }
+                
+        }
+
+        else{
+            //câu hỏi là dạng check câu trả lời là true
+            if(categoryContentQuestion.categoryContentAnswer === true && categoryContentQuestion.categoryContentQuestionType === 'check'){
+                const findNewDataPredecessorCategoryOrder = newDataPredecessor.categoryPres.find(newDataPredecessorCategoryPresItem => newDataPredecessorCategoryPresItem.categoryOrder === categorySelectedExamining.categoryOrder);
+
+                if(findNewDataPredecessorCategoryOrder){
+                    // Nếu tìm thấy categoryOrder, tìm kiếm tiếp categoryContentOrder
+                    const findNewDataPredecessorCategoryContents = findNewDataPredecessorCategoryOrder.categoryContents.find(newDataPredecessorCategoryContentsItem => newDataPredecessorCategoryContentsItem.categoryContentOrder === contentCategorySelectedExamining.categoryContentOrder)
+
+                    if(findNewDataPredecessorCategoryContents){
+                        // Nếu tìm thấy categoryContentOrder, thêm câu hỏi mới
+                        findNewDataPredecessorCategoryContents.categoryContentQuestions.push(categoryContentQuestion);
+                    }
+                    else{
+                        // Nếu không tìm thấy categoryContentOrder, thêm content mới
+                        const newDataPredecessorCategoryContents = {
+                            categoryContentCheck: contentCategorySelectedExamining.categoryContentCheck,
+                            categoryContentName: contentCategorySelectedExamining.categoryContentName,
+                            categoryContentOrder: contentCategorySelectedExamining.categoryContentOrder,
+                            categoryContentQuestions: [categoryContentQuestion],
+                            categoryContentText: contentCategorySelectedExamining.categoryContentText,
+                            categoryContentTitle: contentCategorySelectedExamining.categoryContentTitle
+                        }
+                        findNewDataPredecessorCategoryOrder.categoryContents.push(newDataPredecessorCategoryContents)
+                    }
+                }
+                else{
+                    // Nếu không tìm thấy categoryOrder, thêm mới categoryOrder
+                    const newDataPredecessorCategoryContents = {
+                        categoryContentCheck: contentCategorySelectedExamining.categoryContentCheck,
+                        categoryContentName: contentCategorySelectedExamining.categoryContentName,
+                        categoryContentOrder: contentCategorySelectedExamining.categoryContentOrder,
+                        categoryContentQuestions: [categoryContentQuestion],
+                        categoryContentText: contentCategorySelectedExamining.categoryContentText,
+                        categoryContentTitle: contentCategorySelectedExamining.categoryContentTitle
+                    }
+
+                    const newDataPredecessorCategoryPres = {
+                        categoryOrder: categorySelectedExamining.categoryOrder,
+                        categoryName: categorySelectedExamining.categoryName,
+                        newCategoryPre: categorySelectedExamining.newCategoryPre,
+                        categoryContents: [newDataPredecessorCategoryContents]
+                    }
+
+                    newDataPredecessor.categoryPres.push(newDataPredecessorCategoryPres)
+                }
+            }
+
+            //câu hỏi là dạng check câu trả lời là false
+            if(categoryContentQuestion.categoryContentAnswer === null && categoryContentQuestion.categoryContentQuestionType === 'check'){
+                const findNewDataPredecessorCategoryOrder = newDataPredecessor.categoryPres.find(newDataPredecessorCategoryPresItem => newDataPredecessorCategoryPresItem.categoryOrder === categorySelectedExamining.categoryOrder);
+
+                if(findNewDataPredecessorCategoryOrder){
+                    // Nếu tìm thấy categoryOrder, tìm kiếm tiếp categoryContentOrder
+                    const findNewDataPredecessorCategoryContents = findNewDataPredecessorCategoryOrder.categoryContents.find(newDataPredecessorCategoryContentsItem => newDataPredecessorCategoryContentsItem.categoryContentOrder === contentCategorySelectedExamining.categoryContentOrder)
+
+                    if(findNewDataPredecessorCategoryContents){
+                        // Nếu tìm thấy categoryContentOrder, kiểm tra xem có categoryContentQuestionOrder trùng không
+                        const questionIndex = findNewDataPredecessorCategoryContents.categoryContentQuestions.findIndex(newDataPredecessorcategoryContentQuestionsItem => newDataPredecessorcategoryContentQuestionsItem.categoryContentQuestionOrder === categoryContentQuestion.categoryContentQuestionOrder);
+                        if(questionIndex !== -1){
+                            // Loại bỏ câu hỏi cũ nếu tìm thấy
+                            findNewDataPredecessorCategoryContents.categoryContentQuestions.splice(questionIndex, 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //lưu dữ liệu tiền căn khi sửa xong
+    const handleEditDataPredecessorForSaving = (categoryOrder) => {
+        setOpenAlertProcessingBackdrop(true);
+
+        setTimeout(() => {
+            const findNewDataPredecessor = newDataPredecessor.categoryPres.find(newDataPredecessorCategoryPres => newDataPredecessorCategoryPres.categoryOrder === categoryOrder)
+
+            const findOldDataPredecessorCategoryOrder = oldDataPredecessor.find(oldDataPredecessorItem => oldDataPredecessorItem.categoryOrder === findNewDataPredecessor.categoryOrder);
+
+            if(findOldDataPredecessorCategoryOrder){
+                // Nếu tìm thấy categoryOrder, duyệt qua categoryContents của findNewDataPredecessor
+                findNewDataPredecessor.categoryContents.forEach(findNewDataPredecessorCategoryContentsItem => {
+
+                    let content = findOldDataPredecessorCategoryOrder.categoryContents.find(findOldDataPredecessorCategoryContentsItem => findOldDataPredecessorCategoryContentsItem.categoryContentOrder === findNewDataPredecessorCategoryContentsItem.categoryContentOrder);
+
+                    if(content){
+                        // Loại bỏ các categoryContentQuestions trong content nếu không tồn tại trong findNewDataPredecessorCategoryContentsItem
+                        content.categoryContentQuestions = content.categoryContentQuestions.filter(q =>
+                            findNewDataPredecessorCategoryContentsItem.categoryContentQuestions.some(newQ => newQ.categoryContentQuestionOrder === q.categoryContentQuestionOrder)
+                        );
+
+                        // Nếu tìm thấy categoryContentOrder, duyệt qua categoryContentQuestions
+                        if(findNewDataPredecessorCategoryContentsItem.categoryContentQuestions.length !== 0){
+                            findNewDataPredecessorCategoryContentsItem.categoryContentQuestions.forEach(findNewDataPredecessorQuestionItem => {
+                                if(findNewDataPredecessorQuestionItem.categoryContentAnswer === null && findNewDataPredecessorQuestionItem.categoryContentQuestionType === 'check'){
+                                    // Nếu categoryContentAnswer là false, loại bỏ question đó
+                                    content.categoryContentQuestions = content.categoryContentQuestions.filter(q => q.categoryContentQuestionOrder !== findNewDataPredecessorQuestionItem.categoryContentQuestionOrder);
+                                }
+
+                                else if(findNewDataPredecessorQuestionItem.categoryContentAnswer === '' && findNewDataPredecessorQuestionItem.categoryContentQuestionType === 'string'){
+                                    content.categoryContentQuestions = content.categoryContentQuestions.filter(q => q.categoryContentQuestionOrder !== findNewDataPredecessorQuestionItem.categoryContentQuestionOrder);
+                                }
+
+                                else{
+                                    const questionIndex = content.categoryContentQuestions.findIndex(q => q.categoryContentQuestionOrder === findNewDataPredecessorQuestionItem.categoryContentQuestionOrder);
+
+                                    if (questionIndex !== -1) {
+                                        // Thay thế question nếu trùng khớp
+                                        content.categoryContentQuestions[questionIndex] = findNewDataPredecessorQuestionItem;
+                                    }
+
+                                    else {
+                                        // Thêm question mới nếu không trùng khớp
+                                        content.categoryContentQuestions.push(findNewDataPredecessorQuestionItem);
+                                    }
+                                }
+                            });
+
+                        }else{
+                            findOldDataPredecessorCategoryOrder.categoryContents = findOldDataPredecessorCategoryOrder.categoryContents.filter(contentCategoryContentsItem => contentCategoryContentsItem.categoryContentOrder !== findNewDataPredecessorCategoryContentsItem.categoryContentOrder)
+                        }
+                        
+                    }else{
+                        findOldDataPredecessorCategoryOrder.categoryContents.push(findNewDataPredecessorCategoryContentsItem);
+                    }
+
+                })
+            }else{
+                // Thêm toàn bộ object2 nếu không tìm thấy findNewDataPredecessor
+                oldDataPredecessor.push(findNewDataPredecessor)
+            }
+
+            oldDataPredecessor.forEach((oldDataPredecessorItem) => {
+                oldDataPredecessorItem.categoryContents = oldDataPredecessorItem.categoryContents.filter(categoryContentsItem => categoryContentsItem.categoryContentQuestions.length !== 0)
+            }) 
+
+            const removeOldDataPredecessorCategoryPres = oldDataPredecessor.findIndex(item => item.categoryContents.length === 0);
+            if(removeOldDataPredecessorCategoryPres !== -1){
+                oldDataPredecessor.splice(removeOldDataPredecessorCategoryPres, 1);
+            }
+
+            const saveNewDataPredecessor = {
+                patientId: newDataPredecessor.patientId,
+                categoryPres: oldDataPredecessor
+            }
+
+            handleSaveNewDataPredecessor(saveNewDataPredecessor, findNewDataPredecessor)            
+        }, 500)
+    }
+
+    const handleSaveNewDataPredecessor = async (saveNewDataPredecessor, findNewDataPredecessor) => {
+        const responseCreateAddPredecessor = await createAddPredecessor(saveNewDataPredecessor);
+        if(responseCreateAddPredecessor.status === 200){
+
+            const _mainDataExamining = {...mainDataExamining};
+
+            _mainDataExamining.categoryPres.forEach((categoryPresItem) => {
+                if(categoryPresItem.categoryOrder === findNewDataPredecessor.categoryOrder){
+                    categoryPresItem.categoryContents = findNewDataPredecessor.categoryContents
+                    categoryPresItem.categoryContents.forEach((categoryContentsItem) => {
+                        categoryContentsItem.isLock = true
+                    })
+                    if(findNewDataPredecessor.categoryContents.length === 0){
+                        categoryPresItem.newCategoryPre = true
+                    }else{
+                        categoryPresItem.newCategoryPre = false
+                    }
+                    categoryPresItem.isLock = true
+                }
+
+                categoryPresItem.categoryContents = categoryPresItem.categoryContents.filter(item => item.categoryContentQuestions.length !== 0);
+            })
+
+            setMainDataExamining(_mainDataExamining);
+
+            const selectCategoryReExamining = _mainDataExamining.categoryPres.find(categoryPresItem => categoryPresItem.categoryOrder === findNewDataPredecessor.categoryOrder);
+            
+            toast.success('Đã cập nhật lại tiền căn', {toastId: 'handleSaveNewDataPredecessorSuccess'});
+            
+            handleSelectCategoryClick(selectCategoryReExamining);
+        }
+        else{
+            toast.error(responseCreateAddPredecessor.data, {toastId: 'handleSaveNewDataPredecessorError'});
+        }
+        setOpenAlertProcessingBackdrop(false);
     }
 
     //tìm danh mục khám gồm tiền căn, sổ sức khỏe, dinh dưỡng...
@@ -739,14 +1142,31 @@ function MainDoctorExamining() {
             setCurrentContentExamining(1);
         }
         else{
-            if(categoryIncludeCotent.categoryName !== categorySelectedExamining.categoryName){
-                const editNewCategoryPreForContentCategorySelectedExamining = {...categoryIncludeCotent.categoryContents[0], newCategoryPre: categoryIncludeCotent.newCategoryPre}
-                setContentCategorySelectedExamining(editNewCategoryPreForContentCategorySelectedExamining);
-                setCurrentContentExamining(1);
+            if(categoryIncludeCotent.categoryContents.length === 0){
+                setContentCategorySelectedExamining({isLock: categoryIncludeCotent.isLock, isNullCategoryPres: true})
             }
             else{
-                const editNewCategoryPreForContentCategorySelectedExamining = {...categoryIncludeCotent.categoryContents[currentContentExamining - 1], newCategoryPre: categoryIncludeCotent.newCategoryPre}
-                setContentCategorySelectedExamining(editNewCategoryPreForContentCategorySelectedExamining);
+                if(categoryIncludeCotent.categoryName !== categorySelectedExamining.categoryName){
+                    const editNewCategoryPreForContentCategorySelectedExamining = {...categoryIncludeCotent.categoryContents[0], newCategoryPre: categoryIncludeCotent.newCategoryPre}
+                    setContentCategorySelectedExamining(editNewCategoryPreForContentCategorySelectedExamining);
+                    setCurrentContentExamining(1);
+                }
+                else if(categoryIncludeCotent.categoryName === categorySelectedExamining.categoryName){
+                    setCategorySelectedExamining(
+                        {
+                            ...categoryIncludeCotent,
+                            contentQuantity: categoryIncludeCotent.categoryContents.length
+                        }
+                    )
+
+                    const editNewCategoryPreForContentCategorySelectedExamining = {...categoryIncludeCotent.categoryContents[0], newCategoryPre: categoryIncludeCotent.newCategoryPre}
+                    setContentCategorySelectedExamining(editNewCategoryPreForContentCategorySelectedExamining);
+                    setCurrentContentExamining(1);
+                }
+                else{
+                    const editNewCategoryPreForContentCategorySelectedExamining = {...categoryIncludeCotent.categoryContents[currentContentExamining - 1], newCategoryPre: categoryIncludeCotent.newCategoryPre}
+                    setContentCategorySelectedExamining(editNewCategoryPreForContentCategorySelectedExamining);
+                }
             }
         }
     }
@@ -778,115 +1198,159 @@ function MainDoctorExamining() {
 
     //chọn chỉ định một sổ khám bệnh (tìm chi tiết một sổ khám bệnh)
     const handleSelectHealthRecordsItem = async (medicalBookId, examinationName, healthRecordsState) => {
-        setLoadingContentsExamining(true);
-        if(currentHealthRecordExamining){
-            if(healthRecordsState === 2){
+        if(examinationName !== contentCategorySelectedExamining.healthRecordsName){
+            setOpenAlertProcessingBackdrop(true);
+            setLoadingContentsExamining(true);
+
+            if(currentHealthRecordExamining){
+                if(healthRecordsState === 2){
+                    await findHealthRecord(medicalBookId, examinationName, healthRecordsState);
+                }
+                else{
+                    if(currentHealthRecordExamining.newMedicalBook === false && examinationName === mainDataExamining.healthRecords[0].examinationName){
+                        const editCurrentHealthRecordExamining = {
+                            healthRecordsName: mainDataExamining.healthRecords[0].examinationName,
+                            categoryPatients: mainDataExamining.healthRecords[0].categories,
+                            newMedicalBook: true
+                        }
+    
+                        setCurrentHealthRecordExamining(editCurrentHealthRecordExamining)
+    
+                        setHealthRecordsContents({
+                            healthRecordsName: examinationName,
+                            newMedicalBook: editCurrentHealthRecordExamining.newMedicalBook,
+                            categoryPatients: editCurrentHealthRecordExamining.categoryPatients
+                        })
+    
+                        const editHealthRecordsContent = editCurrentHealthRecordExamining.categoryPatients.map((categoryPatientsItem, categoryPatientsIndex) => {
+                            const categoryName = categoryPatientsItem.categoryName;
+                            const firstContent = categoryPatientsItem.categoryContents[0];
+                    
+                            return{
+                                categoryName: categoryName,
+                                categoryContents: firstContent,
+                                currentHealthRecordsContent: 1,
+                                contentQuantity: categoryPatientsItem.categoryContents.length
+                            }
+                        })
+    
+                        const updateHealthRecordsContent = {
+                            healthRecordsName: examinationName,
+                            newMedicalBook: editCurrentHealthRecordExamining.newMedicalBook,
+                            conclusion: dataExaminingForConclusion.conclusion,
+                            categoryPatients: editHealthRecordsContent
+                        }
+    
+                        setContentCategorySelectedExamining(updateHealthRecordsContent);
+                    }
+                    
+                    else{
+                        setHealthRecordsContents({
+                            healthRecordsName: examinationName,
+                            newMedicalBook: currentHealthRecordExamining.newMedicalBook,
+                            categoryPatients: currentHealthRecordExamining.categoryPatients
+                        })
+    
+                        const editHealthRecordsContent = currentHealthRecordExamining.categoryPatients.map((categoryPatientsItem, categoryPatientsIndex) => {
+                            const categoryName = categoryPatientsItem.categoryName;
+                            const firstContent = categoryPatientsItem.categoryContents[0];
+                    
+                            return{
+                                categoryName: categoryName,
+                                categoryContents: firstContent,
+                                currentHealthRecordsContent: 1,
+                                contentQuantity: categoryPatientsItem.categoryContents.length
+                            }
+                        })
+    
+                        const updateHealthRecordsContent = {
+                            healthRecordsName: examinationName,
+                            newMedicalBook: currentHealthRecordExamining.newMedicalBook,
+                            conclusion: dataExaminingForConclusion.conclusion,
+                            categoryPatients: editHealthRecordsContent
+                        }
+                        setContentCategorySelectedExamining(updateHealthRecordsContent);
+                    }
+                }
+            }
+    
+            else{
                 await findHealthRecord(medicalBookId, examinationName, healthRecordsState);
             }
-            else{
-                setHealthRecordsContents({
-                    healthRecordsName: examinationName,
-                    newMedicalBook: currentHealthRecordExamining.newMedicalBook,
-                    categoryPatients: currentHealthRecordExamining.categoryPatients
-                })
-
-                const editHealthRecordsContent = currentHealthRecordExamining.categoryPatients.map((categoryPatientsItem, categoryPatientsIndex) => {
-                    const categoryName = categoryPatientsItem.categoryName;
-                    const firstContent = categoryPatientsItem.categoryContents[0];
-            
-                    return{
-                        categoryName: categoryName,
-                        categoryContents: firstContent,
-                        currentHealthRecordsContent: 1,
-                        contentQuantity: categoryPatientsItem.categoryContents.length
-                    }
-                })
-
-                const updateHealthRecordsContent = {
-                    healthRecordsName: examinationName,
-                    newMedicalBook: currentHealthRecordExamining.newMedicalBook,
-                    conclusion: dataExaminingForConclusion.conclusion,
-                    categoryPatients: editHealthRecordsContent
-                }
-                setContentCategorySelectedExamining(updateHealthRecordsContent);
-            }
+            setLoadingContentsExamining(false);
+            setOpenAlertProcessingBackdrop(false);
         }
-
-        else{
-            await findHealthRecord(medicalBookId, examinationName, healthRecordsState);
-        }
-        setLoadingContentsExamining(false);
     }
 
     const findHealthRecord = async (medicalBookId, examinationName, healthRecordsState) => {
         const responseMedicalBook = await getMedicalBook(medicalBookId ? medicalBookId : 0);
 
-        //tái khám
-        if(dataPantientsReadyExamining.backRegister){
-            const editHealthRecordsContent = responseMedicalBook.medicakBook.categories.map((categoryPatientsItem, categoryPatientsIndex) => {
-                const categoryName = categoryPatientsItem.categoryName;
-                const firstContent = categoryPatientsItem.categoryContents[0];
+        // //tái khám
+        // if(dataPantientsReadyExamining.backRegister){
+        //     const editHealthRecordsContent = responseMedicalBook.medicakBook.categories.map((categoryPatientsItem, categoryPatientsIndex) => {
+        //         const categoryName = categoryPatientsItem.categoryName;
+        //         const firstContent = categoryPatientsItem.categoryContents[0];
                 
-                return{
-                    categoryName: categoryName,
-                    categoryContents: firstContent,
-                    currentHealthRecordsContent: 1,
-                    contentQuantity: categoryPatientsItem.categoryContents.length
-                }
-            })
+        //         return{
+        //             categoryName: categoryName,
+        //             categoryContents: firstContent,
+        //             currentHealthRecordsContent: 1,
+        //             contentQuantity: categoryPatientsItem.categoryContents.length
+        //         }
+        //     })
         
-            const updateHealthRecordsContent = {
-                healthRecordsName: examinationName,
-                newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
-                conclusion: responseMedicalBook.medicakBook.conclusion,
-                categoryPatients: editHealthRecordsContent
-            }
+        //     const updateHealthRecordsContent = {
+        //         healthRecordsName: examinationName,
+        //         newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
+        //         conclusion: responseMedicalBook.medicakBook.conclusion,
+        //         categoryPatients: editHealthRecordsContent
+        //     }
 
-            setContentCategorySelectedExamining(updateHealthRecordsContent);
-            setPrevDataHealthRecords(responseMedicalBook.medicakBook);
+        //     setContentCategorySelectedExamining(updateHealthRecordsContent);
+        //     setPrevDataHealthRecords(responseMedicalBook.medicakBook);
 
-            //medicalBookId truyền vào bằng với medicalBookId của đợt khám hiện tại
-            if(medicalBookId === mainDataExamining.healthRecords[0].medicalBookId){
-                setHealthRecordsContents({
-                    healthRecordsName: examinationName,
-                    newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
-                    categoryPatients: responseMedicalBook.medicakBook.categories
-                })
+        //     //medicalBookId truyền vào bằng với medicalBookId của đợt khám hiện tại
+        //     if(medicalBookId === mainDataExamining.healthRecords[0].medicalBookId){
+        //         setHealthRecordsContents({
+        //             healthRecordsName: examinationName,
+        //             newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
+        //             categoryPatients: responseMedicalBook.medicakBook.categories
+        //         })
 
-                setCurrentHealthRecordExamining({
-                    healthRecordsName: examinationName,
-                    newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
-                    categoryPatients: responseMedicalBook.medicakBook.categories
-                });
+        //         setCurrentHealthRecordExamining({
+        //             healthRecordsName: examinationName,
+        //             newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
+        //             categoryPatients: responseMedicalBook.medicakBook.categories
+        //         });
             
-                const editDataHealthRecordsItemForConclusion = responseMedicalBook.medicakBook.categories.map((categoriesItem, categoriesIndex) => {
-                    const mainCategoryContentsExamining = categoriesItem.categoryContents.map((categoryContentsItem) => {
-                        const categoryContents = {
-                            categoryContentTitle: categoryContentsItem.categoryContentTitle,
-                            categoryContentName: categoryContentsItem.categoryContentName,
-                            categoryContentCheck: categoryContentsItem.categoryContentCheck,
-                            categoryContentText: categoryContentsItem.categoryContentText,
-                            categoryContentQuestions: []
-                        }
-                        return categoryContents
-                    })
+        //         const editDataHealthRecordsItemForConclusion = responseMedicalBook.medicakBook.categories.map((categoriesItem, categoriesIndex) => {
+        //             const mainCategoryContentsExamining = categoriesItem.categoryContents.map((categoryContentsItem) => {
+        //                 const categoryContents = {
+        //                     categoryContentTitle: categoryContentsItem.categoryContentTitle,
+        //                     categoryContentName: categoryContentsItem.categoryContentName,
+        //                     categoryContentCheck: categoryContentsItem.categoryContentCheck,
+        //                     categoryContentText: categoryContentsItem.categoryContentText,
+        //                     categoryContentQuestions: []
+        //                 }
+        //                 return categoryContents
+        //             })
                     
-                    const mainCategoryExamining = {
-                        categoryName: categoriesItem.categoryName,
-                        isHealthRecord: true,
-                        categoryContents: mainCategoryContentsExamining
-                    }
+        //             const mainCategoryExamining = {
+        //                 categoryName: categoriesItem.categoryName,
+        //                 isHealthRecord: true,
+        //                 categoryContents: mainCategoryContentsExamining
+        //             }
     
-                    return mainCategoryExamining
-                })
+        //             return mainCategoryExamining
+        //         })
     
-                const _dataExaminingForConclusion = {...dataExaminingForConclusion};
-                editDataHealthRecordsItemForConclusion.map((dataHealthRecordsItemForConclusionItem) => _dataExaminingForConclusion.categories.push(dataHealthRecordsItemForConclusionItem))
-                setDataExaminingForConclusion(_dataExaminingForConclusion);
-            }
-        }
+        //         const _dataExaminingForConclusion = {...dataExaminingForConclusion};
+        //         editDataHealthRecordsItemForConclusion.map((dataHealthRecordsItemForConclusionItem) => _dataExaminingForConclusion.categories.push(dataHealthRecordsItemForConclusionItem))
+        //         setDataExaminingForConclusion(_dataExaminingForConclusion);
+        //     }
+        // }
 
-        else{
+        //else{
             setHealthRecordsContents({
                 healthRecordsName: examinationName,
                 newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
@@ -946,7 +1410,7 @@ function MainDoctorExamining() {
                 editDataHealthRecordsItemForConclusion.map((dataHealthRecordsItemForConclusionItem) => _dataExaminingForConclusion.categories.push(dataHealthRecordsItemForConclusionItem))
                 setDataExaminingForConclusion(_dataExaminingForConclusion);
             }
-        }
+        //}
     }
 
     //chọn loại mục khám của một sổ khám bệnh
@@ -988,12 +1452,12 @@ function MainDoctorExamining() {
         setContentCategorySelectedExamining(_contentCategorySelectedExamining);
     }
 
-    const handeOnChangePageOldHealthRecords = (event, page, categoryIndex) => {
-        const _contentCategorySelectedExamining = {...contentCategorySelectedExamining};
-        _contentCategorySelectedExamining.categoryPatients[categoryIndex].categoryContents = prevDataHealthRecords.categories[categoryIndex].categoryContents[page - 1];
-        _contentCategorySelectedExamining.categoryPatients[categoryIndex].currentHealthRecordsContent = page;
-        setContentCategorySelectedExamining(_contentCategorySelectedExamining);
-    }
+    // const handeOnChangePageOldHealthRecords = (event, page, categoryIndex) => {
+    //     const _contentCategorySelectedExamining = {...contentCategorySelectedExamining};
+    //     _contentCategorySelectedExamining.categoryPatients[categoryIndex].categoryContents = prevDataHealthRecords.categories[categoryIndex].categoryContents[page - 1];
+    //     _contentCategorySelectedExamining.categoryPatients[categoryIndex].currentHealthRecordsContent = page;
+    //     setContentCategorySelectedExamining(_contentCategorySelectedExamining);
+    // }
 
     const handleAnswerCheckQuestion = (questionIndex, answer) => {
         //set lại danh mục đang chọn để khám khi trả lời câu hỏi dạng check
@@ -1136,7 +1600,16 @@ function MainDoctorExamining() {
             const _healthRecordsContents = {...healthRecordsContents};
             _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[currentHealthRecordsContent - 1].categoryContentQuestions[questionIndex].categoryContentNote = takenValue;
             setHealthRecordsContents(_healthRecordsContents);
-        }, 0)
+            const isEditNote = true;
+            createSelectedQuestionsExaminingForConclusion(
+                _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryName, 
+                currentHealthRecordsContent - 1,
+                _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[currentHealthRecordsContent - 1].categoryContentQuestions[questionIndex],
+                _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[currentHealthRecordsContent - 1].categoryContentQuestions[questionIndex].categoryContentQuestionOrder,
+                takenValue,
+                isEditNote
+            );
+        }, 300)
     }
 
     const createSelectedQuestionsExaminingForConclusion = (categoryName, currentCategory, categoryContentQuestion, questionOrder, categoryContentTitle, isEditNote) => {
@@ -1247,25 +1720,41 @@ function MainDoctorExamining() {
 
     const classes = useStyles();
 
-    // useEffect(() => {
-    //     const handleBeforeUnload = (e) => {
-    //         const confirmationMessage = 'Bạn có chắc chắn muốn rời khỏi trang này?';
-    //         e.returnValue = confirmationMessage; // Hiển thị thông báo cảnh báo
-    //         return confirmationMessage;
-    //       };
+    useEffect(() => {
+        if(dataPantientsReadyExamining.status === 1){
+            const handleBeforeUnload = (e) => {
+                const confirmationMessage = 'Bạn có chắc chắn muốn rời khỏi trang này?';
+                e.returnValue = confirmationMessage; // Hiển thị thông báo cảnh báo
+                return confirmationMessage;
+            };
 
-    //       const handleUnload = () => {
-    //         sessionStorage.setItem('reloaded', 'true');
-    //       };
-      
-    //       window.addEventListener('beforeunload', handleBeforeUnload);
-    //       window.addEventListener('unload', handleUnload);
-      
-    //       return () => {
-    //         window.removeEventListener('beforeunload', handleBeforeUnload);
-    //         window.removeEventListener('unload', handleUnload);
-    //       };
-    // }, [])
+            const handleUnload = () => {
+                sessionStorage.setItem('dataPantientsReadyExamining', JSON.stringify(dataPantientsReadyExamining));
+                sessionStorage.setItem('dataExaminingForConclusion', JSON.stringify(dataExaminingForConclusion));
+                sessionStorage.setItem('mainDataExamining', JSON.stringify(mainDataExamining))
+
+                if(currentHealthRecordExamining){
+                    sessionStorage.setItem('currentHealthRecordExamining', JSON.stringify(currentHealthRecordExamining))
+                }
+
+                if(prevDataPredecessor){
+                    sessionStorage.setItem('prevDataPredecessor', JSON.stringify(prevDataPredecessor))
+                }
+
+                if(oldDataPredecessor){
+                    sessionStorage.setItem('oldDataPredecessor', JSON.stringify(oldDataPredecessor))
+                }
+            };
+        
+            window.addEventListener('beforeunload', handleBeforeUnload);
+            window.addEventListener('unload', handleUnload);
+        
+            return () => {
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+                window.removeEventListener('unload', handleUnload);
+            };
+        }
+    }, [dataPantientsReadyExamining, mainDataExamining, currentHealthRecordExamining, dataExaminingForConclusion])
 
     useEffect(() => {
         if(loading === false && user){
@@ -1284,7 +1773,7 @@ function MainDoctorExamining() {
                 event.preventDefault();
             }
 
-            if(dataPantientsReadyExamining.patientsId !== ''){
+            if(dataPantientsReadyExamining.patientsId !== '' && openAlertProcessingBackdrop === false && openModalCompleteExamining === false && event.keyCode !== 116){
                 if(event.keyCode === 112 && dataPantientsReadyExamining.status === 1){
                     event.preventDefault();
                     handleCancelExamining();
@@ -1304,7 +1793,9 @@ function MainDoctorExamining() {
 
                 else if(event.keyCode === 115){
                     if(dataPantientsReadyExamining.status === 1){
-                        setOpenModalCompleteExamining(true);
+                        setTimeout(() => {
+                            setOpenModalCompleteExamining(true);
+                        }, 500)
                     }
                 }
             }
@@ -1316,7 +1807,7 @@ function MainDoctorExamining() {
             document.removeEventListener('keydown', handleKeyDown);
         };
 
-    }, [dataPantientsReadyExamining, openModalCompleteExamining])
+    }, [dataPantientsReadyExamining, openModalCompleteExamining, openAlertProcessingBackdrop, openModalCompleteExamining])
 
     return (
         <>
@@ -1429,7 +1920,7 @@ function MainDoctorExamining() {
                                                                     null
                                                                 :
                                                                     <>
-                                                                        {predecessorItem.newCategoryPre === false ?
+                                                                        {predecessorItem.newCategoryPre === false  ?
                                                                             <>  
                                                                                 <CheckCircleIcon sx={{color: 'green', fontSize: '1.4rem', margin: 'auto'}} titleAccess='đã theo dõi'/>
                                                                             </>
@@ -1442,15 +1933,19 @@ function MainDoctorExamining() {
                                                                         :
                                                                             predecessorItem.isLock === true ?
                                                                                 <>  
-                                                                                    <IconButton edge="end" sx={{ml: 0.5, zIndex: 100}} onClick={() => handleEditDataPredecessor(predecessorItem.categoryName)}>
-                                                                                        <EditIcon sx={{color: 'blue', fontSize: '1.6rem'}} titleAccess='sửa'/>
+                                                                                    <IconButton edge="end" sx={{ml: 0.5, zIndex: 100}} onClick={() => handleEditDataPredecessor(predecessorItem.categoryName, predecessorItem.categoryOrder)}>
+                                                                                        <EditIcon sx={{color: 'blue', fontSize: '1.6rem'}} titleAccess='Sửa'/>
                                                                                     </IconButton>
                                                                                 </>
                                                                             
                                                                             :
                                                                                 <>
-                                                                                    <IconButton edge="end" sx={{ml: 0.5, zIndex: 100}} onClick={(e) => handleCancelEditDataPredecessor(e, predecessorItem.categoryName)}>
-                                                                                        <CancelIcon sx={{color: 'red', fontSize: '1.6rem'}} titleAccess='hủy'/>
+                                                                                    <IconButton edge="end" sx={{ml: 0.5, zIndex: 100}} onClick={() => handleEditDataPredecessorForSaving(predecessorItem.categoryOrder)}>
+                                                                                        <BeenhereIcon sx={{color: 'red', fontSize: '1.6rem'}} titleAccess='Lưu'/>
+                                                                                    </IconButton>
+
+                                                                                    <IconButton edge="end" sx={{ml: 0.5, zIndex: 100}} onClick={() => handleCancelEditDataPredecessor(predecessorItem.categoryName, predecessorItem.categoryOrder)}>
+                                                                                        <CancelIcon sx={{color: 'red', fontSize: '1.6rem'}} titleAccess='Hủy'/>
                                                                                     </IconButton>
                                                                                 </>   
                                                                         }                                  
@@ -1502,7 +1997,7 @@ function MainDoctorExamining() {
                             {/* thông tin bệnh nhân */}
                             <Box sx={{boxShadow: 4, borderRadius: '20px', border: '2px solid blue', height: '220px', mb: '4px', overflow: 'auto'}}>
                                 <Typography variant='h6' sx={{color: 'blue', mt: 0.6, mb: 0.6, fontWeight: 'bolder', fontSize: '1.2rem', textAlign: 'center'}}>Thông tin bệnh nhân</Typography>
-                                <Box sx={{pl: 4, pr: 4, mt: 1}}>
+                                <Box sx={{pl: 2.8, pr: 2.8, mt: 1}}>
                                     {loadingInfoPatient ?
                                         <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', mt: 4}}>
                                             <CircularProgress color="inherit"/>
@@ -1535,26 +2030,40 @@ function MainDoctorExamining() {
                                                     <PhoneIcon sx={{color: 'tomato'}}/><Typography variant='subtitle1' sx={{ml: 1}}>{`Sdt: ${dataPantientsReadyExamining.patientsPhone || ''}`}</Typography>
                                                 </Grid>
                                                 
-
-                                                <Grid item xs={4} sx={{display: 'inline-flex'}}>
+                                                <Grid item xs={dataPantientsReadyExamining.vaccination ? 3 : 4} sx={{display: 'inline-flex'}}>
                                                     <GiBodyHeight style={{color: 'tomato', fontSize: '1.42rem', marginLeft: '2px'}}/>
                                                     <Typography variant='subtitle1' sx={{ml: 0.8}}>
                                                         {`Chiều cao: ${dataPantientsReadyExamining.patientsHeight ? dataPantientsReadyExamining.patientsHeight + ' cm' : ''}`}
                                                     </Typography>
                                                 </Grid>
-                                                <Grid item xs={4} sx={{display: 'inline-flex'}}>
+                                                <Grid item xs={dataPantientsReadyExamining.vaccination ? 3 : 4} sx={{display: 'inline-flex'}}>
                                                     <GiWeightScale style={{color: 'tomato', fontSize: '1.42rem'}}/>
                                                     <Typography variant='subtitle1' sx={{ml: 1}}>
                                                         {`Cân nặng: ${dataPantientsReadyExamining.patientsWeight ? dataPantientsReadyExamining.patientsWeight + ' kg' : ''}`}
                                                     </Typography>
                                                 </Grid>
-                                                <Grid item xs={1}/>
+
+                                                {dataPantientsReadyExamining.vaccination ? 
+                                                    null
+                                                    :
+                                                    <Grid item xs={1}/>
+                                                }
+                                                
                                                 <Grid item xs={3} sx={{display: 'inline-flex'}}>
                                                     <TbRulerMeasure style={{color: 'tomato', fontSize: '1.42rem'}}/>
                                                     <Typography variant='subtitle1' sx={{ml: 1}}>
                                                         {`Vòng đầu: ${dataPantientsReadyExamining.patientsHeadCircumference ? dataPantientsReadyExamining.patientsHeadCircumference + ' cm' : ''}`}
                                                     </Typography>
                                                 </Grid>
+
+                                                {dataPantientsReadyExamining.vaccination ? 
+                                                    <Grid item xs={3} sx={{display: 'inline-flex'}}>
+                                                        <VaccinesIcon style={{color: 'tomato', fontSize: '1.42rem'}}/>
+                                                        <Typography variant='subtitle1' sx={{ml: 1}}>Tham gia tiêm ngừa</Typography>
+                                                    </Grid>
+                                                    :
+                                                    null
+                                                }
                                                 
                                                 <Grid item xs={12} sx={{display: 'inline-flex'}}>
                                                     <Home sx={{color: 'tomato'}}/><Typography variant='subtitle1' sx={{ml: 1}}>{`Địa chỉ: ${dataPantientsReadyExamining.patientsAddress || ''}`}</Typography>
@@ -1600,223 +2109,237 @@ function MainDoctorExamining() {
                                                 </>
                                                 :
                                                 <>
-                                                    <Box sx={contentCategorySelectedExamining.categoryContentTitle === null ? {marginTop: '30px'} : {}}>
-                                                        <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center', fontSize: '1.2rem', mb: 0.2}}>{contentCategorySelectedExamining.categoryContentTitle || ''}</Typography>
-                                                        {contentCategorySelectedExamining.categoryContentQuestions ? 
-                                                            contentCategorySelectedExamining.categoryContentQuestions.map((questionItem, questionIndex) => (
-                                                                <Box key={`categoryContentQuestionName ${questionIndex}`}>
-                                                                    <Grid container rowSpacing={0}>
+                                                    {contentCategorySelectedExamining.isNullCategoryPres && contentCategorySelectedExamining.isLock === true ? 
+                                                        <Box sx={{height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}>
+                                                            <Typography variant='h6'>Bệnh nhân không có tiền căn đang được theo dõi ở mục này</Typography>
+                                                        </Box>
+                                                    :
+                                                        <Box sx={contentCategorySelectedExamining.categoryContentTitle === null ? {marginTop: '30px'} : {}}>
+                                                            <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center', fontSize: '1.2rem', mb: 0.2}}>{contentCategorySelectedExamining.categoryContentTitle || ''}</Typography>
+                                                            {contentCategorySelectedExamining.categoryContentQuestions ? 
+                                                                contentCategorySelectedExamining.categoryContentQuestions.map((questionItem, questionIndex) => (
+                                                                    <Box key={`categoryContentQuestionName ${questionIndex}`}>
+                                                                        <Grid container rowSpacing={0}>
 
-                                                                        {questionIndex === 0 ? 
-                                                                            <>
-                                                                                <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7}}>
-                                                                                    <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{contentCategorySelectedExamining.categoryContentName}</Typography>
-                                                                                </Grid>
+                                                                            {questionIndex === 0 ? 
+                                                                                <>
+                                                                                    <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7}}>
+                                                                                        <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{contentCategorySelectedExamining.categoryContentName}</Typography>
+                                                                                    </Grid>
 
-                                                                                {questionItem.categoryContentQuestionType === 'check' ? 
-                                                                                    <>
-                                                                                        <Grid item xs={1} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                                                                                            <CheckBoxIcon sx={{fontSize: '1.22rem', color: 'gray'}}/><Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', margin: 'auto', lineHeight: '1.6'}}>{contentCategorySelectedExamining.categoryContentCheck}</Typography>
-                                                                                        </Grid>
+                                                                                    {questionItem.categoryContentQuestionType === 'check' ? 
+                                                                                        <>
+                                                                                            <Grid item xs={1} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                                                                                <CheckBoxIcon sx={{fontSize: '1.22rem', color: 'gray'}}/><Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', margin: 'auto', lineHeight: '1.6'}}>{contentCategorySelectedExamining.categoryContentCheck}</Typography>
+                                                                                            </Grid>
 
-                                                                                        <Grid item xs={7} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
-                                                                                            <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', ml: 0.5}}>{contentCategorySelectedExamining.categoryContentText}</Typography>
-                                                                                        </Grid>
-                                                                                    </>
-                                                                                    : 
-                                                                                        <Grid item xs={8} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
-                                                                                            <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{contentCategorySelectedExamining.categoryContentText}</Typography>
-                                                                                        </Grid>
-                                                                                }                                                                             
-                                                                            </> 
-                                                                            : 
-                                                                            null
-                                                                        }
+                                                                                            <Grid item xs={7} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
+                                                                                                <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', ml: 0.5}}>{contentCategorySelectedExamining.categoryContentText}</Typography>
+                                                                                            </Grid>
+                                                                                        </>
+                                                                                        : 
+                                                                                            <Grid item xs={8} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
+                                                                                                <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{contentCategorySelectedExamining.categoryContentText}</Typography>
+                                                                                            </Grid>
+                                                                                    }                                                                             
+                                                                                </> 
+                                                                                : 
+                                                                                null
+                                                                            }
 
-                                                                        <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', alignItems: 'center'}}>
-                                                                            <Typography variant='subtitle1' sx={{fontSize: '1rem'}}>{questionItem.categoryContentQuestionName}</Typography>
-                                                                        </Grid>
-                                                                
-                                                                        {questionItem.categoryContentQuestionType === 'check' ? 
-                                                                            <>
-                                                                                <Grid item xs={1} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center'}}>
-                                                                                    <Checkbox disabled={contentCategorySelectedExamining.isLock === true ? true : false} checked={questionItem.categoryContentAnswer === true ? true : false } classes={{ root: classes.root }} color='error' sx={{'& .MuiSvgIcon-fontSizeMedium': {fontSize: '1.2rem'}}} onClick={(e) => handleAnswerCheckQuestion(questionIndex, questionItem.categoryContentAnswer)} />
-                                                                                </Grid>
+                                                                            <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', alignItems: 'center'}}>
+                                                                                <Typography variant='subtitle1' sx={{fontSize: '1rem'}}>{questionItem.categoryContentQuestionName}</Typography>
+                                                                            </Grid>
+                                                                    
+                                                                            {questionItem.categoryContentQuestionType === 'check' ? 
+                                                                                <>
+                                                                                    <Grid item xs={1} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center'}}>
+                                                                                        <Checkbox disabled={contentCategorySelectedExamining.isLock === true ? true : false} 
+                                                                                        checked={questionItem.categoryContentAnswer === true ? true : false } 
+                                                                                        classes={{ root: classes.root }} color='error' 
+                                                                                        sx={{'& .MuiSvgIcon-fontSizeMedium': {fontSize: '1.2rem'}}} 
+                                                                                        onClick={() => contentCategorySelectedExamining.isLock === false ? handleAnswerCheckQuestionPredecessorForReExamOrBackExam(questionIndex, questionItem.categoryContentAnswer) : handleAnswerCheckQuestion(questionIndex, questionItem.categoryContentAnswer)} />
+                                                                                    </Grid>
 
-                                                                                <Grid item xs={7} >
-                                                                                    <div className='textfield-for-answer'>
-                                                                                        <div className='suggest-note' key={`current ${currentContentExamining} - question ${questionIndex} - category ${contentCategorySelectedExamining.categoryContentOrder} - categoryPresOrder ${contentCategorySelectedExamining.categoryPresOrder} - isLock ${contentCategorySelectedExamining.isLock}`} >                                                                          
-                                                                                            <TextareaAutosize className='textarea-autosize' rows={1} disabled={contentCategorySelectedExamining.isLock === true ? true : false}
-                                                                                                onChange={(e) => handleNoteCheckQuestion(questionIndex, e.target.value)}
-                                                                                                defaultValue={questionItem.categoryContentNote}
+                                                                                    <Grid item xs={7} >
+                                                                                        <div className='textfield-for-answer'>
+                                                                                            <div className='suggest-note' key={`current ${currentContentExamining} - question ${questionIndex} - category ${contentCategorySelectedExamining.categoryContentOrder} - categoryPresOrder ${contentCategorySelectedExamining.categoryPresOrder} - isLock ${contentCategorySelectedExamining.isLock}`} >                                                                          
+                                                                                                <TextareaAutosize className='textarea-autosize' rows={1} disabled={contentCategorySelectedExamining.isLock === true ? true : false}
+                                                                                                    onChange={(e) => contentCategorySelectedExamining.isLock === false ? handleNoteCheckQuestionPredecessorForReExamOrBackExam(questionIndex, e.target.value) : handleNoteCheckQuestion(questionIndex, e.target.value)}
+                                                                                                    defaultValue={questionItem.categoryContentNote}
+                                                                                                />
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </Grid>
+                                                                                </>   
+                                                                                :
+                                                                                <>
+                                                                                    <Grid item xs={8}>
+                                                                                        <div className='textfield-for-answer' key={`current ${currentContentExamining} - question ${questionIndex} - category ${contentCategorySelectedExamining.categoryContentOrder} - categoryPresOrder ${contentCategorySelectedExamining.categoryPresOrder} - isLock ${contentCategorySelectedExamining.isLock}`} >
+                                                                                            <input type='text' disabled={contentCategorySelectedExamining.isLock === true ? true : false}
+                                                                                                className='value-for-answer' 
+                                                                                                onChange={(e) => contentCategorySelectedExamining.isLock === false ? handleNoteValueQuestionPredecessorForReExamOrBackExam(questionIndex, e.target.value) : handleAnswerValueQuestion(questionIndex, e.target.value)} 
+                                                                                                defaultValue={questionItem.categoryContentNote} 
                                                                                             />
                                                                                         </div>
-                                                                                    </div>
-                                                                                </Grid>
-                                                                            </>   
-                                                                            :
-                                                                            <>
-                                                                                <Grid item xs={8}>
-                                                                                    <div className='textfield-for-answer' key={`current ${currentContentExamining} - question ${questionIndex} - category ${contentCategorySelectedExamining.categoryContentOrder} - categoryPresOrder ${contentCategorySelectedExamining.categoryPresOrder} - isLock ${contentCategorySelectedExamining.isLock}`} >
-                                                                                        <input type='text' disabled={contentCategorySelectedExamining.isLock === true ? true : false}
-                                                                                            className='value-for-answer' onChange={(e) => handleAnswerValueQuestion(questionIndex, e.target.value)} 
-                                                                                            defaultValue={questionItem.categoryContentNote} 
-                                                                                        />
-                                                                                    </div>
-                                                                                </Grid>
-                                                                            </>
-                                                                        }
-                                                                    </Grid>
-                                                                </Box>
-                                                            ))
-                                                            :
-                                                            contentCategorySelectedExamining.healthRecordsContentsType === 'tree' && healthRecordsContents.length === 0 ? 
-                                                                <>
-                                                                    <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center', fontSize: '1.2rem', mb: 0.2}}>Khám và theo dõi sức khỏe định kỳ</Typography>
-                                                                    <TableContainer component={Paper}>
-                                                                        <Table stickyHeader>
-                                                                            <TableHead>
-                                                                                <TableRow sx={{"& th": {color: "rgba(96, 96, 96)", backgroundColor: "pink"}}}>
-                                                                                    <TableCell align='left' sx={{fontSize: '0.9rem', color: 'black'}}>Kỳ khám</TableCell>
-                                                                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Trạng thái</TableCell>
-                                                                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Ngày khám</TableCell>
-                                                                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Bác sĩ khám</TableCell>
-                                                                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Kết luận</TableCell>
-                                                                                </TableRow>
-                                                                            </TableHead>
-                                                                            <TableBody sx={{borderRadius: '0px'}}>
-                                                                                {contentCategorySelectedExamining.categoryContents.map((healthRecordsItem, healthRecordsIndex) => (
-                                                                                    <TableRow hover role="checkbox" key={healthRecordsIndex}>
-                                                                                        <TableCell align='left' sx={{width: '158px'}}><DescriptionIcon sx={{mr: 0.5, mb: 0.4, color: 'dodgerblue'}}/>{healthRecordsItem.examinationName}</TableCell>
-                                                                                        <TableCell align='left' sx={{width: '144px'}}>{handleRenderExamsStatus(healthRecordsItem.state)}</TableCell>
-                                                                                        <TableCell align='left' sx={{width: '108px'}}>{moment(healthRecordsItem.timeRegister).format("DD/MM/YYYY")}</TableCell>
-                                                                                        <TableCell align='left' sx={{width: '115px'}}>{healthRecordsItem.doctorFullName}</TableCell>
-                                                                                        <TableCell align='left' sx={{width: 'auto'}}>{healthRecordsItem.conclusion}</TableCell>
+                                                                                    </Grid>
+                                                                                </>
+                                                                            }
+                                                                        </Grid>
+                                                                    </Box>
+                                                                ))
+                                                                :
+                                                                contentCategorySelectedExamining.healthRecordsContentsType === 'tree' && healthRecordsContents.length === 0 ? 
+                                                                    <>
+                                                                        <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center', fontSize: '1.2rem', mb: 0.2}}>Khám và theo dõi sức khỏe định kỳ</Typography>
+                                                                        <TableContainer component={Paper}>
+                                                                            <Table stickyHeader>
+                                                                                <TableHead>
+                                                                                    <TableRow sx={{"& th": {color: "rgba(96, 96, 96)", backgroundColor: "pink"}}}>
+                                                                                        <TableCell align='left' sx={{fontSize: '0.9rem', color: 'black'}}>Kỳ khám</TableCell>
+                                                                                        <TableCell align="left" sx={{fontSize: '0.9rem'}}>Trạng thái</TableCell>
+                                                                                        <TableCell align="left" sx={{fontSize: '0.9rem'}}>Ngày khám</TableCell>
+                                                                                        <TableCell align="left" sx={{fontSize: '0.9rem'}}>Bác sĩ khám</TableCell>
+                                                                                        <TableCell align="left" sx={{fontSize: '0.9rem'}}>Kết luận</TableCell>
                                                                                     </TableRow>
-                                                                                ))}
-                                                                            </TableBody>
-                                                                        </Table>
-                                                                    </TableContainer>
-                                                                </>
-                                                            :
-                                                            <>
-                                                                <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center', fontSize: '1.2rem', lineHeight: 1, mt: 1}}>{contentCategorySelectedExamining.healthRecordsName}</Typography>
-                                                                <div className='health-record-content'>
-                                                                    <List sx={{p: 0}}>
-                                                                        {contentCategorySelectedExamining.categoryPatients.map((categoryPatientsItem, categoryPatientsIndex) => (
-                                                                            <div key={`categoryPatients ${categoryPatientsIndex}`}>
-                                                                                <ListItemButton     
-                                                                                    sx={{pt: '0px', pb: '0px', borderRadius: '8px', ':hover': {backgroundColor: 'rgba(0, 0, 0, 0.1)'}}}
-                                                                                    onClick={() => handleOpenHealthRecordsItem(categoryPatientsIndex)}
-                                                                                >
-                                                                                    <Box sx={{display: 'flex', alignItems: 'center'}}>
-                                                                                        <ListItemIcon sx={{minWidth: '30px', '& .MuiSvgIcon-fontSizeMedium': {fontSize: '1rem', color: '#2962ff'}}}><SendIcon /></ListItemIcon>
-                                                                                        <ListItemText primary={categoryPatientsItem.categoryName} sx={{'& .MuiListItemText-primary': {fontSize: '1.25rem', fontWeight: 'bolder', color: 'deeppink'}}}/>
-                                                                                    </Box>
-                                                                                </ListItemButton>
+                                                                                </TableHead>
+                                                                                <TableBody sx={{borderRadius: '0px'}}>
+                                                                                    {contentCategorySelectedExamining.categoryContents.map((healthRecordsItem, healthRecordsIndex) => (
+                                                                                        <TableRow hover role="checkbox" key={healthRecordsIndex}>
+                                                                                            <TableCell align='left' sx={{width: '158px'}}><DescriptionIcon sx={{mr: 0.5, mb: 0.4, color: 'dodgerblue'}}/>{healthRecordsItem.examinationName}</TableCell>
+                                                                                            <TableCell align='left' sx={{width: '144px'}}>{handleRenderExamsStatus(healthRecordsItem.state)}</TableCell>
+                                                                                            <TableCell align='left' sx={{width: '108px'}}>{moment(healthRecordsItem.timeRegister).format("DD/MM/YYYY")}</TableCell>
+                                                                                            <TableCell align='left' sx={{width: '115px'}}>{healthRecordsItem.doctorFullName}</TableCell>
+                                                                                            <TableCell align='left' sx={{width: 'auto'}}>{healthRecordsItem.conclusion}</TableCell>
+                                                                                        </TableRow>
+                                                                                    ))}
+                                                                                </TableBody>
+                                                                            </Table>
+                                                                        </TableContainer>
+                                                                    </>
+                                                                :
+                                                                <>
+                                                                    <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center', fontSize: '1.2rem', lineHeight: 1, mt: 1}}>{contentCategorySelectedExamining.healthRecordsName}</Typography>
+                                                                    <div className='health-record-content'>
+                                                                        <List sx={{p: 0}}>
+                                                                            {contentCategorySelectedExamining.categoryPatients.map((categoryPatientsItem, categoryPatientsIndex) => (
+                                                                                <div key={`categoryPatients ${categoryPatientsIndex}`}>
+                                                                                    <ListItemButton     
+                                                                                        sx={{pt: '0px', pb: '0px', borderRadius: '8px', ':hover': {backgroundColor: 'rgba(0, 0, 0, 0.1)'}}}
+                                                                                        onClick={() => handleOpenHealthRecordsItem(categoryPatientsIndex)}
+                                                                                    >
+                                                                                        <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                                                                            <ListItemIcon sx={{minWidth: '30px', '& .MuiSvgIcon-fontSizeMedium': {fontSize: '1rem', color: '#2962ff', transform: openCollapseHealthRecordsItem[categoryPatientsIndex] === true ? 'rotate(90deg)' : 'rotate(0deg)'}}}><SendIcon /></ListItemIcon>
+                                                                                            <ListItemText primary={categoryPatientsItem.categoryName} sx={{'& .MuiListItemText-primary': {fontSize: '1.25rem', fontWeight: 'bolder', color: 'deeppink'}}}/>
+                                                                                        </Box>
+                                                                                    </ListItemButton>
 
-                                                                                <Collapse in={openCollapseHealthRecordsItem[categoryPatientsIndex]} timeout="auto" unmountOnExit>
-                                                                                    <div className='header-health-record' style={{marginTop: '0.4x', marginBottom: '0.4px', border: '2px solid #00bcd4', borderRadius: '20px'}}>
-                                                                                        <Typography variant='subtitle1' sx={{fontWeight: 'bolder', textAlign: 'center'}}>{categoryPatientsItem.categoryContents.categoryContentTitle}</Typography>
+                                                                                    <Collapse in={openCollapseHealthRecordsItem[categoryPatientsIndex]} timeout="auto" unmountOnExit>
+                                                                                        <div className='header-health-record' style={{marginTop: '0.4x', marginBottom: '0.4px', border: '2px solid #00bcd4', borderRadius: '20px'}}>
+                                                                                            <Typography variant='subtitle1' sx={{fontWeight: 'bolder', textAlign: 'center'}}>{categoryPatientsItem.categoryContents.categoryContentTitle}</Typography>
 
-                                                                                        <div className='content-health-record' style={{padding: '10px'}}>                                                                                                                                                                
-                                                                                            <Grid container rowSpacing={0}>
-                                                                                                <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7}}>
-                                                                                                    <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{categoryPatientsItem.categoryContents.categoryContentName}</Typography>
-                                                                                                </Grid>
+                                                                                            <div className='content-health-record' style={{padding: '10px'}} >                                                                                                                                                                
+                                                                                                <Grid container rowSpacing={0}>
+                                                                                                    <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7}}>
+                                                                                                        <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{categoryPatientsItem.categoryContents.categoryContentName}</Typography>
+                                                                                                    </Grid>
 
-                                                                                                <Grid item xs={3} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                                                                                                    <CheckBoxIcon sx={{fontSize: '1.2rem', color: 'gray', mr: 0.4}}/>
-                                                                                                    <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', lineHeight: '1.6'}}>{categoryPatientsItem.categoryContents.categoryContentCheck}</Typography>
-                                                                                                </Grid>
+                                                                                                    <Grid item xs={3} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                                                                                        <CheckBoxIcon sx={{fontSize: '1.2rem', color: 'gray', mr: 0.4}}/>
+                                                                                                        <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', lineHeight: '1.6'}}>{categoryPatientsItem.categoryContents.categoryContentCheck}</Typography>
+                                                                                                    </Grid>
 
-                                                                                                <Grid item xs={5} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
-                                                                                                    <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', ml: 0.5}}>{categoryPatientsItem.categoryContents.categoryContentText}</Typography>
-                                                                                                </Grid> 
-                                                                                                
-                                                                                                {categoryPatientsItem.categoryContents.categoryContentQuestions.map((questionItem, questionIndex) => (
-                                                                                                    <Box key={`questionItem ${questionIndex} healthRecordsName ${contentCategorySelectedExamining.healthRecordsName}`} style={{display: 'flex', width: '100%'}}>
-                                                                                                        <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', alignItems: 'center'}}>
-                                                                                                            <Typography variant='subtitle1' sx={{fontSize: '1rem'}}>{questionItem.categoryContentQuestionName}</Typography>
-                                                                                                        </Grid>
+                                                                                                    <Grid item xs={5} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
+                                                                                                        <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', ml: 0.5}}>{categoryPatientsItem.categoryContents.categoryContentText}</Typography>
+                                                                                                    </Grid> 
+                                                                                                    
+                                                                                                    {categoryPatientsItem.categoryContents.categoryContentQuestions.map((questionItem, questionIndex) => (
+                                                                                                        <Box key={`questionItem ${questionIndex} healthRecordsName ${contentCategorySelectedExamining.healthRecordsName}`} style={{display: 'flex', width: '100%'}}>
+                                                                                                            <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', alignItems: 'center'}}>
+                                                                                                                <Typography variant='subtitle1' sx={{fontSize: '1rem'}}>{questionItem.categoryContentQuestionName}</Typography>
+                                                                                                            </Grid>
 
-                                                                                                        {questionItem.categoryContentQuestionType === 'check' ?
-                                                                                                            <>
-                                                                                                                <Grid item xs={3} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center'}}>
-                                                                                                                    <Checkbox classes={{ root: classes.root }} checked={questionItem.categoryContentAnswer === true ? true : false }
-                                                                                                                        disabled={contentCategorySelectedExamining.newMedicalBook === false ? true : false}
-                                                                                                                        sx={{'& .MuiSvgIcon-fontSizeMedium': {fontSize: '1.2rem'}}} color='error'
-                                                                                                                        onClick={(e) => handleAnswerCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsItem.currentHealthRecordsContent, questionIndex, questionItem.categoryContentAnswer)} 
-                                                                                                                    />
-                                                                                                                </Grid>
-                                                                                                            
-                                                                                                                <Grid item xs={5} >
-                                                                                                                    <div className='note-for-answer'>
-                                                                                                                        <div className='suggest-note' key={`current ${categoryPatientsItem.currentHealthRecordsContent}-${questionIndex}`}>                                                                          
-                                                                                                                            <TextareaAutosize className='textarea-autosize' rows={1} defaultValue={questionItem.categoryContentNote}
-                                                                                                                                disabled={contentCategorySelectedExamining.newMedicalBook === false ? true : false}
-                                                                                                                                onChange={(e) => handleNoteCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsItem.currentHealthRecordsContent, questionIndex, e.target.value)}    
-                                                                                                                            />
+                                                                                                            {questionItem.categoryContentQuestionType === 'check' ?
+                                                                                                                <>
+                                                                                                                    <Grid item xs={3} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center'}}>
+                                                                                                                        <Checkbox classes={{ root: classes.root }} checked={questionItem.categoryContentAnswer === true ? true : false }
+                                                                                                                            disabled={contentCategorySelectedExamining.newMedicalBook === false ? true : false}
+                                                                                                                            sx={{'& .MuiSvgIcon-fontSizeMedium': {fontSize: '1.2rem'}}} color='error'
+                                                                                                                            onClick={(e) => handleAnswerCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsItem.currentHealthRecordsContent, questionIndex, questionItem.categoryContentAnswer)} 
+                                                                                                                        />
+                                                                                                                    </Grid>
+                                                                                                                
+                                                                                                                    <Grid item xs={5} >
+                                                                                                                        <div className='note-for-answer'>
+                                                                                                                            <div className='suggest-note' key={`current ${categoryPatientsItem.currentHealthRecordsContent}-${questionIndex}`}>                                                                          
+                                                                                                                                <TextareaAutosize className='textarea-autosize' rows={1} defaultValue={questionItem.categoryContentNote}
+                                                                                                                                    disabled={contentCategorySelectedExamining.newMedicalBook === false ? true : false}
+                                                                                                                                    onChange={(e) => handleNoteCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsItem.currentHealthRecordsContent, questionIndex, e.target.value)}    
+                                                                                                                                />
+                                                                                                                            </div>
                                                                                                                         </div>
-                                                                                                                    </div>
-                                                                                                                </Grid>
-                                                                                                            </>
-                                                                                                        :
-                                                                                                            <>
-                                                                                                                <Grid item xs={8} >
-                                                                                                                    <div className='note-for-answer'>
-                                                                                                                        <div className='suggest-note' key={`current ${categoryPatientsItem.currentHealthRecordsContent}-${questionIndex}`}>                                                                          
-                                                                                                                            <TextareaAutosize className='textarea-autosize' rows={1} defaultValue={questionItem.categoryContentNote}
-                                                                                                                                disabled={contentCategorySelectedExamining.newMedicalBook === false ? true : false}
-                                                                                                                                onChange={(e) => handleNoteCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsItem.currentHealthRecordsContent, questionIndex, e.target.value)}    
-                                                                                                                            />
+                                                                                                                    </Grid>
+                                                                                                                </>
+                                                                                                            :
+                                                                                                                <>
+                                                                                                                    <Grid item xs={8} >
+                                                                                                                        <div className='note-for-answer'>
+                                                                                                                            <div className='suggest-note' key={`current ${categoryPatientsItem.currentHealthRecordsContent}-${questionIndex}`}>                                                                          
+                                                                                                                                <TextareaAutosize className='textarea-autosize' rows={1} defaultValue={questionItem.categoryContentNote}
+                                                                                                                                    disabled={contentCategorySelectedExamining.newMedicalBook === false ? true : false}
+                                                                                                                                    onChange={(e) => handleNoteCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsItem.currentHealthRecordsContent, questionIndex, e.target.value)}    
+                                                                                                                                />
+                                                                                                                            </div>
                                                                                                                         </div>
-                                                                                                                    </div>
-                                                                                                                </Grid>
-                                                                                                            </>
-                                                                                                        }
-                                                                                                    </Box>
-                                                                                                ))}
-                                                                                            </Grid>
-                                                                                        </div>
+                                                                                                                    </Grid>
+                                                                                                                </>
+                                                                                                            }
+                                                                                                        </Box>
+                                                                                                    ))}
+                                                                                                </Grid>
+                                                                                            </div>
 
-                                                                                        <div className='footer-content-examining' style={{backgroundColor: '#00bcd4'}}>
-                                                                                            <Pagination count={categoryPatientsItem.contentQuantity} page={categoryPatientsItem.currentHealthRecordsContent} 
-                                                                                                color="error" sx={{m: 'auto'}} onChange={(e, value) => mainDataExamining.healthRecords[0].examinationName === contentCategorySelectedExamining.healthRecordsName ? handeOnChangePageHealthRecords(e, value, categoryPatientsIndex) : handeOnChangePageOldHealthRecords(e, value, categoryPatientsIndex)}>
-                                                                                            </Pagination>
+                                                                                            <div className='footer-content-examining' style={{backgroundColor: '#00bcd4', position: 'unset'}}>
+                                                                                                <Pagination count={categoryPatientsItem.contentQuantity} page={categoryPatientsItem.currentHealthRecordsContent} 
+                                                                                                    color="error" sx={{m: 'auto'}} onChange={(e, value) => handeOnChangePageHealthRecords(e, value, categoryPatientsIndex)}>
+                                                                                                </Pagination>
+                                                                                            </div>
                                                                                         </div>
-                                                                                    </div>
-                                                                                </Collapse>
-                                                                            </div>
-                                                                        ))}
-
-                                                                        {contentCategorySelectedExamining.conclusion !== null ?
-                                                                            <>
-                                                                                <div className='conclusion' style={{marginLeft: '16px', marginTop: '4px'}}>
-                                                                                    <Typography variant='h6' sx={{color: 'blueviolet', fontWeight: 'bolder'}}>{`Kết luận của bác sĩ: ${contentCategorySelectedExamining.conclusion}`}</Typography>
+                                                                                    </Collapse>
                                                                                 </div>
-                                                                            </>
-                                                                            :
-                                                                                null
-                                                                        }
+                                                                            ))}
 
-                                                                    </List>
-                                                                </div>
-                                                            </>
-                                                        }
-                                                    </Box>
+                                                                            {contentCategorySelectedExamining.conclusion !== null ?
+                                                                                <>
+                                                                                    <div className='conclusion' style={{marginLeft: '16px', marginTop: '4px'}}>
+                                                                                        <Typography variant='h6' sx={{color: 'blueviolet', fontWeight: 'bolder'}}>{`Kết luận của bác sĩ: ${contentCategorySelectedExamining.conclusion}`}</Typography>
+                                                                                    </div>
+                                                                                </>
+                                                                                :
+                                                                                    null
+                                                                            }
+
+                                                                        </List>
+                                                                    </div>
+                                                                </>
+                                                            }
+                                                        </Box>
+                                                    }
                                                 </>
                                             }
                                         </div>
 
                                         {contentCategorySelectedExamining.categoryContentQuestions ? 
-                                            <>
-                                                <div className='footer-content-examining'>
-                                                    <Pagination count={categorySelectedExamining.contentQuantity} page={currentContentExamining} color="success" sx={{m: 'auto'}} onChange={(event, value) => handleOnChangePage(event, value)} />
-                                                </div>
-                                            </>
+                                                contentCategorySelectedExamining.isNullCategoryPres === true && contentCategorySelectedExamining.isLock === true ? 
+                                                    null
+                                                : 
+                                                    <>
+                                                        <div className='footer-content-examining'>
+                                                            <Pagination count={categorySelectedExamining.contentQuantity} page={currentContentExamining} color="success" sx={{m: 'auto'}} onChange={(event, value) => handleOnChangePage(event, value)} />
+                                                        </div>
+                                                    </>
                                             :
-                                            <></>
+                                            null
                                         }
                                     </>
                                 :
@@ -1829,7 +2352,7 @@ function MainDoctorExamining() {
             </Container>
 
             <CompleteExamining openModalCompleteExamining={openModalCompleteExamining} setOpenModalCompleteExamining={setOpenModalCompleteExamining} 
-                handleCompleteExaminingForPantient={handleCompleteExaminingForPantient} dataExaminingForConclusion={dataExaminingForConclusion} oldDataPredecessor={oldDataPredecessor}
+                handleCompleteExaminingForPantient={handleCompleteExaminingForPantient} dataExaminingForConclusion={dataExaminingForConclusion}
             />
             <AlertProcessingBackdrop 
                 openAlertProcessingBackdrop={openAlertProcessingBackdrop} changeBackground={true}

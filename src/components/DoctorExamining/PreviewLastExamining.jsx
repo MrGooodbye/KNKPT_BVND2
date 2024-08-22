@@ -71,38 +71,30 @@ function PreviewLastExamining(props) {
         });
     }
 
-    const handeOnChangePagePredecessor = (e, page, indexPredecessor) => {
-        const _previewDataExamining = {...previewDataExamining}
-        _previewDataExamining.categoryPres[indexPredecessor].categoryContents = fullDataPredecessor[indexPredecessor].categoryContents[page - 1];
-        _previewDataExamining.categoryPres[indexPredecessor].currentContent = page
-        setPreviewDataExamining(_previewDataExamining)
-    }
+    // const handeOnChangePagePredecessor = (e, page, indexPredecessor) => {
+    //     const _previewDataExamining = {...previewDataExamining}
+    //     _previewDataExamining.categoryPres[indexPredecessor].categoryContents = fullDataPredecessor[indexPredecessor].categoryContents[page - 1];
+    //     _previewDataExamining.categoryPres[indexPredecessor].currentContent = page
+    //     setPreviewDataExamining(_previewDataExamining)
+    // }
 
-    const handeOnChangePageHealthRecords = (e, page, indexMedicakbook) => {
-        const _previewDataExamining = {...previewDataExamining}
-        _previewDataExamining.healthRecords.medicakBook[indexMedicakbook].categoryContents = fullDataHealthRecord[indexMedicakbook].categoryContents[page - 1];
-        _previewDataExamining.healthRecords.medicakBook[indexMedicakbook].currentContent = page
-        setPreviewDataExamining(_previewDataExamining)
-    }
+    // const handeOnChangePageHealthRecords = (e, page, indexMedicakbook) => {
+    //     const _previewDataExamining = {...previewDataExamining}
+    //     _previewDataExamining.healthRecords.medicakBook[indexMedicakbook].categoryContents = fullDataHealthRecord[indexMedicakbook].categoryContents[page - 1];
+    //     _previewDataExamining.healthRecords.medicakBook[indexMedicakbook].currentContent = page
+    //     setPreviewDataExamining(_previewDataExamining)
+    // }
 
     const handleEditPrevDataExamining = async () => {
         setLoadingMedicalBook(true);
         const responseMedicalBook = await getMedicalBook(props.prevDataExamining.healthRecords[props.prevDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null) ? 1 : 0].medicalBookId);
         if(props.prevDataExamining.newPredecessor){
-            //lấy phần tử thứ 0 của câu trả lời loại sổ khám bệnh
-            const healthRecordUpdatePagination = responseMedicalBook.medicakBook.categories.map((categoriesHealthRecordItem) => ({...categoriesHealthRecordItem, categoryContents: categoriesHealthRecordItem.categoryContents[0], contentLength: categoriesHealthRecordItem.categoryContents.length, currentContent: 1})) 
- 
-            //set full data tiền căn rồi set vào fullDataPredecessor để quản lý với kiểu pagination
-            setFullDataPredecessor(props.prevDataExamining.categoryPres.map((categoryPresItem) => ({...categoryPresItem, contentLength: categoryPresItem.categoryContents.length, currentContent: 1})))
-            //set full data sổ khám bệnh rồi set vào fullDataHealthRecord để lặp với kiểu pagination
-            setFullDataHealthRecord(responseMedicalBook.medicakBook.categories.map((categoriesHealthRecordItem) => ({...categoriesHealthRecordItem, contentLength: categoriesHealthRecordItem.categoryContents.length, currentContent: 1})));
- 
             const healthRecordsUpdate = {
                 ...props.prevDataExamining.healthRecords[props.prevDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null) ? 1 : 0],
                 newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
                 appointmentDate: responseMedicalBook.medicakBook.appointmentDate,
                 nextExamName: responseMedicalBook.medicakBook.nextExamName,
-                medicakBook: healthRecordUpdatePagination
+                medicakBook: responseMedicalBook.medicakBook.categories
             }
              
             setPreviewDataExamining(
@@ -115,31 +107,23 @@ function PreviewLastExamining(props) {
                 }
             )
         }
+
         else{
             if(props.prevDataExamining.categoryPres.length > 1){
                 props.prevDataExamining.categoryPres = props.prevDataExamining.categoryPres.sort((a, b) => a.categoryOrder - b.categoryOrder);
             }
-            //lấy phần tử thứ 0 của câu trả lời loại tiền căn
-            const categoryPresUpdatePagination = props.prevDataExamining.categoryPres.map((categoryPresItem) => ({...categoryPresItem, categoryContents: categoryPresItem.categoryContents[0], contentLength: categoryPresItem.categoryContents.length, currentContent: 1})) 
-            //lấy phần tử thứ 0 của câu trả lời loại sổ khám bệnh
-            const healthRecordUpdatePagination = responseMedicalBook.medicakBook.categories.map((categoriesHealthRecordItem) => ({...categoriesHealthRecordItem, categoryContents: categoriesHealthRecordItem.categoryContents[0], contentLength: categoriesHealthRecordItem.categoryContents.length, currentContent: 1})) 
-
-            //set full data tiền căn rồi set vào fullDataPredecessor để quản lý với kiểu pagination
-            setFullDataPredecessor(props.prevDataExamining.categoryPres.map((categoryPresItem) => ({...categoryPresItem, contentLength: categoryPresItem.categoryContents.length, currentContent: 1})))
-            //set full data sổ khám bệnh rồi set vào fullDataHealthRecord để lặp với kiểu pagination
-            setFullDataHealthRecord(responseMedicalBook.medicakBook.categories.map((categoriesHealthRecordItem) => ({...categoriesHealthRecordItem, contentLength: categoriesHealthRecordItem.categoryContents.length, currentContent: 1})));
 
             const healthRecordsUpdate = {
                 ...props.prevDataExamining.healthRecords[props.prevDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null) ? 1 : 0],
                 newMedicalBook: responseMedicalBook.medicakBook.newMedicalBook,
                 appointmentDate: responseMedicalBook.medicakBook.appointmentDate,
                 nextExamName: responseMedicalBook.medicakBook.nextExamName,
-                medicakBook: healthRecordUpdatePagination
+                medicakBook: responseMedicalBook.medicakBook.categories
             }
             
             setPreviewDataExamining(
                 {
-                    categoryPres: categoryPresUpdatePagination,
+                    categoryPres: props.prevDataExamining.categoryPres,
                     healthRecords: healthRecordsUpdate,
                     medicalBookIdRecently: props.prevDataExamining.medicalBookIdRecently,
                     nutritionals: props.prevDataExamining.nutritionals,
@@ -179,95 +163,86 @@ function PreviewLastExamining(props) {
                                             onClick={() => handleOpenPredecessorItem(predecessorIndex)}
                                         >
                                             <Box sx={{display: 'flex', alignItems: 'center'}}>
-                                                <ListItemIcon sx={{minWidth: '30px', '& .MuiSvgIcon-fontSizeMedium': {fontSize: '1rem', color: '#2962ff'}}}><SendIcon /></ListItemIcon>
+                                                <ListItemIcon sx={{minWidth: '30px', '& .MuiSvgIcon-fontSizeMedium': {fontSize: '1rem', color: '#2962ff', transform: openCollapsePredecessorItem[predecessorIndex] === true ? 'rotate(90deg)' : 'rotate(0deg)'}}}><SendIcon /></ListItemIcon>
                                                 <ListItemText primary={predecessorItem.categoryName} sx={{'& .MuiListItemText-primary': {fontSize: '1.25rem', fontWeight: 'bolder', color: 'deeppink'}}}/>
                                             </Box>
                                         </ListItemButton>
 
                                         <Collapse in={openCollapsePredecessorItem[predecessorIndex]} timeout="auto" unmountOnExit>
-
-                                            <div className='container-item-table-preview-examining' style={{ paddingLeft: '18px', paddingRight: '18px', border: '2px solid #00bcd4', borderRadius: '20px' }}>
-                                                <Typography variant='subtitle1' sx={{fontWeight: 'bolder', fontSize: '18px', textAlign: 'center', mb: predecessorItem.categoryContents.categoryContentTitle ? 0 : 2 }}>{predecessorItem.categoryContents.categoryContentTitle}</Typography>
-                                                
-                                                <Box sx={{mb: 2}}>
-                                                    {predecessorItem.categoryContents.categoryContentQuestions.map((questionItem, questionIndex) => (
-                                                        <Box key={`questionItem ${questionIndex}`} >
-                                                            <Grid container rowSpacing={0} >
-                                                                {questionIndex === 0 ?
-                                                                    <>
-                                                                        <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7}}>
-                                                                            <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{predecessorItem.categoryContents.categoryContentName}</Typography>
-                                                                        </Grid> 
-
-                                                                        {questionItem.categoryContentQuestionType === 'check' ? 
+                                            <div>
+                                                {predecessorItem.categoryContents.map((predecessorItemCategoryContentsItem, predecessorItemCategoryContentsIndex) => (
+                                                    <div className='container-item-table-preview-examining' style={{ paddingLeft: '18px', paddingRight: '18px', marginBottom: '6px' }} key={`predecessorItemCategoryContentsIndex ${predecessorItemCategoryContentsIndex}`}>
+                                                        <Typography variant='subtitle1' sx={{fontWeight: 'bolder', fontSize: '18px', textAlign: 'center', mb: predecessorItemCategoryContentsItem.categoryContentTitle ? 0 : 2 }}>{predecessorItemCategoryContentsItem.categoryContentTitle}</Typography>
+                                                    
+                                                        <Box sx={{mb: 2}}>
+                                                            {predecessorItemCategoryContentsItem.categoryContentQuestions.map((questionItem, questionIndex) => (
+                                                                <Box key={`questionItem ${questionIndex}`} >
+                                                                    <Grid container rowSpacing={0} >
+                                                                        {questionIndex === 0 ?
                                                                             <>
-                                                                                <Grid item xs={1.5} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                                                                                    <CheckBoxIcon sx={{fontSize: '1.2rem', color: 'gray', mr: 0.4}}/>
-                                                                                    <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', lineHeight: '1.6'}}>{predecessorItem.categoryContents.categoryContentCheck}</Typography>
-                                                                                </Grid>
-                                                                                            
-                                                                                <Grid item xs={6.5} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
-                                                                                    <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', ml: 0.5}}>{predecessorItem.categoryContents.categoryContentText}</Typography>
-                                                                                </Grid>
+                                                                                <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7}}>
+                                                                                    <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{predecessorItemCategoryContentsItem.categoryContentName}</Typography>
+                                                                                </Grid> 
+
+                                                                                {questionItem.categoryContentQuestionType === 'check' ? 
+                                                                                    <>
+                                                                                        <Grid item xs={1.5} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                                                                            <CheckBoxIcon sx={{fontSize: '1.2rem', color: 'gray', mr: 0.4}}/>
+                                                                                            <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', lineHeight: '1.6'}}>{predecessorItemCategoryContentsItem.categoryContentCheck}</Typography>
+                                                                                        </Grid>
+                                                                                                    
+                                                                                        <Grid item xs={6.5} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
+                                                                                            <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', ml: 0.5}}>{predecessorItemCategoryContentsItem.categoryContentText}</Typography>
+                                                                                        </Grid>
+                                                                                    </>
+                                                                                : 
+                                                                                    <Grid item xs={8} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
+                                                                                        <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{predecessorItemCategoryContentsItem.categoryContentText}</Typography>
+                                                                                    </Grid>
+                                                                                }   
                                                                             </>
-                                                                        : 
-                                                                            <Grid item xs={8} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
-                                                                                <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{predecessorItem.categoryContents.categoryContentText}</Typography>
-                                                                            </Grid>
-                                                                        }   
-                                                                    </>
-                                                                :
-                                                                    null
-                                                                }
-                                                                            
-                                                                <Box key={`questionItem ${questionIndex}`} style={{display: 'flex', width: '100%'}}>
-                                                                    <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', alignItems: 'center'}}>
-                                                                        <Typography variant='subtitle1' sx={{fontSize: '1rem'}}>{questionItem.categoryContentQuestionName}</Typography>
-                                                                    </Grid>
+                                                                        :
+                                                                            null
+                                                                        }
                                                                                     
-                                                                    {questionItem.categoryContentQuestionType === 'check' ? 
-                                                                        <>
-                                                                            <Grid item xs={1.5} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center'}}>
-                                                                                <Checkbox disabled checked={questionItem.categoryContentAnswer} classes={{ root: classes.root }} sx={{'& .MuiSvgIcon-fontSizeMedium': {fontSize: '1.2rem'}}} />
+                                                                        <Box key={`questionItem ${questionIndex}`} style={{display: 'flex', width: '100%'}}>
+                                                                            <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', alignItems: 'center'}}>
+                                                                                <Typography variant='subtitle1' sx={{fontSize: '1rem'}}>{questionItem.categoryContentQuestionName}</Typography>
                                                                             </Grid>
+                                                                                            
+                                                                            {questionItem.categoryContentQuestionType === 'check' ? 
+                                                                                <>
+                                                                                    <Grid item xs={1.5} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center'}}>
+                                                                                        <Checkbox disabled checked={questionItem.categoryContentAnswer} classes={{ root: classes.root }} sx={{'& .MuiSvgIcon-fontSizeMedium': {fontSize: '1.2rem'}}} />
+                                                                                    </Grid>
 
-                                                                            <Grid item xs={6.5} >
-                                                                                <div className='note-for-answer'>
-                                                                                    <div className='suggest-note'>                                                                          
-                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </Grid>
-                                                                        </>
-                                                                    :   
-                                                                        <>
-                                                                            <Grid item xs={8} >
-                                                                                <div className='note-for-answer'>
-                                                                                    <div className='suggest-note'>                                                                          
-                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </Grid>
-                                                                        </>
-                                                                    }  
+                                                                                    <Grid item xs={6.5} >
+                                                                                        <div className='note-for-answer'>
+                                                                                            <div className='suggest-note'>                                                                          
+                                                                                                <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </Grid>
+                                                                                </>
+                                                                            :   
+                                                                                <>
+                                                                                    <Grid item xs={8} >
+                                                                                        <div className='note-for-answer'>
+                                                                                            <div className='suggest-note'>                                                                          
+                                                                                                <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </Grid>
+                                                                                </>
+                                                                            }  
+                                                                        </Box>
+                                                                    </Grid>
                                                                 </Box>
-                                                            </Grid>
+                                                            ))} 
                                                         </Box>
-                                                    ))} 
-
-                                                    {predecessorItem.contentLength > 1 ? 
-                                                        <>
-                                                            <div className='pagination-table-preview-last-examining'>
-                                                                <Pagination count={predecessorItem.contentLength} page={predecessorItem.currentContent} color="error" sx={{m: 'auto'}} onChange={(e, page) => handeOnChangePagePredecessor(e, page, predecessorIndex)}/>
-                                                            </div>                                 
-                                                        </>
-                                                    :
-                                                        null
-                                                    }
-                                                </Box>
-
+                                                    </div>
+                                                ))}
                                             </div>
-
                                         </Collapse>
                                     </div>
                                 ))}
@@ -278,92 +253,85 @@ function PreviewLastExamining(props) {
                                             onClick={() => handleOpenMedicakBookItem(medicakBookIndex)}
                                         >
                                             <Box sx={{display: 'flex', alignItems: 'center'}}>
-                                                <ListItemIcon sx={{minWidth: '30px', '& .MuiSvgIcon-fontSizeMedium': {fontSize: '1rem', color: '#2962ff'}}}><SendIcon /></ListItemIcon>
+                                                <ListItemIcon sx={{minWidth: '30px', '& .MuiSvgIcon-fontSizeMedium': {fontSize: '1rem', color: '#2962ff', transform: openCollapseMedicakBookItem[medicakBookIndex] === true ? 'rotate(90deg)' : 'rotate(0deg)'}}}><SendIcon /></ListItemIcon>
                                                 <ListItemText primary={medicakBookItems.categoryName} sx={{'& .MuiListItemText-primary': {fontSize: '1.25rem', fontWeight: 'bolder', color: 'deeppink'}}}/>
                                             </Box>
                                         </ListItemButton>
 
                                         <Collapse in={openCollapseMedicakBookItem[medicakBookIndex]} timeout="auto" unmountOnExit>
-                                            <div className='container-item-table-preview-examining' style={{ paddingLeft: '18px', paddingRight: '18px', border: '2px solid #00bcd4', borderRadius: '20px' }}>
-                                                <Typography variant='subtitle1' sx={{fontWeight: 'bolder', fontSize: '18px', textAlign: 'center', mb: medicakBookItems.categoryContents.categoryContentTitle ? 0 : 2 }}>{medicakBookItems.categoryContents.categoryContentTitle}</Typography>
-                                                
-                                                <Box sx={{mb: 2}}>
-                                                    {medicakBookItems.categoryContents.categoryContentQuestions.map((questionItem, questionIndex) => (
-                                                        <Box key={`questionItem ${questionIndex}`} >
-                                                            <Grid container rowSpacing={0} >
-                                                                {questionIndex === 0 ?
-                                                                    <>
-                                                                        <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7}}>
-                                                                            <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{medicakBookItems.categoryContents.categoryContentName}</Typography>
-                                                                        </Grid> 
+                                            <div>
+                                                {medicakBookItems.categoryContents.map((medicakBookCategoryContentsItem, medicakBookCategoryContentsIndex) => (
+                                                    <div className='container-item-table-preview-examining' style={{ paddingLeft: '18px', paddingRight: '18px', marginBottom: '6px' }} key={`medicakBookCategoryContentsIndex ${medicakBookCategoryContentsIndex}`}>
+                                                        <Typography variant='subtitle1' sx={{fontWeight: 'bolder', fontSize: '18px', textAlign: 'center', mb: medicakBookCategoryContentsItem.categoryContentTitle ? 0 : 2 }}>{medicakBookCategoryContentsItem.categoryContentTitle}</Typography>
 
-                                                                        {questionItem.categoryContentQuestionType === 'check' ? 
+                                                        <Box sx={{mb: 2}}>
+                                                            {medicakBookCategoryContentsItem.categoryContentQuestions.map((questionItem, questionIndex) => (
+                                                                <Box key={`questionItem ${questionIndex}`} >
+                                                                    <Grid container rowSpacing={0} >
+                                                                        {questionIndex === 0 ?
                                                                             <>
-                                                                                <Grid item xs={2.5} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                                                                                    <CheckBoxIcon sx={{fontSize: '1.2rem', color: 'gray', mr: 0.4}}/>
-                                                                                    <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', lineHeight: '1.6'}}>{medicakBookItems.categoryContents.categoryContentCheck}</Typography>
-                                                                                </Grid>
-                                                                                            
-                                                                                <Grid item xs={5.5} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
-                                                                                    <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', ml: 0.5}}>{medicakBookItems.categoryContents.categoryContentText}</Typography>
-                                                                                </Grid>
+                                                                                <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7}}>
+                                                                                    <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{medicakBookCategoryContentsItem.categoryContentName}</Typography>
+                                                                                </Grid> 
+
+                                                                                {questionItem.categoryContentQuestionType === 'check' ? 
+                                                                                    <>
+                                                                                        <Grid item xs={2.5} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                                                                            <CheckBoxIcon sx={{fontSize: '1.2rem', color: 'gray', mr: 0.4}}/>
+                                                                                            <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', lineHeight: '1.6'}}>{medicakBookCategoryContentsItem.categoryContentCheck}</Typography>
+                                                                                        </Grid>
+                                                                                                    
+                                                                                        <Grid item xs={5.5} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
+                                                                                            <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', ml: 0.5}}>{medicakBookCategoryContentsItem.categoryContentText}</Typography>
+                                                                                        </Grid>
+                                                                                    </>
+                                                                                : 
+                                                                                    <Grid item xs={8} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
+                                                                                        <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{medicakBookCategoryContentsItem.categoryContentText}</Typography>
+                                                                                    </Grid>
+                                                                                }   
                                                                             </>
-                                                                        : 
-                                                                            <Grid item xs={8} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
-                                                                                <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{medicakBookItems.categoryContents.categoryContentText}</Typography>
+                                                                        :
+                                                                            null
+                                                                        }
+
+                                                                        <Box key={`questionItem ${questionIndex}`} style={{display: 'flex', width: '100%'}}>
+                                                                            <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', alignItems: 'center'}}>
+                                                                                <Typography variant='subtitle1' sx={{fontSize: '1rem'}}>{questionItem.categoryContentQuestionName}</Typography>
                                                                             </Grid>
-                                                                        }   
-                                                                    </>
-                                                                :
-                                                                    null
-                                                                }
-                                                                            
-                                                                <Box key={`questionItem ${questionIndex}`} style={{display: 'flex', width: '100%'}}>
-                                                                    <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', alignItems: 'center'}}>
-                                                                        <Typography variant='subtitle1' sx={{fontSize: '1rem'}}>{questionItem.categoryContentQuestionName}</Typography>
+                                                                                            
+                                                                            {questionItem.categoryContentQuestionType === 'check' ? 
+                                                                                <>
+                                                                                    <Grid item xs={2.5} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center'}}>
+                                                                                        <Checkbox disabled checked={questionItem.categoryContentAnswer} classes={{ root: classes.root }} sx={{'& .MuiSvgIcon-fontSizeMedium': {fontSize: '1.2rem'}}} />
+                                                                                    </Grid>
+
+                                                                                    <Grid item xs={5.5} >
+                                                                                        <div className='note-for-answer'>
+                                                                                            <div className='suggest-note'>                                                                          
+                                                                                                <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </Grid>
+                                                                                </>
+                                                                            :   
+                                                                                <>
+                                                                                    <Grid item xs={8} >
+                                                                                        <div className='note-for-answer'>
+                                                                                            <div className='suggest-note'>                                                                          
+                                                                                                <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </Grid>
+                                                                                </>
+                                                                            }  
+                                                                        </Box>
                                                                     </Grid>
-                                                                                    
-                                                                    {questionItem.categoryContentQuestionType === 'check' ? 
-                                                                        <>
-                                                                            <Grid item xs={2.5} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center'}}>
-                                                                                <Checkbox disabled checked={questionItem.categoryContentAnswer} classes={{ root: classes.root }} sx={{'& .MuiSvgIcon-fontSizeMedium': {fontSize: '1.2rem'}}} />
-                                                                            </Grid>
-
-                                                                            <Grid item xs={5.5} >
-                                                                                <div className='note-for-answer'>
-                                                                                    <div className='suggest-note'>                                                                          
-                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </Grid>
-                                                                        </>
-                                                                    :   
-                                                                        <>
-                                                                            <Grid item xs={8} >
-                                                                                <div className='note-for-answer'>
-                                                                                    <div className='suggest-note'>                                                                          
-                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} disabled value={questionItem.categoryContentNote}/>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </Grid>
-                                                                        </>
-                                                                    }  
                                                                 </Box>
-                                                            </Grid>
+                                                            ))}
                                                         </Box>
-                                                    ))} 
-
-                                                    {medicakBookItems.contentLength > 1 ? 
-                                                        <>
-                                                            <div className='pagination-table-preview-last-examining'>
-                                                                <Pagination count={medicakBookItems.contentLength} page={medicakBookItems.currentContent} color="error" sx={{m: 'auto'}} onChange={(e, page) => handeOnChangePageHealthRecords(e, page, medicakBookIndex)}/>
-                                                            </div>                                 
-                                                        </>
-                                                    :
-                                                        null
-                                                    }
-                                                </Box>
-                                                
+                                                    </div>
+                                                ))}             
                                             </div>
                                         </Collapse>
                                     </div>

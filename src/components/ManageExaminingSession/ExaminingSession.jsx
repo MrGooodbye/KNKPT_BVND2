@@ -30,24 +30,22 @@ function ExaminingSession(props) {
 
     const onChangeRadioSelect = (value) => {
         props.dataPatientsRegister.examinationId = value;
-        // if(props.isContinueSelectedExaminingSession === false){
-        //     props.setIsContinueSelectedExaminingSession(true);
-        // }
     }
 
     const handleListMedicalExaminationsGiveRegister = async () =>  {
         setOpenAlertProcessing(true);
         const response = await getListMedicalExaminationsGiveRegister(props.dataPatientsRegister.patient.dayOfBirth);
-        setOpenAlertProcessing(false);
         setListExaminingSession(response);
+        props.dataPatientsRegister.examinationId = response.exams[0].id;
+        setOpenAlertProcessing(false);
     }
 
     const handleMedicalRegister = async () => {
-        //bệnh cũ
+        // //bệnh cũ
         if(props.dataPatientsRegister.oldDisease === true){
             //là bênh mới đã đăng ký nhưng chưa từng khám bao giờ
             if(listExaminingSession.isAppointment === false){
-                setIsConfirmOpen(false);
+                //setIsConfirmOpen(false);
                 setOpenAlertProcessing(true);
                 const response = await createMedicalRegister(props.dataPatientsRegister);
                 setOpenAlertProcessing(false);
@@ -64,7 +62,7 @@ function ExaminingSession(props) {
             }
             //có hẹn khám nhưng không nhắc khám hoặc đến trễ ngày hẹn khám
             else{
-                setIsConfirmOpen(false);
+                //setIsConfirmOpen(false);
                 setOpenAlertProcessing(true);
                 const response = await createMedicalBackRegister(props.dataPatientsRegister);
                 setOpenAlertProcessing(false);
@@ -82,7 +80,7 @@ function ExaminingSession(props) {
         }
         //bệnh mới
         else{
-            setIsConfirmOpen(false);
+            //setIsConfirmOpen(false);
             setOpenAlertProcessing(true);
             const response = await createMedicalRegister(props.dataPatientsRegister);
             setOpenAlertProcessing(false);
@@ -168,13 +166,13 @@ function ExaminingSession(props) {
                                         <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center'}}>
                                             <Typography variant='h6' sx={{fontWeight: 'bolder', color: 'red'}}>Chọn kỳ khám</Typography>
                                             {listExaminingSession.exams && listExaminingSession.isAppointment === false ? 
-                                                <RadioGroup onChange={(e) => onChangeRadioSelect(e.target.value)}>
+                                                <RadioGroup defaultValue={listExaminingSession.exams[0].id} onChange={(e) => onChangeRadioSelect(e.target.value)}>
                                                     {listExaminingSession.exams.map((examItem, examIndex) => (
                                                         <FormControlLabel key={examIndex} value={examItem.id} control={<Radio />} label={examItem.name} />
                                                     ))}
                                                 </RadioGroup>
                                             :
-                                                <RadioGroup onChange={(e) => onChangeRadioSelect(e.target.value)}>
+                                                <RadioGroup defaultValue={listExaminingSession.exams[1].id} onChange={(e) => onChangeRadioSelect(e.target.value)}>
                                                     {listExaminingSession.oldExams.map((examItem, examIndex) => (
                                                         <FormControlLabel key={examIndex} value={examItem.id} control={<Radio />} label={examItem.name} disabled={examIndex === 0 ? true : false}/>
                                                     ))}

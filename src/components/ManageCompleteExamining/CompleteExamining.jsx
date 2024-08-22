@@ -62,7 +62,7 @@ function CompleteExamining(props) {
           return;
         }
         else{
-            //setMainDataExaminingForConclusion();
+            setMainDataExaminingForConclusion();
             props.setOpenModalCompleteExamining(false);
         }
       }
@@ -113,11 +113,19 @@ function CompleteExamining(props) {
                 editDataExaminingForConclusion.appointmentDate = responseAppointmentDate.data.appointmentDate
                 editDataExaminingForConclusion.nextExamId = responseAppointmentDate.data.nextExamId
                 editDataExaminingForConclusion.nextExamName = responseAppointmentDate.data.nextExamName
+
+                if(editDataExaminingForConclusion.isVaccination){
+                    editDataExaminingForConclusion.nextVaccination = responseAppointmentDate.data.nextVaccination
+                    editDataExaminingForConclusion.reminder = responseAppointmentDate.data.reminder
+                    editDataExaminingForConclusion.vaccination = responseAppointmentDate.data.vaccination
+                }
+
             }else{
                 toast.error(responseAppointmentDate.data, {toastId: 'error1'});
             }
-
+ 
             setMainDataExaminingForConclusion(editDataExaminingForConclusion);
+
             setOpenAlertProcessing(false);
             if(props.dataExaminingForConclusion.conclusion !== ''){
                 const length = textareaRef.current.value.length;
@@ -133,65 +141,13 @@ function CompleteExamining(props) {
     const handleAddMedicalBook = async () => {
         if(checkValidate()){
             setOpenAlertProcessing(true);
-            //tái khám hoặc mở khám lại
-            if(props.oldDataPredecessor){
-                mainDataExaminingForConclusion.categories.filter(cat2 => cat2.isPredecessor).forEach(cat2 => {
-                    let matchedCategory = props.oldDataPredecessor.find(cat1 => cat1.categoryName === cat2.categoryName && cat1.isPredecessor);
-                
-                    if (matchedCategory) {
-                      // If categoryName matches
-                      cat2.categoryContents.forEach(content2 => {
-                        let matchedContent = matchedCategory.categoryContents.find(content1 => content1.categoryContentTitle === content2.categoryContentTitle);
-                
-                        if (matchedContent) {
-                          // If categoryContentTitle matches
-                          content2.categoryContentQuestions.forEach(question2 => {
-                            let matchedQuestion = matchedContent.categoryContentQuestions.find(question1 => question1.categoryContentQuestionName === question2.categoryContentQuestionName);
-                
-                            if (matchedQuestion) {
-                              // If categoryContentQuestionName matches, update the question
-                              matchedQuestion.categoryContentAnswer = question2.categoryContentAnswer;
-                              matchedQuestion.categoryContentNote = question2.categoryContentNote;
-                            } else {
-                              // If categoryContentQuestionName doesn't match, push the new question
-                              matchedContent.categoryContentQuestions.push(question2);
-                            }
-                          });
-                        } else {
-                          // If categoryContentTitle doesn't match, push the new content
-                          matchedCategory.categoryContents.push(content2);
-                        }
-                      });
-                    } else {
-                      // If categoryName doesn't match, push the new category
-                      props.oldDataPredecessor.push(cat2);
-                    }
-                });
-
-                const dataPredecessor = { patientId: mainDataExaminingForConclusion.patientId, categoryPres: props.oldDataPredecessor }
-
-                await createAddPredecessor(dataPredecessor);
-
-                const categoriesHealthRecordExamining = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isHealthRecord === true)
-                mainDataExaminingForConclusion.categories = categoriesHealthRecordExamining
-                const responseAddMedicalBook = await createAddMedicalBook(mainDataExaminingForConclusion);
-                if(responseAddMedicalBook.status === 200){
-                    toast.success(responseAddMedicalBook.data, {toastId: 'success3'});
-                    props.handleCompleteExaminingForPantient();
-                    setMainDataExaminingForConclusion();
-                    props.setOpenModalCompleteExamining(false);
-                }
-                else{
-                    toast.error(responseAddMedicalBook.data, {toastId: 'error1'});
-                }
-            }
-            //khám mới hoàn toàn
-            else{
+    
                 if(mainDataExaminingForConclusion.categories.some(categoriesItem => categoriesItem.isPredecessor === true)){
                     const categoryPres = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isPredecessor === true)
                     const dataPredecessor = { patientId: mainDataExaminingForConclusion.patientId, categoryPres: categoryPres }
                     await createAddPredecessor(dataPredecessor);
                 }
+
                 const categoriesHealthRecordExamining = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isHealthRecord === true)
                 mainDataExaminingForConclusion.categories = categoriesHealthRecordExamining
                 const responseAddMedicalBook = await createAddMedicalBook(mainDataExaminingForConclusion);
@@ -206,10 +162,8 @@ function CompleteExamining(props) {
                 }
             }
             setOpenAlertProcessing(false);
-        }
     }
 
-    
     const checkValidate = () => {
         let isValid = true;
         if(mainDataExaminingForConclusion.conclusion === null){
@@ -345,8 +299,41 @@ function CompleteExamining(props) {
                     {mainDataExaminingForConclusion ? 
                         mainDataExaminingForConclusion.categories.length !== 0 ?
                             <div style={{width: '100%', padding: '8px 50px 8px 50px'}}>
-                                <TextareaAutosize key={`pantientId ${mainDataExaminingForConclusion.patientId}`} placeholder='Kết luận của bác sĩ' style={{width: '100%', padding: '15px', fontSize: '17px'}} onChange={(e) => onChangeExaminingConclusion(e.target.value)} ref={textareaRef} defaultValue={mainDataExaminingForConclusion.conclusion} />
+                                <TextareaAutosize key={`pantientId ${mainDataExaminingForConclusion.patientId}`} placeholder='Kết luận của bác sĩ' style={{width: '100%', padding: '15px', fontSize: '17px'}} onChange={(e) => onChangeExaminingConclusion(e.target.value)} ref={textareaRef} defaultValue={mainDataExaminingForConclusion.conclusion} /> 
                             
+                                    {mainDataExaminingForConclusion.isVaccination ? 
+                                        <>
+                                            <Box sx={{mb: 0.4}}>
+                                                {mainDataExaminingForConclusion.vaccination === '' || mainDataExaminingForConclusion.vaccination === null?
+                                                    null
+                                                    :
+                                                    <>
+                                                        <Typography variant='h6' sx={{color: 'deeppink', fontWeight: 'bolder', fontSize: '1.2rem'}}>{` ${mainDataExaminingForConclusion.vaccination}`}</Typography>
+                                                    </>
+                                                }
+
+                                                {mainDataExaminingForConclusion.nextVaccination === '' || mainDataExaminingForConclusion.nextVaccination === null?
+                                                    null
+                                                    :
+                                                    <>
+                                                        <Typography variant='h6' sx={{color: 'deeppink', fontWeight: 'bolder', fontSize: '1.2rem'}}>{` ${mainDataExaminingForConclusion.nextVaccination}`}</Typography>
+                                                    </>
+                                                }
+
+                                                {mainDataExaminingForConclusion.reminder === '' ||  mainDataExaminingForConclusion.reminder === null?
+                                                    null
+                                                    :
+                                                    <>
+                                                        <Typography variant='h6' sx={{color: 'deeppink', fontWeight: 'bolder', fontSize: '1.2rem'}}>{` ${mainDataExaminingForConclusion.reminder}`}</Typography>
+                                                    </>
+                                                }
+                                            </Box>
+                                            
+                                        </>
+                                        :
+                                        null
+                                    }
+
                                     {mainDataExaminingForConclusion.appointmentDate ? 
                                     <>
                                         <Box sx={{display: 'flex', justifyContent: 'center', mb: 2}}>
