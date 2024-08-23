@@ -186,14 +186,19 @@ function BookMedical(props) {
   const filterOptions = (options, { inputValue }) => {
     const lowercasedInput = inputValue.toLowerCase();
 
-    return options.filter(option => {
-      const lowercasedFullName = option.fullName.toLowerCase();
-      const initials = option.fullName.split(' ').map(word => word[0]).join('').toLowerCase();
+    // Xử lý đặc biệt cho "d" và "đ"
+    const replaceSpecialCharacters = str => str.replace(/đ/g, 'd');
 
-      return (
-        lowercasedFullName.includes(lowercasedInput) ||
-        initials.includes(lowercasedInput)
-      );
+    return options.filter(option => {
+        const lowercasedFullName = replaceSpecialCharacters(option.fullName.toLowerCase());
+        const initials = replaceSpecialCharacters(option.fullName.split(' ').map(word => word[0]).join('').toLowerCase());
+
+        const normalizedInput = replaceSpecialCharacters(lowercasedInput);
+
+        return (
+            lowercasedFullName.includes(normalizedInput) ||
+            initials.includes(normalizedInput)
+        );
     });
   };
 

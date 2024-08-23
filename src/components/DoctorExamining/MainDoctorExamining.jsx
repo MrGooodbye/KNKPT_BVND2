@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
+import { useHistory } from 'react-router-dom';
 //context
 import { UserContext } from '../../context/UserContext';
 //lodash
@@ -87,7 +88,11 @@ function MainDoctorExamining() {
         patientsAddress: ''
     }
 
-    const { user, loading } = useContext(UserContext);
+    const { user, loading, alertVisible, confirmAlert, resetAlert, isLogOutClick } = useContext(UserContext);
+
+    const history = useHistory();
+
+    const [isFormDirty, setIsFormDirty] = useState(false);
 
     //state thông tin bệnh nhân ban đầu 
     const [dataPantientsReadyExamining, setDataPantientsReadyExamining] = useState(dataPantientsReadyExaminingDefault);
@@ -128,9 +133,6 @@ function MainDoctorExamining() {
 
     //state lưu data tiền căn cũ (những data tiền căn đã chọn)  
     const [prevDataPredecessor, setPrevDataPredecessor] = useState();
-
-    //state lưu các data đã chọn của mục khám trong sổ khám bệnh
-    const [prevDataHealthRecords, setPrevDataHealthRecords] = useState();
 
     //state quản lý modal kết thúc khám
     const [openModalCompleteExamining, setOpenModalCompleteExamining] = useState(false);
@@ -384,7 +386,7 @@ function MainDoctorExamining() {
             }
         }
         else if(response.status === 400){
-            toast.error('Bạn không phải bác sĩ khám hôm nay, không thể dùng chức năng này', {toastId: 'error1'});
+            toast.error(response.data, {toastId: 'error1'});
         }
         setLoadingPatient(false);
     }
@@ -1721,40 +1723,104 @@ function MainDoctorExamining() {
     const classes = useStyles();
 
     useEffect(() => {
-        if(dataPantientsReadyExamining.status === 1){
+        if(dataPantientsReadyExamining.status === 1 && alertVisible){
+                const userConfirmed = window.confirm(`Bạn đang khám cho bệnh nhân ${dataPantientsReadyExamining.patientsName}, có chắc là muốn đăng xuất không?`);
+                if(userConfirmed){
+                    sessionStorage.setItem('dataPantientsReadyExamining', JSON.stringify(dataPantientsReadyExamining));
+                    sessionStorage.setItem('dataExaminingForConclusion', JSON.stringify(dataExaminingForConclusion));
+                    sessionStorage.setItem('mainDataExamining', JSON.stringify(mainDataExamining))
+
+                    if(currentHealthRecordExamining){
+                        sessionStorage.setItem('currentHealthRecordExamining', JSON.stringify(currentHealthRecordExamining))
+                    }
+
+                    if(prevDataPredecessor){
+                        sessionStorage.setItem('prevDataPredecessor', JSON.stringify(prevDataPredecessor))
+                    }
+
+                    if(oldDataPredecessor){
+                        sessionStorage.setItem('oldDataPredecessor', JSON.stringify(oldDataPredecessor))
+                    }
+                    confirmAlert();
+                }
+                else{
+                    resetAlert();
+                }
+        }
+
+        else if(dataPantientsReadyExamining.status){
+            setIsFormDirty(true)
+
             const handleBeforeUnload = (e) => {
                 const confirmationMessage = 'Bạn có chắc chắn muốn rời khỏi trang này?';
                 e.returnValue = confirmationMessage; // Hiển thị thông báo cảnh báo
                 return confirmationMessage;
             };
 
-            const handleUnload = () => {
+            const unblock = history.block((location, action) => {
+                if (isFormDirty) {
+                    const confirmLeave = window.confirm(
+                        'Bạn có chắc chắn muốn rời khỏi trang này? Những thay đổi sẽ không được lưu....'
+                    );
+                    if (confirmLeave) {
+                        sessionStorage.setItem('dataPantientsReadyExamining', JSON.stringify(dataPantientsReadyExamining));
+                        sessionStorage.setItem('dataExaminingForConclusion', JSON.stringify(dataExaminingForConclusion));
+                        sessionStorage.setItem('mainDataExamining', JSON.stringify(mainDataExamining))
+    
+                        if(currentHealthRecordExamining){
+                            sessionStorage.setItem('currentHealthRecordExamining', JSON.stringify(currentHealthRecordExamining))
+                        }
+    
+                        if(prevDataPredecessor){
+                            sessionStorage.setItem('prevDataPredecessor', JSON.stringify(prevDataPredecessor))
+                        }
+    
+                        if(oldDataPredecessor){
+                            sessionStorage.setItem('oldDataPredecessor', JSON.stringify(oldDataPredecessor))
+                        }
+
+                        unblock(); // Hủy chặn để điều hướng
+                        history.push(location.pathname); // Điều hướng đến trang mới
+                        
+                    } else {
+                        return false; // Ngăn điều hướng
+                    }
+                }
+                return true;
+            });
+    
+            const handleUnload = () => {                
                 sessionStorage.setItem('dataPantientsReadyExamining', JSON.stringify(dataPantientsReadyExamining));
                 sessionStorage.setItem('dataExaminingForConclusion', JSON.stringify(dataExaminingForConclusion));
                 sessionStorage.setItem('mainDataExamining', JSON.stringify(mainDataExamining))
-
+    
                 if(currentHealthRecordExamining){
                     sessionStorage.setItem('currentHealthRecordExamining', JSON.stringify(currentHealthRecordExamining))
                 }
-
+    
                 if(prevDataPredecessor){
                     sessionStorage.setItem('prevDataPredecessor', JSON.stringify(prevDataPredecessor))
                 }
-
+    
                 if(oldDataPredecessor){
                     sessionStorage.setItem('oldDataPredecessor', JSON.stringify(oldDataPredecessor))
                 }
             };
-        
+            
             window.addEventListener('beforeunload', handleBeforeUnload);
             window.addEventListener('unload', handleUnload);
-        
+            
             return () => {
                 window.removeEventListener('beforeunload', handleBeforeUnload);
-                window.removeEventListener('unload', handleUnload);
+                unblock();
+                window.removeEventListener('unload', handleUnload);                
             };
         }
-    }, [dataPantientsReadyExamining, mainDataExamining, currentHealthRecordExamining, dataExaminingForConclusion])
+
+        else if(alertVisible){
+            confirmAlert();
+        }
+    }, [dataPantientsReadyExamining, mainDataExamining, currentHealthRecordExamining, dataExaminingForConclusion, alertVisible, confirmAlert, resetAlert, isLogOutClick, history, isFormDirty])
 
     useEffect(() => {
         if(loading === false && user){

@@ -34,8 +34,8 @@ function PreviewLastExamining(props) {
     }
 
     const [previewDataExamining, setPreviewDataExamining] = useState(previewDataExaminingDefault);
-    const [fullDataPredecessor, setFullDataPredecessor] = useState();
-    const [fullDataHealthRecord, setFullDataHealthRecord] = useState();
+    // const [fullDataPredecessor, setFullDataPredecessor] = useState();
+    // const [fullDataHealthRecord, setFullDataHealthRecord] = useState();
     
     const [loadingMedicalBook, setLoadingMedicalBook] = useState(false);
 

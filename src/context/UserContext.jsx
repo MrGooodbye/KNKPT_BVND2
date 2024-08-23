@@ -16,12 +16,36 @@ const UserProvider = ({ children }) => {
     };
 
     const [user, setUser] = useState(userDefault);
+
     const [loading, setLoading] = useState(true);
+
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [isLogOutClick, setIsLogOutClick] = useState(false);
+    const [onConfirm, setOnConfirm] = useState(null);
+
     const [openAlertProcessingBackdrop, setOpenAlertProcessingBackdrop] = useState(false);
 
     const loginContext = (userContextLogin) => {
         setUser({ ...userContextLogin });
         setLoading(false);
+    };
+
+    const triggerAlert = (confirmCallback) => {
+        setAlertVisible(true);
+        setIsLogOutClick(true);
+        setOnConfirm(() => confirmCallback);
+    };
+
+    const confirmAlert = () => {
+        if (onConfirm) onConfirm();
+        setIsLogOutClick(false);
+        resetAlert();
+    };
+
+    const resetAlert = () => {
+        setAlertVisible(false);
+        setIsLogOutClick(false);
+        setOnConfirm(null);
     };
 
     const logoutContext = () => {
@@ -114,7 +138,10 @@ const UserProvider = ({ children }) => {
 
     return (
         <>
-            <UserContext.Provider value={{ user, loading, loadingContext, loginContext, logoutContext }}>
+            <UserContext.Provider 
+                value={{ user, loading, loadingContext, loginContext, 
+                    logoutContext, alertVisible, triggerAlert, confirmAlert, resetAlert, isLogOutClick
+                }}>
                 {children}
             </UserContext.Provider>
 

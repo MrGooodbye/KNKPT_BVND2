@@ -25,7 +25,7 @@ import { UserContext } from '../../context/UserContext';
 
 function Header(props) {
 
-  const { user, logoutContext } = useContext(UserContext);
+  const { user, logoutContext, triggerAlert } = useContext(UserContext);
 
   const location = useLocation();
   const history = useHistory();
@@ -69,10 +69,21 @@ function Header(props) {
   const value = handleChangeURL(props.location.pathname);
 
   const handleLogout = () => {
-    localStorage.removeItem('jwt'); //xóa localStorage
-    logoutContext();
-    setAnchorEl(null);
-    history.push('/login');
+    if(user.positionName === 'Doctor'){
+      triggerAlert(() => {
+        localStorage.removeItem('jwt');
+        logoutContext();
+        setAnchorEl(null);
+        history.push('/login');
+      });
+    }
+    
+    else{
+      localStorage.removeItem('jwt'); //xóa localStorage
+      logoutContext();
+      setAnchorEl(null);
+      history.push('/login');
+    }
   }
   
   useEffect(() => {
