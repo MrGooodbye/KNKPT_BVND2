@@ -48,7 +48,7 @@ function Header(props) {
 
   const actionNursing = [
     { key: 'medicalRegister', maxWidth: '114px', label: 'Đăng ký khám', icon: <LocalHospitalIcon sx={{fontSize: 30}}/>, LinkComponent: NavLink, to: "/medicalregister" },
-    { key: 're-examining', maxWidth: '95px', label: 'Nhắc khám', icon: <LocalPhoneIcon sx={{fontSize: 30}}/>, LinkComponent: NavLink, to: "/re-examination" },
+    { key: 'remind-examining', maxWidth: '95px', label: 'Nhắc khám', icon: <LocalPhoneIcon sx={{fontSize: 30}}/>, LinkComponent: NavLink, to: "/remind-examining" },
   ]
 
   const actionDoctor = [

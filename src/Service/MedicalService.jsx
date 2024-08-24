@@ -210,6 +210,17 @@ const getAppointmentDate = async (medicalRegisterId) => {
     })
 }
 
+const getAppointmentsNextWeek = async () => {
+    const config = createConfig();
+    return await axios.get(`${backendURL}/api/Medical/GetAppointmentsNextWeek`, config)
+    .then(function (response) {
+        return response.data
+    })
+    .catch(function (error) {
+        return error.response.status
+    })
+}
+
 const getAppointmentsToday = async () => {
     const config = createConfig();
     return await axios.get(`${backendURL}/api/Medical/GetAppointmentsToday`, config)
@@ -253,8 +264,24 @@ const updateMedicalState = async (id, state) => {
     })
 }
 
+const updateStateAppointment = async (medicalBookId, appointmentDate, stateAppointment) => {
+    const token = localStorage.getItem("jwt");
+    return await axios.put(`${backendURL}/api/Medical/UpdateStateAppointment/${medicalBookId}?appointmentDate=${appointmentDate}&stateAppointment=${stateAppointment}`, {}, {
+        headers: {
+            "content-type": "text/plain; charset=utf-8",
+            Authorization: `Bearer ${token}`,
+        },
+    })
+    .then(function (response) {
+        return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
 export {
     createMedicalRegister, createMedicalBackRegister, createCurrentDoctorExamining, createAddPredecessor, createAddMedicalBook,
-    getRegistersByDateNow, getListMedicalExaminationsGiveRegister, getListOldDisease, getVaccinationByPatientId, getCurrentDoctorExamining, getMedicalDetailPatient, getMedicalBook, getUpdatePredecessor, getUpdateMedicalBook, getAppointmentDate, getAppointmentsToday,
-    updateMedicalRegister, updateMedicalState
+    getRegistersByDateNow, getListMedicalExaminationsGiveRegister, getListOldDisease, getVaccinationByPatientId, getCurrentDoctorExamining, getMedicalDetailPatient, getMedicalBook, getUpdatePredecessor, getUpdateMedicalBook, getAppointmentDate, getAppointmentsNextWeek, getAppointmentsToday,
+    updateMedicalRegister, updateMedicalState, updateStateAppointment
 }

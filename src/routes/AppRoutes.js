@@ -4,6 +4,7 @@ import Header from "../components/Nav/Header.jsx";
 import Page404 from "../components/ErrorPage/Page404";
 import Login from "../components/LoginAccount/Log-in";
 import MainMedicalRegister from "../components/MedicalRegister/MainMedicalRegister.jsx";
+import MainAppointmentExamining from "../components/MedicalAppointment/MainAppointmentExamining.jsx";
 import MainDoctorExamining from "../components/DoctorExamining/MainDoctorExamining.jsx";
 
 const AppRoutes = (props) => {
@@ -16,6 +17,7 @@ const AppRoutes = (props) => {
           <Route path="/login"><Login /></Route>
           <PrivateRoutes path="/medicalregister" component={MainMedicalRegister}></PrivateRoutes>
           <PrivateRoutes path="/doctor-examining" component={MainDoctorExamining}></PrivateRoutes>
+          <PrivateRoutes path="/remind-examining" component={MainAppointmentExamining}></PrivateRoutes>
           <Route path="*"><Page404 />{" "}</Route>
           {/* <PrivateRoutes path="/users" component={Users} /> */}
         </Switch>
