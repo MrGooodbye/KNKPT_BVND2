@@ -39,6 +39,8 @@ function OldDisease(props) {
         fullName: { title: '', isError: false, openTooltip: false, focus: false },
         dayOfBirth: { title: '', isError: false, openTooltip: false, focus: false },
     }
+
+    const typingRef = useRef(null);
     
     const [listFoundOldDisease, setListFoundOldDisease] = useState(null);
     const [dataPatientsForSearchOldDisease, setDataPatientsForSearchOldDisease] = useState(dataPatientsForSearchOldDiseaseDefault);
@@ -88,9 +90,16 @@ function OldDisease(props) {
         if(value === '' || value === 'DD/MM/YYYY'){
             const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
             if(fieldName === 'patientId'){
-                _dataPatientsForSearchOldDiseaseError.patientId.title = '';
-                _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = false;
-                setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
+                if(typingRef.current){
+                    clearInterval(typingRef.current);
+                }
+                
+                typingRef.current = setTimeout(() => {  
+                    _dataPatientsForSearchOldDiseaseError.patientId.title = '';
+                    _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = false;
+                    setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
+                }, 10)
+                
                 if(focusField === 'patientId'){
                     setFocusField(null);
                 }
@@ -116,30 +125,40 @@ function OldDisease(props) {
 
     const onChangePatientId = (value) => {
         if(value !== ''){
-            const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
-            if(value.length < 8){
-                _dataPatientsForSearchOldDiseaseError.patientId.title = 'Mã bệnh nhân phải từ 8 đến 12 số';
-                _dataPatientsForSearchOldDiseaseError.patientId.isError = true;
-                _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = true;
-                setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
-                setDataPatientsForSearchOldDisease((prevDataPatientsForSearchOldDisease) => {
-                    prevDataPatientsForSearchOldDisease.patientId = value;
-                    return {...prevDataPatientsForSearchOldDisease}
-                })
+            const takenValue = value
+            if(typingRef.current){
+                clearInterval(typingRef.current);
             }
-            else{
-                if(focusField === 'patientId'){
-                    setFocusField(null);
+
+            typingRef.current = setTimeout(() => {
+                const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
+                if(value.length < 8){
+                    _dataPatientsForSearchOldDiseaseError.patientId.title = 'Mã bệnh nhân phải từ 8 đến 12 số';
+                    _dataPatientsForSearchOldDiseaseError.patientId.isError = true;
+                    _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = true;
+                    setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
                 }
-                _dataPatientsForSearchOldDiseaseError.patientId.title = '';
-                _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
-                _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = false;
-                _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
-                _dataPatientsForSearchOldDiseaseError.fullName.isError = false;
-                _dataPatientsForSearchOldDiseaseError.dayOfBirth.isError = false;
-                _dataPatientsForSearchOldDiseaseError.phone.isError = false;
-                setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
-            }
+
+                else{
+                    if(focusField === 'patientId'){
+                        setFocusField(null);
+                    }
+
+                    setDataPatientsForSearchOldDisease((prevDataPatientsForSearchOldDisease) => {
+                        prevDataPatientsForSearchOldDisease.patientId = takenValue;
+                        return {...prevDataPatientsForSearchOldDisease}
+                    })
+
+                    _dataPatientsForSearchOldDiseaseError.patientId.title = '';
+                    _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
+                    _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = false;
+                    _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
+                    _dataPatientsForSearchOldDiseaseError.fullName.isError = false;
+                    _dataPatientsForSearchOldDiseaseError.dayOfBirth.isError = false;
+                    _dataPatientsForSearchOldDiseaseError.phone.isError = false;
+                    setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
+                }
+            }, 100)
         }
         else{
             const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
@@ -312,23 +331,29 @@ function OldDisease(props) {
     }
 
     const handleFindOldDisease = async () => {
+        setOpenAlertProcessing(true);
+        const response = await getListOldDisease(dataPatientsForSearchOldDisease.patientId, dataPatientsForSearchOldDisease.phone, dataPatientsForSearchOldDisease.fullName, dataPatientsForSearchOldDisease.dayOfBirth, '');
+        setOpenAlertProcessing(false);
+        setListFoundOldDisease(response);
+        setDataPatientsForSearchOldDisease(dataPatientsForSearchOldDiseaseDefault);
+        setDataPatientsForSearchOldDiseaseError(dataPatientsForSearchOldDiseaseErrorDefault);
+        handleResetField();
+        if(response.length > 0){
+            tableRef.current.focus();
+        }
+    }
+
+    const handleClickFindOldDisease = () => {
         if(validate()){
-            setOpenAlertProcessing(true);
-            const response = await getListOldDisease(dataPatientsForSearchOldDisease.patientId, dataPatientsForSearchOldDisease.phone, dataPatientsForSearchOldDisease.fullName, dataPatientsForSearchOldDisease.dayOfBirth, '');
-            setOpenAlertProcessing(false);
-            setListFoundOldDisease(response);
-            setDataPatientsForSearchOldDisease(dataPatientsForSearchOldDiseaseDefault);
-            setDataPatientsForSearchOldDiseaseError(dataPatientsForSearchOldDiseaseErrorDefault);
-            handleResetField();
-            if(response.length > 0){
-                tableRef.current.focus();
-            }
+            setTimeout(()=> {
+                handleFindOldDisease()
+            }, 200)
         }
     }
 
     const handleEnterPress = (e) => {
         if (e.which === 13 && e.code === "Enter") {
-            handleFindOldDisease();
+            handleClickFindOldDisease();
         }
     }
 
@@ -456,7 +481,7 @@ function OldDisease(props) {
                     </Box>
 
                     <Box sx={{display: 'flex', justifyContent: 'center', mt: 1.6}}>
-                        <Button variant="contained" color="primary" onClick={() => handleFindOldDisease()}>Tìm (Enter)</Button>
+                        <Button variant="contained" color="primary" onClick={() => handleClickFindOldDisease()}>Tìm (Enter)</Button>
                     </Box>
 
                     <Box>
