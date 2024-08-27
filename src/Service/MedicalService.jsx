@@ -122,6 +122,17 @@ const getListMedicalExaminationsGiveRegister = async (dayOfBirth) => {
     })
 }
 
+const getListMedicalExaminationsGiveOldRegister = async (dayOfBirth, patientId) => {
+    const config = createConfig();
+    return await axios.get(`${backendURL}/api/Medical/GetExaminationsGiveRegister?dayOfBirth=${dayOfBirth}&patientId=${patientId}`, config)
+    .then(function (response) {
+        return response.data
+    })
+    .catch(function (error) {
+        return error.response.status
+    })
+}
+
 const getListOldDisease = async (patientId, phone, fullName, dayOfBirth, gender) => {
     const config = createConfig();
     return await axios.get(`${backendURL}/api/Medical/SearchPatients?patientId=${patientId}&phone=${phone}&fullName=${fullName}&dayOfBirth=${dayOfBirth}&gender=${gender}`, config)
@@ -282,6 +293,6 @@ const updateStateAppointment = async (medicalBookId, appointmentDate, stateAppoi
 
 export {
     createMedicalRegister, createMedicalBackRegister, createCurrentDoctorExamining, createAddPredecessor, createAddMedicalBook,
-    getRegistersByDateNow, getListMedicalExaminationsGiveRegister, getListOldDisease, getVaccinationByPatientId, getCurrentDoctorExamining, getMedicalDetailPatient, getMedicalBook, getUpdatePredecessor, getUpdateMedicalBook, getAppointmentDate, getAppointmentsNextWeek, getAppointmentsToday,
+    getRegistersByDateNow, getListMedicalExaminationsGiveRegister, getListMedicalExaminationsGiveOldRegister, getListOldDisease, getVaccinationByPatientId, getCurrentDoctorExamining, getMedicalDetailPatient, getMedicalBook, getUpdatePredecessor, getUpdateMedicalBook, getAppointmentDate, getAppointmentsNextWeek, getAppointmentsToday,
     updateMedicalRegister, updateMedicalState, updateStateAppointment
 }

@@ -20,7 +20,7 @@ import AlertProcessing from '../ManageAlertProcessing/AlertProcessing';
 //toast
 import {toast} from 'react-toastify';
 //api
-import { createMedicalRegister, createMedicalBackRegister, getListMedicalExaminationsGiveRegister } from '../../Service/MedicalService';
+import { createMedicalRegister, createMedicalBackRegister, getListMedicalExaminationsGiveRegister, getListMedicalExaminationsGiveOldRegister } from '../../Service/MedicalService';
 
 function ExaminingSession(props) {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -33,24 +33,34 @@ function ExaminingSession(props) {
     }
 
     const handleListMedicalExaminationsGiveRegister = async () =>  {
-        setOpenAlertProcessing(true);
-        const response = await getListMedicalExaminationsGiveRegister(props.dataPatientsRegister.patient.dayOfBirth);
-        setListExaminingSession(response);
-        props.dataPatientsRegister.examinationId = response.exams[0].id;
-        setOpenAlertProcessing(false);
+        if(props.dataPatientsRegister.oldDisease){
+            setOpenAlertProcessing(true);
+            const response = await getListMedicalExaminationsGiveOldRegister(props.dataPatientsRegister.patient.dayOfBirth, props.dataPatientsRegister.patient.patientId);
+            setListExaminingSession(response);
+            props.dataPatientsRegister.examinationId = response.exams[0].id;
+            setOpenAlertProcessing(false);
+        }
+        else{
+            setOpenAlertProcessing(true);
+            const response = await getListMedicalExaminationsGiveRegister(props.dataPatientsRegister.patient.dayOfBirth);
+            setListExaminingSession(response);
+            props.dataPatientsRegister.examinationId = response.exams[0].id;
+            setOpenAlertProcessing(false);
+        }
     }
 
     const handleMedicalRegister = async () => {
         // //bệnh cũ
-        if(props.dataPatientsRegister.oldDisease === true){
+        if(props.dataPatientsRegister.oldDisease === true && props.dataPatientsRegister.examinationId !== ''){
             //là bênh mới đã đăng ký nhưng chưa từng khám bao giờ
-            if(listExaminingSession.isAppointment === false){
-                //setIsConfirmOpen(false);
+            if(listExaminingSession.isAppointment === false && listExaminingSession.oldExams.length === 0){
+                setIsConfirmOpen(false);
                 setOpenAlertProcessing(true);
-                const response = await createMedicalRegister(props.dataPatientsRegister);
+                const response = await createMedicalBackRegister(props.dataPatientsRegister);
                 setOpenAlertProcessing(false);
                 if(response.status === 200){
                     toast.success(response.data);
+                    setListExaminingSession(null);
                     props.setIsContinueSelectedExaminingSession(false);
                     props.setCompleteMedicalRegister(true);
                     props.setOpenModalExaminingSession(false);
@@ -62,12 +72,13 @@ function ExaminingSession(props) {
             }
             //có hẹn khám nhưng không nhắc khám hoặc đến trễ ngày hẹn khám
             else{
-                //setIsConfirmOpen(false);
+                setIsConfirmOpen(false);
                 setOpenAlertProcessing(true);
                 const response = await createMedicalBackRegister(props.dataPatientsRegister);
                 setOpenAlertProcessing(false);
                 if(response.status === 200){
                     toast.success(response.data);
+                    setListExaminingSession(null);
                     props.setIsContinueSelectedExaminingSession(false);
                     props.setCompleteMedicalRegister(true);
                     props.setOpenModalExaminingSession(false);
@@ -87,6 +98,7 @@ function ExaminingSession(props) {
 
             if(response.status === 200){
                 toast.success(response.data);
+                setListExaminingSession(null);
                 props.handleResetField();
                 props.setIsContinueSelectedExaminingSession(false);
                 props.setCompleteMedicalRegister(true);
@@ -139,7 +151,7 @@ function ExaminingSession(props) {
                             ${listExaminingSession.monthsOfAge}`}
                         </DialogTitle>
 
-                        <IconButton onClick={() => [props.setOpenModalExaminingSession(false), props.dataPatientsRegister.examinationId = '']} 
+                        <IconButton onClick={() => [props.setOpenModalExaminingSession(false), props.dataPatientsRegister.examinationId = '', setListExaminingSession(null)]} 
                             sx={{position: 'absolute', right: 5, top: 7}}>
                                 <CloseIcon fontSize='medium'/>
                         </IconButton>
@@ -165,19 +177,11 @@ function ExaminingSession(props) {
                                     <Box sx={{border: '2px solid red', p: 1, height: '50vh'}}>
                                         <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center'}}>
                                             <Typography variant='h6' sx={{fontWeight: 'bolder', color: 'red'}}>Chọn kỳ khám</Typography>
-                                            {listExaminingSession.exams && listExaminingSession.isAppointment === false ? 
-                                                <RadioGroup defaultValue={listExaminingSession.exams[0].id} onChange={(e) => onChangeRadioSelect(e.target.value)}>
-                                                    {listExaminingSession.exams.map((examItem, examIndex) => (
-                                                        <FormControlLabel key={examIndex} value={examItem.id} control={<Radio />} label={examItem.name} />
-                                                    ))}
-                                                </RadioGroup>
-                                            :
-                                                <RadioGroup defaultValue={listExaminingSession.exams[1].id} onChange={(e) => onChangeRadioSelect(e.target.value)}>
-                                                    {listExaminingSession.oldExams.map((examItem, examIndex) => (
-                                                        <FormControlLabel key={examIndex} value={examItem.id} control={<Radio />} label={examItem.name} disabled={examIndex === 0 ? true : false}/>
-                                                    ))}
-                                                </RadioGroup>
-                                            }
+                                            <RadioGroup key={`${props.dataPatientsRegister.patient.patientId}`} defaultValue={listExaminingSession.exams[0].id} onChange={(e) => onChangeRadioSelect(e.target.value)}>
+                                                {listExaminingSession.exams.map((examItem, examIndex) => (
+                                                    <FormControlLabel key={`${examIndex}`} value={examItem.id} control={<Radio />} label={examItem.name} />
+                                                ))}
+                                            </RadioGroup>
                                             <Button variant='contained' sx={{mt: 0.5}} onClick={() => handleOpenConfirm()}>Tiếp tục (F2)</Button> 
                                         </div>
                                     </Box>

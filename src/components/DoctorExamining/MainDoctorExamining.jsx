@@ -1953,7 +1953,7 @@ function MainDoctorExamining() {
                             </TableContainer>
 
                             {/* cây thư mục khám */}
-                            <Box style={{width: '100%', marginTop: '8px', borderRadius: '10px', border: '2px solid red', height: '250px'}} >
+                            <Box style={{width: '100%', marginTop: '8px', borderRadius: '10px', border: '2px solid red', height: '250px', overflow: 'auto'}} >
                                 {
                                     mainDataExamining.length === 0 && loadingCategoryExamining === false || prevDataExamining === false ?
                                         null
