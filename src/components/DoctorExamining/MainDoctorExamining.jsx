@@ -1824,11 +1824,16 @@ function MainDoctorExamining() {
 
     useEffect(() => {
         if(loading === false && user){
-            if(user.isCurrentDoctorExamining === true){
-                handleGetRegistersByDateNow();
+            if(user.positionName !== 'Doctor' && user.isLogin){
+                history.push('/404');
             }
-            else if(user.isCurrentDoctorExamining === false){
-                toast.error('Bạn không phải bác sĩ khám hôm nay, không thể dùng chức năng này', {toastId: 'error10'});
+            else{
+                if(user.isCurrentDoctorExamining === true){
+                    handleGetRegistersByDateNow();
+                }
+                else if(user.isCurrentDoctorExamining === false){
+                    toast.error('Bạn không phải bác sĩ khám hôm nay, không thể dùng chức năng này', {toastId: 'error10'});
+                }
             }
         }
     }, [loading, user])

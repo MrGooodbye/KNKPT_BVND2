@@ -1,4 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+//context
+import { UserContext } from '../../context/UserContext';
 //mui theme
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
@@ -13,6 +16,10 @@ import BookMedical from './BookMedical';
 import { getCurrentDoctorExamining } from '../../Service/MedicalService';
 
 function MainMedicalRegister() {
+
+  const { user, loading } = useContext(UserContext);
+
+  const history = useHistory();
 
   const [component1Loading, setComponent1Loading] = useState(true);
 
@@ -51,8 +58,15 @@ function MainMedicalRegister() {
   }
 
   useEffect(() => {
-    handleGetCurrentDoctorExamining();
-  }, [])
+    if(loading === false && user){
+      if(user.positionName !== 'Nursing' && user.isLogin){
+        history.push('/404');
+      }
+      else{
+        handleGetCurrentDoctorExamining();
+      }
+    }
+  }, [loading, user])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
