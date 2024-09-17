@@ -4,8 +4,9 @@ import { UserContext } from "../context/UserContext";
 
 const PrivateRoutes = (props) => {
   const token = localStorage.getItem('jwt');
+  const getUserLogin = JSON.parse(localStorage.getItem('userLogin'));
 
-  if (token) {
+  if (token && getUserLogin) {
     return (
       <>
         <Route path={props.path} component={props.component}></Route>

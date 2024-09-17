@@ -339,7 +339,7 @@ function ListPatientsRegister(props) {
                             :
                               <>
                                 <TableCell align='center' sx={{width: '90px'}}>
-                                  <Tooltip title={<Typography variant='subtitle2'>{patientsRegisterSortItem.state === 0 || patientsRegisterSortItem.state === 3 ? 'Chờ khám' : patientsRegisterSortItem.state === 2 ? 'Đang khám': 'Đã khám'}</Typography>} >
+                                  <Tooltip title={<Typography variant='subtitle2'>{patientsRegisterSortItem.state === 0 || patientsRegisterSortItem.state === 3 ? 'Chờ khám' : patientsRegisterSortItem.state === 2 ? 'Đã khám' : 'Đang khám'}</Typography>} >
                                     <span>{renderPatientsStatus(patientsRegisterSortItem.state)}</span>
                                   </Tooltip>
                                 </TableCell>

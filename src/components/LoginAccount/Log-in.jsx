@@ -36,16 +36,16 @@ const Login = () => {
 
     const handleClickShowPassword = () => setShowPassword(!showPassword);
 
-    const onChangeUserName = (value) => {
+    const onChangeUserName = (e, value) => {
         setUserAccount(prevUserAccount => {
             return {
                 ...prevUserAccount,
                 userId: value
             }
-        })
+        }) 
     }
 
-    const onChangeUserPassword = (value) => {
+    const onChangeUserPassword = (e, value) => {
         setUserAccount(prevUserAccount => {
             return {
                 ...prevUserAccount,
@@ -73,27 +73,43 @@ const Login = () => {
                 if(response.data.positionName === 'Doctor'){
                     const responseCurrentDoctorExamining = await getCurrentDoctorExamining();
                     if(responseCurrentDoctorExamining.status === 200){
-                        loginContext(
-                            {
-                                isAuthenticated: true, 
-                                isLogin: true,
-                                userId: response.data.userId,
-                                userFullName: response.data.userFullName,
-                                positionName: response.data.positionName,
-                                isCurrentDoctorExamining: response.data.userId === responseCurrentDoctorExamining.data.userIdDoctor ? true : false
-                            }
-                        )
+                        const userLogin = {
+                            isAuthenticated: true, 
+                            isLogin: true,
+                            userId: response.data.userId,
+                            userFullName: response.data.userFullName,
+                            positionName: response.data.positionName,
+                            isCurrentDoctorExamining: response.data.userId === responseCurrentDoctorExamining.data.userIdDoctor ? true : false
+                        }
+
+                        localStorage.setItem('userLogin', JSON.stringify(userLogin))
+                        loginContext(userLogin);
                     }
                     else{
-                        loginContext(
-                            { isAuthenticated: true, isLogin: true, userId: response.data.userId, userFullName: response.data.userFullName, positionName: response.data.positionName, isCurrentDoctorExamining: false }
-                        )
+                        const userLogin = { 
+                            isAuthenticated: true, 
+                            isLogin: true, 
+                            userId: response.data.userId, 
+                            userFullName: response.data.userFullName, 
+                            positionName: response.data.positionName, 
+                            isCurrentDoctorExamining: false 
+                        }
+                        
+                        localStorage.setItem('userLogin', JSON.stringify(userLogin))
+                        loginContext(userLogin)
                     }
                 }
                 else{
-                    loginContext(
-                        { isAuthenticated: true, isLogin: true, userId: response.data.userId, userFullName: response.data.userFullName, positionName: response.data.positionName }
-                    )
+                    const userLogin = {
+                        isAuthenticated: true, 
+                        isLogin: true, 
+                        userId: response.data.userId, 
+                        userFullName: response.data.userFullName, 
+                        positionName: response.data.positionName
+                    }
+
+                    localStorage.setItem('userLogin', JSON.stringify(userLogin))
+                    loginContext(userLogin);
                 }
 
                 if(response.data.positionName === 'Nursing'){
@@ -121,10 +137,25 @@ const Login = () => {
         }
 
         const token = localStorage.getItem('jwt');
-        if (token) {
+        const userLogin = localStorage.getItem('userLogin');
+        if (token && userLogin) {
             history.push('/');
         }
     }, [])
+
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if(openAlertProcessingBackdrop){
+                event.preventDefault();
+            }
+        }
+
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [openAlertProcessingBackdrop])
 
     return (
         <>
@@ -134,9 +165,9 @@ const Login = () => {
                         <Avatar src={Logo} sx={{ width: 120, height: 120, ml: 'auto', mr: 'auto', mb: 2 }} />
                         <Typography sx={{ textAlign: 'center', textTransform: 'uppercase', fontWeight: 'bolder', fontSize: '1.15rem', mb: 2, color: '#4caf50' }} variant="h5">Chương trình khám nhi khoa phát triển</Typography>
                         <Box component="form" autoComplete="off" style={{ textAlign: 'center' }}>
-                            <TextField label="Tài khoản" variant="outlined" sx={{ width: '40ch', mb: 2.5 }} onChange={(e) => onChangeUserName(e.target.value)}/>
+                            <TextField label="Tài khoản" variant="outlined" sx={{ width: '40ch', mb: 2.5 }} onChange={(e) => onChangeUserName(e, e.target.value)}/>
                             <TextField label="Mật khẩu" variant="outlined" type={showPassword ? "text" : "password"} sx={{ width: '40ch', mb: 3 }} 
-                            onChange={(e) => onChangeUserPassword(e.target.value)} onKeyDown={(e) => handlePressEnter(e)}
+                            onChange={(e) => onChangeUserPassword(e, e.target.value)} onKeyDown={(e) => handlePressEnter(e)}
                                 InputProps={{ // <-- This is where the toggle button is added.
                                     endAdornment: (
                                         <InputAdornment position="end">

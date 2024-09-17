@@ -96,7 +96,6 @@ function CompleteExamining(props) {
 
     const handleSetDataCompleteExamining = async () => {
         const editDataExaminingForConclusion = _.clone(props.dataExaminingForConclusion);
-        
         editDataExaminingForConclusion.categories = editDataExaminingForConclusion.categories.map(categoriesItem => ({
             ...categoriesItem,
             // Lọc các categoryContents để giữ lại những phần tử có categoryContentQuestions không rỗng

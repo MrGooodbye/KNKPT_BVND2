@@ -109,10 +109,10 @@ const UserProvider = ({ children }) => {
         if(getJWT){
             let decodeJWT = parseJwt(getJWT);
             let currentDate  = new Date();
-
             if(decodeJWT.exp * 1000 < currentDate.getTime()) {
                 //console.log('Token đã hết hạn hoặc không tồn tại')
                 localStorage.removeItem('jwt'); //xóa localStorage
+                localStorage.removeItem('userLogin');
                 return result 
             }
             else{
@@ -122,18 +122,28 @@ const UserProvider = ({ children }) => {
             }
         }
         else{
+            localStorage.removeItem('userLogin');
             return result
         }
     }
 
     useEffect(() => {
-        const result = checkJWTExpire();
-        if(result){
-            fetchUser();
+        setLoading(true);
+        const getUserLogin = JSON.parse(localStorage.getItem('userLogin'));
+        if(getUserLogin){
+            const result = checkJWTExpire();
+            if(result){
+                const getUserLogin = JSON.parse(localStorage.getItem('userLogin'));
+                setUser(getUserLogin);
+            }else{
+                //không có token
+                setUser(userDefault);
+            }
         }else{
-            //không có token
+            localStorage.removeItem('jwt'); //xóa localStorage
             setUser(userDefault);
         }
+        setLoading(false);
     }, [])
 
     return (

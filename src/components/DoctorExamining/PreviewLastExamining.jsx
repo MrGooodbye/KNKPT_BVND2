@@ -87,7 +87,7 @@ function PreviewLastExamining(props) {
 
     const handleEditPrevDataExamining = async () => {
         setLoadingMedicalBook(true);
-        const responseMedicalBook = await getMedicalBook(props.prevDataExamining.healthRecords[props.prevDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null) ? 1 : 0].medicalBookId);
+        const responseMedicalBook = await getMedicalBook(props.prevDataExamining.healthRecords[props.prevDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null) ? 1 : 0].medicalRegisterId);
         if(props.prevDataExamining.newPredecessor){
             const healthRecordsUpdate = {
                 ...props.prevDataExamining.healthRecords[props.prevDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null) ? 1 : 0],

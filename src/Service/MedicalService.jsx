@@ -177,9 +177,9 @@ const getMedicalDetailPatient = async (id) => {
     })
 }
 
-const getMedicalBook = async (medicalBookId) => {
+const getMedicalBook = async (medicalRegisterId) => {
     const config = createConfig();
-    return await axios.get(`${backendURL}/api/Medical/GetMediacalBook?medicalBookId=${medicalBookId}`, config)
+    return await axios.get(`${backendURL}/api/Medical/GetMediacalBook?medicalRegisterId=${medicalRegisterId}`, config)
     .then(function (response) {
         return response.data
     })

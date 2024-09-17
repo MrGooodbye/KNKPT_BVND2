@@ -72,6 +72,7 @@ function Header(props) {
     if(user.positionName === 'Doctor'){
       triggerAlert(() => {
         localStorage.removeItem('jwt');
+        localStorage.removeItem('userLogin');
         logoutContext();
         setAnchorEl(null);
         history.push('/login');
@@ -80,6 +81,7 @@ function Header(props) {
     
     else{
       localStorage.removeItem('jwt'); //xóa localStorage
+      localStorage.removeItem('userLogin');
       logoutContext();
       setAnchorEl(null);
       history.push('/login');
