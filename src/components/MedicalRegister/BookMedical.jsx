@@ -1854,18 +1854,6 @@ function BookMedical(props) {
             </ThemeProvider>
 
             <ThemeProvider theme={tooltipTheme}>
-              <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.height.title}</h6>} open={dataPatientsRegisterError.height.openTooltip} placement='left' PopperProps={{sx: { zIndex: 2 } }}>
-                <div style={{width: '22%', marginTop: '20px'}}>
-                  <TextField label="Chiều cao bé" variant="outlined" id='patientHeight' error={true ? dataPatientsRegisterError.height.isError === true : false}
-                    inputRef={(input) => input && focusField === 'height' && input.focus()}
-                    InputProps={{endAdornment: <InputAdornment position="end">(cm)</InputAdornment>}}
-                    onChange={(e) => onChangeHeight(e.target.value)}
-                  />
-                </div>
-              </Tooltip>
-            </ThemeProvider>
-            
-            <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.weight.title}</h6>} open={dataPatientsRegisterError.weight.openTooltip} PopperProps={{sx: { zIndex: 2 } }}>
                 <div style={{width: '22%', marginTop: '20px'}}>
                   <TextField label="Cân nặng bé" variant="outlined" id='patientWeight' error={true ? dataPatientsRegisterError.weight.isError === true : false}
@@ -1875,7 +1863,19 @@ function BookMedical(props) {
                   />
                 </div>
               </Tooltip>
-            </ThemeProvider>  
+            </ThemeProvider> 
+
+            <ThemeProvider theme={tooltipTheme}>
+              <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.height.title}</h6>} open={dataPatientsRegisterError.height.openTooltip} placement='left' PopperProps={{sx: { zIndex: 2 } }}>
+                <div style={{width: '22%', marginTop: '20px'}}>
+                  <TextField label="Chiều cao bé" variant="outlined" id='patientHeight' error={true ? dataPatientsRegisterError.height.isError === true : false}
+                    inputRef={(input) => input && focusField === 'height' && input.focus()}
+                    InputProps={{endAdornment: <InputAdornment position="end">(cm)</InputAdornment>}}
+                    onChange={(e) => onChangeHeight(e.target.value)}
+                  />
+                </div>
+              </Tooltip>
+            </ThemeProvider> 
             
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.headCircumference.title}</h6>} open={dataPatientsRegisterError.headCircumference.openTooltip} placement='top-start' PopperProps={{sx: { zIndex: 2 } }}

@@ -253,10 +253,12 @@ function MainDoctorExamining() {
     }
 
     const handleCompleteExaminingButtonClick = () => {
+        setOpenAlertProcessingBackdrop(true)
         if(dataPantientsReadyExamining.status === 1){
             setTimeout(() => {
+            setOpenAlertProcessingBackdrop(false)
                 setOpenModalCompleteExamining(true);
-            }, 2000)
+            }, 1000)
         }
     }
 
@@ -1170,6 +1172,8 @@ function MainDoctorExamining() {
                 }
             }
         }
+
+        createPreviewDataPredecessor(categoryContentQuestion, isEditNote);
     }
 
     //lưu dữ liệu tiền căn khi sửa xong
@@ -1496,7 +1500,7 @@ function MainDoctorExamining() {
             setCategorySelectedExamining(_categorySelectedExamining);
 
             const isPredecessor = true;
-            createSelectedQuestionsExaminingForConclusion(_categorySelectedExamining.categoryName,
+            createSelectedQuestionsExaminingForConclusion(
                 _categorySelectedExamining.categoryName,
                 isPredecessor,
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex],
@@ -1530,7 +1534,7 @@ function MainDoctorExamining() {
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentTitle,
                 isEditNote
             )
-        }, 2000)
+        }, 1000)
     }
 
     const handleAnswerValueQuestion = (categoryContentsIndex, questionIndex, value) => {
@@ -1627,7 +1631,7 @@ function MainDoctorExamining() {
                 _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[categoryPatientsContentsIndex].categoryContentTitle,
                 isEditNote
             );
-        }, 2000)
+        }, 1000)
     }
 
     const createSelectedQuestionsExaminingForConclusion = (categoryName, isPredecessor, categoryContentQuestion, questionOrder, categoryContentTitle, isEditNote) => {
@@ -1798,18 +1802,47 @@ function MainDoctorExamining() {
             }
         }
 
-        if(isPredecessor && previewPredecessor && previewPredecessor.length !== 0){
+        if(isPredecessor === true){
+            createPreviewDataPredecessor(categoryContentQuestion, isEditNote);
+        }
+            
+    }
+
+    const createPreviewDataPredecessor = (categoryContentQuestion, isEditNote) => {
+        if(previewPredecessor && previewPredecessor.length !== 0){
             let _previewPredecessor = [...previewPredecessor];
 
-            _previewPredecessor.forEach(item => {
-                const findQuestion = _previewPredecessor.find(item => item.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName);
-
-                if(findQuestion){
-                    if(findQuestion.categoryContentQuestionType === 'string'){
-                        if(categoryContentQuestion.categoryContentAnswer === ''){
-                            _previewPredecessor = previewPredecessor.filter(item => item.categoryContentQuestionName !== categoryContentQuestion.categoryContentQuestionName);
+            const findQuestion = _previewPredecessor.find(item => item.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName);
+            if(findQuestion){
+                if(findQuestion.categoryContentQuestionType === 'string'){
+                    if(categoryContentQuestion.categoryContentNote === ''){
+                        _previewPredecessor = previewPredecessor.filter(item => item.categoryContentQuestionName !== categoryContentQuestion.categoryContentQuestionName);
+                    }
+                    else if(categoryContentQuestion.categoryContentNote !== ''){
+                        const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName);
+                        if(existingQuestion){
+                            existingQuestion.categoryContentNote = categoryContentQuestion.categoryContentNote;
                         }
-                        else if(categoryContentQuestion.categoryContentAnswer !== ''){
+                        else{
+                            _previewPredecessor.push(categoryContentQuestion);
+                        }
+                    }
+                }
+                else if(findQuestion.categoryContentQuestionType === 'check'){
+                    if(isEditNote){
+                        if(categoryContentQuestion.categoryContentNote === ''){
+                            const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName && question.categoryContentAnswer === true);
+                            if(existingQuestion){
+                                existingQuestion.categoryContentNote = categoryContentQuestion.categoryContentNote;
+                            }
+                            else{
+                                if(categoryContentQuestion.categoryContentAnswer === null || categoryContentQuestion.categoryContentAnswer === false){
+                                    _previewPredecessor = _previewPredecessor.filter(question => question.categoryContentQuestionName !== categoryContentQuestion.categoryContentQuestionName)
+                                }
+                            }
+                        }
+
+                        else if(categoryContentQuestion.categoryContentNote !== ''){
                             const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName);
                             if(existingQuestion){
                                 existingQuestion.categoryContentNote = categoryContentQuestion.categoryContentNote;
@@ -1817,133 +1850,44 @@ function MainDoctorExamining() {
                             else{
                                 _previewPredecessor.push(categoryContentQuestion);
                             }
-                        }
+                        }                       
                     }
-                    else if(findQuestion.categoryContentQuestionType === 'check'){
-                        if(isEditNote){
-                            if(categoryContentQuestion.categoryContentNote === ''){
-                                const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName && question.categoryContentAnswer === true);
-                                if(existingQuestion){
-                                    existingQuestion.categoryContentNote = categoryContentQuestion.categoryContentNote;
-                                }
-                                else{
-                                    if(categoryContentQuestion.categoryContentAnswer === null || categoryContentQuestion.categoryContentAnswer === false){
-                                        _previewPredecessor = _previewPredecessor.filter(question => question.categoryContentQuestionName !== categoryContentQuestion.categoryContentQuestionName)
-                                    }
-                                }
-                            }
 
-                            else if(categoryContentQuestion.categoryContentNote !== ''){
-                                const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName);
-                                if(existingQuestion){
-                                    existingQuestion.categoryContentNote = categoryContentQuestion.categoryContentNote;
+                    else{
+                        if(categoryContentQuestion.categoryContentAnswer === false || categoryContentQuestion.categoryContentAnswer === null){
+                            const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName);
+                            if(existingQuestion){
+                                if(existingQuestion.categoryContentNote === '' || existingQuestion.categoryContentNote === null){
+                                    _previewPredecessor = _previewPredecessor.filter(question => question.categoryContentQuestionName !== categoryContentQuestion.categoryContentQuestionName)
                                 }
-                                else{
-                                    _previewPredecessor.push(categoryContentQuestion);
-                                }
-                            }                       
+                                else if(existingQuestion.categoryContentNote !== '' || existingQuestion.categoryContentNote !== null){
+                                    existingQuestion.categoryContentAnswer = categoryContentQuestion.categoryContentAnswer;
+                                }               
+                            }
                         }
 
-                        else{
-                            if(categoryContentQuestion.categoryContentAnswer === false){
-                                const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName && question.categoryContentNote !== '');
-                                if(existingQuestion){
-                                    existingQuestion.categoryContentAnswer = categoryContentQuestion.categoryContentAnswer;
-                                }
-                                else{
-                                    _previewPredecessor = _previewPredecessor.filter(question => question.categoryContentQuestionName !== categoryContentQuestion.categoryContentQuestionName && question.categoryContentNote === '')
-                                }
+                        else if(categoryContentQuestion.categoryContentAnswer === true){
+                            const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName);
+                            if(existingQuestion || existingQuestion.categoryContentNote !== '' || existingQuestion.categoryContentNote !== null){
+                                existingQuestion.categoryContentAnswer = categoryContentQuestion.categoryContentAnswer;
                             }
-
-                            else if(categoryContentQuestion.categoryContentAnswer === true){
-                                const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName && question.categoryContentNote !== '');
-                                if(existingQuestion){
-                                    existingQuestion.categoryContentAnswer = categoryContentQuestion.categoryContentAnswer;
-                                }
-                                else{
-                                    _previewPredecessor.push(categoryContentQuestion);
-                                }
-                            }        
-                        }
+                            else{
+                                _previewPredecessor.push(categoryContentQuestion);
+                            }
+                        }        
                     }
                 }
+            }
 
-                else{
-                    _previewPredecessor.push(categoryContentQuestion);
-                }
-
-
-
-
-                // if(item.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName){
-                //     if(categoryContentQuestion.categoryContentQuestionType === 'string'){
-                //         if(categoryContentQuestion.categoryContentAnswer === ''){
-                //             _previewPredecessor = previewPredecessor.filter(item => item.categoryContentQuestionName !== categoryContentQuestion.categoryContentQuestionName);
-                //         }
-                //         else if(categoryContentQuestion.categoryContentAnswer !== ''){
-                //             const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName);
-                //             if(existingQuestion){
-                //                 existingQuestion.categoryContentNote = categoryContentQuestion.categoryContentNote;
-                //             }
-                //             else{
-                //                 _previewPredecessor.push(categoryContentQuestion);
-                //             }
-                //         }
-                //     }
-                //     else if(categoryContentQuestion.categoryContentQuestionType === 'check'){
-                //         if(isEditNote){
-                //             if(categoryContentQuestion.categoryContentNote === ''){
-                //                 const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName && question.categoryContentAnswer === true);
-                //                 if(existingQuestion){
-                //                     existingQuestion.categoryContentNote = categoryContentQuestion.categoryContentNote;
-                //                 }
-                //                 else{
-                //                     _previewPredecessor = _previewPredecessor.filter(question => question.categoryContentQuestionName !== categoryContentQuestion.categoryContentQuestionName && question.categoryContentAnswer === null || question.categoryContentAnswer === false)
-                //                 }
-                //             }
-                //             else if(categoryContentQuestion.categoryContentNote !== ''){
-                //                 const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName && question.categoryContentAnswer === true);
-                //                 if(existingQuestion){
-                //                     existingQuestion.categoryContentNote = categoryContentQuestion.categoryContentNote;
-                //                 }
-                //                 else{
-                //                     _previewPredecessor.push(categoryContentQuestion);
-                //                 }
-                //             }                       
-                //         }
-
-                //         else{
-                //             if(categoryContentQuestion.categoryContentAnswer === false){
-                //                 const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName && question.categoryContentNote !== '');
-                //                 if(existingQuestion){
-                //                     existingQuestion.categoryContentAnswer = categoryContentQuestion.categoryContentAnswer;
-                //                 }
-                //                 else{
-                //                     _previewPredecessor = _previewPredecessor.filter(question => question.categoryContentQuestionName !== categoryContentQuestion.categoryContentQuestionName && question.categoryContentNote === '')
-                //                 }
-                //             }
-                //             else if(categoryContentQuestion.categoryContentAnswer === true){
-                //                 const existingQuestion = previewPredecessor.find(question => question.categoryContentQuestionName === categoryContentQuestion.categoryContentQuestionName && question.categoryContentNote !== '');
-                //                 if(existingQuestion){
-                //                     existingQuestion.categoryContentAnswer = categoryContentQuestion.categoryContentAnswer;
-                //                 }
-                //                 else{
-                //                     _previewPredecessor.push(categoryContentQuestion);
-                //                 }
-                //             }        
-                //         }
-                //     }
-                // }
-                // else{
-                //     _previewPredecessor.push(categoryContentQuestion);
-                // }
-            })
-
+            else{
+                _previewPredecessor.push(categoryContentQuestion);
+            }
             setPreviewPredecessor(_previewPredecessor)
-        }   
+        }
+
         else{
             setPreviewPredecessor([categoryContentQuestion])
-        }   
+        }
     }
 
     const useStyles = makeStyles({
@@ -2100,10 +2044,12 @@ function MainDoctorExamining() {
                 }
 
                 else if(event.keyCode === 115){
+                setOpenAlertProcessingBackdrop(true)
                     if(dataPantientsReadyExamining.status === 1){
                         setTimeout(() => {
+                            setOpenAlertProcessingBackdrop(false)
                             setOpenModalCompleteExamining(true);
-                        }, 2000)
+                        }, 1000)
                     }
                 }
             }

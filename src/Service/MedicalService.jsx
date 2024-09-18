@@ -275,9 +275,9 @@ const updateMedicalState = async (id, state) => {
     })
 }
 
-const updateStateAppointment = async (medicalBookId, appointmentDate, stateAppointment) => {
+const updateStateAppointment = async (dataAppointment, stateAppointment) => {
     const token = localStorage.getItem("jwt");
-    return await axios.put(`${backendURL}/api/Medical/UpdateStateAppointment/${medicalBookId}?appointmentDate=${appointmentDate}&stateAppointment=${stateAppointment}`, {}, {
+    return await axios.put(`${backendURL}/api/Medical/UpdateStateAppointment/${dataAppointment.medicalBookId}?appointmentDate=${dataAppointment.appointmentDate}&stateAppointment=${stateAppointment}`, {}, {
         headers: {
             "content-type": "text/plain; charset=utf-8",
             Authorization: `Bearer ${token}`,

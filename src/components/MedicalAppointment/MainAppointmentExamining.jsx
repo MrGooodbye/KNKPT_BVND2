@@ -18,6 +18,11 @@ import { Button, IconButton, TextField } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import Pagination from '@mui/material/Pagination';
 import Tooltip from '@mui/material/Tooltip';
+//mui datepicker
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 //mui icon
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
@@ -54,6 +59,8 @@ function MainAppointmentExamining() {
 
     const [page, setPage] = useState(1);
     const [pageCount, setPageCount] = useState();
+
+    const [dataAppointment, setDataAppointment] = useState({medicalBookId: '', appointmentDate: ''});
 
     const handlePaginate = (data) => {
         const itemsPerPage = 5;
@@ -155,9 +162,14 @@ function MainAppointmentExamining() {
         });
     }
 
-    const handleAcceptReExamining = async (medicalBookId, appointmentDate) => {
+    const onChangeAppointmentDate = (medicalBookId, appointmentDate) => {
+        console.log(medicalBookId);
+        console.log(appointmentDate);
+    }
+
+    const handleAcceptReExamining = async () => {
         setLoading(true);
-        const responseUpdateStateAppointment = await updateStateAppointment(medicalBookId, appointmentDate, 1);
+        const responseUpdateStateAppointment = await updateStateAppointment(dataAppointment, 1);
         if(responseUpdateStateAppointment.status === 200){
             
             const responseGetAppointmentsNextWeek = await getAppointmentsNextWeek();
@@ -199,7 +211,7 @@ function MainAppointmentExamining() {
 
     const handleRejectReExamining = async (medicalBookId, appointmentDate) => {
         setLoading(true);
-        const responseUpdateStateAppointment = await updateStateAppointment(medicalBookId, appointmentDate, 2);
+        const responseUpdateStateAppointment = await updateStateAppointment(dataAppointment, 2);
         if(responseUpdateStateAppointment.status === 200){
             const responseGetAppointmentsNextWeek = await getAppointmentsNextWeek();
 
@@ -326,19 +338,28 @@ function MainAppointmentExamining() {
                                         <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{dataPantientAppointmentItem.phoneFather !== '' ? dataPantientAppointmentItem.phoneFather : dataPantientAppointmentItem.phoneMother}</TableCell>
                                         <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{dataPantientAppointmentItem.examNameOld}</TableCell>
                                         <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{dataPantientAppointmentItem.nextExamName}</TableCell>
-                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{moment(dataPantientAppointmentItem.appointmentDate).format("DD/MM/YYYY")}</TableCell>                                                                                                
+                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>
+                                            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale="vi">
+                                                <DemoContainer components={['DatePicker']}>  
+                                                    <DatePicker label="Ngày khám dự kiến" disablePast
+                                                        format='DD/MM/YYYY' defaultValue={moment(dataPantientAppointmentItem.appointmentDate)}
+                                                        onChange={(value) => onChangeAppointmentDate(dataPantientAppointmentItem.medicalBookId, value)}
+                                                    />
+                                                </DemoContainer>
+                                            </LocalizationProvider>
+                                        </TableCell>                                                                                                
                                         <TableCell align={dataPantientAppointmentItem.stateAppointment === 0 ? 'left' : 'center'} sx={{width: 'auto', fontSize: '0.9rem'}}>
                                             {dataPantientAppointmentItem.stateAppointment === 0 ?
                                                 <>   
-                                                    <CheckIcon titleAccess='Đồng ý hẹn khám' sx={{color: 'green', cursor: 'pointer', mr: 0.5}} onClick={() => handleAcceptReExamining(dataPantientAppointmentItem.medicalBookId, dataPantientAppointmentItem.appointmentDate)}/>
-                                                    <CancelIcon titleAccess='Từ chối hẹn khám' sx={{color: 'red', cursor: 'pointer'}} onClick={() => handleRejectReExamining(dataPantientAppointmentItem.medicalBookId, dataPantientAppointmentItem.appointmentDate)}/>
+                                                    <CheckIcon titleAccess='Đồng ý hẹn khám' sx={{color: 'green', cursor: 'pointer', mr: 0.5}} onClick={() => handleAcceptReExamining()}/>
+                                                    <CancelIcon titleAccess='Từ chối hẹn khám' sx={{color: 'red', cursor: 'pointer'}} onClick={() => handleRejectReExamining()}/>
                                                 </>
                                                 :
                                                 <>
                                                     {dataPantientAppointmentItem.stateAppointment === 1 ?
-                                                        <CancelIcon titleAccess='Từ chối hẹn khám' sx={{color: 'red', cursor: 'pointer'}} onClick={() => handleRejectReExamining(dataPantientAppointmentItem.medicalBookId, dataPantientAppointmentItem.appointmentDate)}/>
+                                                        <CancelIcon titleAccess='Từ chối hẹn khám' sx={{color: 'red', cursor: 'pointer'}} onClick={() => handleRejectReExamining()}/>
                                                     :
-                                                        <CheckIcon titleAccess='Đồng ý hẹn khám' sx={{color: 'green', cursor: 'pointer', mr: 0.5}} onClick={() => handleAcceptReExamining(dataPantientAppointmentItem.medicalBookId, dataPantientAppointmentItem.appointmentDate)}/>
+                                                        <CheckIcon titleAccess='Đồng ý hẹn khám' sx={{color: 'green', cursor: 'pointer', mr: 0.5}} onClick={() => handleAcceptReExamining()}/>
                                                     }
                                                 </>
                                             }
