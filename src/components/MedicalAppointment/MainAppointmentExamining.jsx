@@ -60,7 +60,7 @@ function MainAppointmentExamining() {
     const [page, setPage] = useState(1);
     const [pageCount, setPageCount] = useState();
 
-    const [dataAppointment, setDataAppointment] = useState({medicalBookId: '', appointmentDate: ''});
+    const [dataAppointment, setDataAppointment] = useState();
 
     const handlePaginate = (data) => {
         const itemsPerPage = 5;
@@ -109,14 +109,49 @@ function MainAppointmentExamining() {
         setListPantientChipState(updateListPantientAppointmentChipState);
 
         if(activeChip.chipOrder === 0){
-            setListDataPatientsAppointmentPaginate(_listAppointmentNotRemind)
+            const dataAppointmentNotRemind = _listAppointmentNotRemind.map((item) => {
+                const createNewDataAppointmentNotRemind = 
+                    {
+                        medicalBookId: item.medicalBookId,
+                        appointmentDate: item.appointmentDate
+                    }
+                
+                return createNewDataAppointmentNotRemind
+            })
+
+            setDataAppointment(dataAppointmentNotRemind);
+            setListDataPatientsAppointmentPaginate(_listAppointmentNotRemind);
             handlePaginate(_listAppointmentNotRemind)
         }
+
         else if(activeChip.chipOrder === 1){
+            const dataAppointmentAcceptReExamining = _listAppointmentAcceptReExamining.map((item) => {
+                const createNewDataAppointmentAcceptReExamining = 
+                    {
+                        medicalBookId: item.medicalBookId,
+                        appointmentDate: item.appointmentDate
+                    }
+                
+                return createNewDataAppointmentAcceptReExamining
+            })
+
+            setDataAppointment(dataAppointmentAcceptReExamining);
             setListDataPatientsAppointmentPaginate(_listAppointmentAcceptReExamining)
             handlePaginate(_listAppointmentAcceptReExamining)
         }
+
         else{
+            const dataAppointmentRejectReExamining = _listAppointmentRejectReExamining.map((item) => {
+                const createNewDataAppointmentRejectReExamining = 
+                    {
+                        medicalBookId: item.medicalBookId,
+                        appointmentDate: item.appointmentDate
+                    }
+                
+                return createNewDataAppointmentRejectReExamining
+            })
+
+            setDataAppointment(dataAppointmentRejectReExamining);
             setListDataPatientsAppointmentPaginate(_listAppointmentRejectReExamining)
             handlePaginate(_listAppointmentRejectReExamining)
         }
@@ -128,16 +163,52 @@ function MainAppointmentExamining() {
         setActiveChip({chipOrder: chipIndex, chipLabel: chipLabel});
         if(chipIndex === 0){
             const _listAppointmentNotRemind = listAppointment.filter(item => item.stateAppointment === 0);
+
+            const dataAppointmentNotRemind = _listAppointmentNotRemind.map((item) => {
+                const createNewDataAppointmentNotRemind = 
+                    {
+                        medicalBookId: item.medicalBookId,
+                        appointmentDate: item.appointmentDate
+                    }
+                
+                return createNewDataAppointmentNotRemind
+            })
+
+            setDataAppointment(dataAppointmentNotRemind);
             setListDataPatientsAppointmentPaginate(_listAppointmentNotRemind);
             handlePaginate(_listAppointmentNotRemind);
         }
         else if(chipIndex === 1){
             const _listAppointmentAcceptReExamining = listAppointment.filter(item => item.stateAppointment === 1);
+
+            const dataAppointmentAcceptReExamining = _listAppointmentAcceptReExamining.map((item) => {
+                const createNewDataAppointmentAcceptReExamining = 
+                    {
+                        medicalBookId: item.medicalBookId,
+                        appointmentDate: item.appointmentDate
+                    }
+                
+                return createNewDataAppointmentAcceptReExamining
+            })
+
+            setDataAppointment(dataAppointmentAcceptReExamining);
             setListDataPatientsAppointmentPaginate(_listAppointmentAcceptReExamining);
             handlePaginate(_listAppointmentAcceptReExamining);
         }
         else{
             const _listAppointmentRejectReExamining = listAppointment.filter(item => item.stateAppointment === 2);
+
+            const dataAppointmentRejectReExamining = _listAppointmentRejectReExamining.map((item) => {
+                const createNewDataAppointmentRejectReExamining = 
+                    {
+                        medicalBookId: item.medicalBookId,
+                        appointmentDate: item.appointmentDate
+                    }
+                
+                return createNewDataAppointmentRejectReExamining
+            })
+
+            setDataAppointment(dataAppointmentRejectReExamining);
             setListDataPatientsAppointmentPaginate(_listAppointmentRejectReExamining);
             handlePaginate(_listAppointmentRejectReExamining);
         }
@@ -162,17 +233,41 @@ function MainAppointmentExamining() {
         });
     }
 
+    const typingRef = useRef(null);
+
     const onChangeAppointmentDate = (medicalBookId, appointmentDate) => {
-        console.log(medicalBookId);
-        console.log(appointmentDate);
+        if(appointmentDate){
+            const takenValue = appointmentDate._d;
+
+            if(typingRef.current){
+                clearInterval(typingRef.current);
+            }
+
+            typingRef.current = setTimeout(() => {
+                const today = new Date();
+                const findDataAppointment = dataAppointment.find(item => item.medicalBookId === medicalBookId);
+                const convertAppointmentDateFindDataAppointment = new Date(findDataAppointment.appointmentDate)
+
+                if(today <= takenValue || takenValue >= convertAppointmentDateFindDataAppointment){
+                    findDataAppointment.appointmentDate = moment(takenValue).format('YYYY-MM-DD');
+                }
+            }, 100) 
+        }
+        
     }
 
-    const handleAcceptReExamining = async () => {
+    const handleAcceptReExamining = async (medicalBookId) => {
         setLoading(true);
-        const responseUpdateStateAppointment = await updateStateAppointment(dataAppointment, 1);
+
+        const findDataAppointment = dataAppointment.find(item => item.medicalBookId === medicalBookId);
+        const responseUpdateStateAppointment = await updateStateAppointment(findDataAppointment, 1);
         if(responseUpdateStateAppointment.status === 200){
             
             const responseGetAppointmentsNextWeek = await getAppointmentsNextWeek();
+
+            if(searchPatientsQuery !== ""){
+                setSearchPatientsQuery("");
+            }
 
             setListAppointment(responseGetAppointmentsNextWeek);
 
@@ -189,14 +284,48 @@ function MainAppointmentExamining() {
             setListPantientChipState(updateListPantientAppointmentChipState);
 
             if(activeChip.chipOrder === 0){
+                const dataAppointmentNotRemind = _listAppointmentNotRemind.map((item) => {
+                    const createNewDataAppointmentNotRemind = 
+                        {
+                            medicalBookId: item.medicalBookId,
+                            appointmentDate: item.appointmentDate
+                        }
+                    
+                    return createNewDataAppointmentNotRemind
+                })
+    
+                setDataAppointment(dataAppointmentNotRemind);
                 setListDataPatientsAppointmentPaginate(_listAppointmentNotRemind)
                 handlePaginate(_listAppointmentNotRemind)
             }
+
             else if(activeChip.chipOrder === 1){
+                const dataAppointmentAcceptReExamining = _listAppointmentAcceptReExamining.map((item) => {
+                    const createNewDataAppointmentAcceptReExamining = 
+                        {
+                            medicalBookId: item.medicalBookId,
+                            appointmentDate: item.appointmentDate
+                        }
+                    
+                    return createNewDataAppointmentAcceptReExamining
+                })
+    
+                setDataAppointment(dataAppointmentAcceptReExamining);
                 setListDataPatientsAppointmentPaginate(_listAppointmentAcceptReExamining)
                 handlePaginate(_listAppointmentAcceptReExamining)
             }
             else{
+                const dataAppointmentRejectReExamining = _listAppointmentRejectReExamining.map((item) => {
+                    const createNewDataAppointmentRejectReExamining = 
+                        {
+                            medicalBookId: item.medicalBookId,
+                            appointmentDate: item.appointmentDate
+                        }
+                    
+                    return createNewDataAppointmentRejectReExamining
+                })
+    
+                setDataAppointment(dataAppointmentRejectReExamining);
                 setListDataPatientsAppointmentPaginate(_listAppointmentRejectReExamining)
                 handlePaginate(_listAppointmentRejectReExamining)
             }
@@ -209,11 +338,17 @@ function MainAppointmentExamining() {
         setLoading(false);
     }
 
-    const handleRejectReExamining = async (medicalBookId, appointmentDate) => {
+    const handleRejectReExamining = async (medicalBookId) => {
         setLoading(true);
-        const responseUpdateStateAppointment = await updateStateAppointment(dataAppointment, 2);
+        
+        const findDataAppointment = dataAppointment.find(item => item.medicalBookId === medicalBookId);
+        const responseUpdateStateAppointment = await updateStateAppointment(findDataAppointment, 2);
         if(responseUpdateStateAppointment.status === 200){
             const responseGetAppointmentsNextWeek = await getAppointmentsNextWeek();
+
+            if(searchPatientsQuery !== ""){
+                setSearchPatientsQuery("");
+            }
 
             setListAppointment(responseGetAppointmentsNextWeek);
 
@@ -230,14 +365,48 @@ function MainAppointmentExamining() {
             setListPantientChipState(updateListPantientAppointmentChipState);
 
             if(activeChip.chipOrder === 0){
+                const dataAppointmentNotRemind = _listAppointmentNotRemind.map((item) => {
+                    const createNewDataAppointmentNotRemind = 
+                        {
+                            medicalBookId: item.medicalBookId,
+                            appointmentDate: item.appointmentDate
+                        }
+                    
+                    return createNewDataAppointmentNotRemind
+                })
+    
+                setDataAppointment(dataAppointmentNotRemind);
                 setListDataPatientsAppointmentPaginate(_listAppointmentNotRemind)
                 handlePaginate(_listAppointmentNotRemind)
             }
+
             else if(activeChip.chipOrder === 1){
+                const dataAppointmentAcceptReExamining = _listAppointmentAcceptReExamining.map((item) => {
+                    const createNewDataAppointmentAcceptReExamining = 
+                        {
+                            medicalBookId: item.medicalBookId,
+                            appointmentDate: item.appointmentDate
+                        }
+                    
+                    return createNewDataAppointmentAcceptReExamining
+                })
+    
+                setDataAppointment(dataAppointmentAcceptReExamining);
                 setListDataPatientsAppointmentPaginate(_listAppointmentAcceptReExamining)
                 handlePaginate(_listAppointmentAcceptReExamining)
             }
             else{
+                const dataAppointmentRejectReExamining = _listAppointmentRejectReExamining.map((item) => {
+                    const createNewDataAppointmentRejectReExamining = 
+                        {
+                            medicalBookId: item.medicalBookId,
+                            appointmentDate: item.appointmentDate
+                        }
+                    
+                    return createNewDataAppointmentRejectReExamining
+                })
+    
+                setDataAppointment(dataAppointmentRejectReExamining);
                 setListDataPatientsAppointmentPaginate(_listAppointmentRejectReExamining)
                 handlePaginate(_listAppointmentRejectReExamining)
             }
@@ -259,11 +428,11 @@ function MainAppointmentExamining() {
     }, [page]);
 
     return (
-        <Container maxWidth="xl" sx={{mt: 11, p: 0 }}>
-            <TableContainer component={Paper} sx={{boxShadow: 3, height: '38rem', position: 'relative'}}>
+        <Container maxWidth="xl" sx={{mt: 1, p: 0 }}>
+            <TableContainer component={Paper} sx={{height: loading ? '40rem' : 'auto', position: 'relative'}}>
                 {loading ? 
                     <>
-                        <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', backgroundColor: '#e0e0e0', height: '100%'}}>
+                        <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', height: '100%'}}>
                             <CircularProgress />
                             <Typography variant='subtitle1' sx={{mt: 1}}>Đang tải dữ liệu, hãy chờ một chút...</Typography>
                         </Box>        
@@ -280,7 +449,7 @@ function MainAppointmentExamining() {
                                 ))}
                             </Stack>
 
-                            <Typography variant="h6" sx={{textAlign: 'center', fontSize: '1.15rem', fontWeight: 'bolder'}}>Danh sách {activeChip.chipLabel} trong 7 ngày tới</Typography>
+                            <Typography variant="h6" sx={{textAlign: 'center', fontSize: '1.15rem', fontWeight: 'bolder'}}>Danh sách {activeChip.chipLabel} trong 6 ngày tới</Typography>
 
                             <Box sx={{display: 'flex', justifyContent: 'center', mb: 1}}>
                                 <TextField sx={{width: 500, '& .MuiInputBase-inputSizeSmall': {textAlign: 'center'}}} size="small" 
@@ -308,58 +477,62 @@ function MainAppointmentExamining() {
                         <Table stickyHeader >
                             <TableHead>
                                 <TableRow sx={{"& th": {color: "rgba(96, 96, 96)", backgroundColor: "pink"}}}>
-                                    <TableCell align='left' sx={{fontSize: '0.95rem'}}>Mã bệnh nhân</TableCell>
-                                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Họ tên</TableCell>
-                                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Ngày sinh</TableCell>
-                                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Giới tính</TableCell>
-                                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Địa chỉ</TableCell>
-                                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Họ tên Cha/Mẹ</TableCell>
-                                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Số điện thoại</TableCell>
-                                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Kỳ khám cũ</TableCell>
-                                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Kỳ khám tiếp theo</TableCell>
-                                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Ngày hẹn khám</TableCell>
-                                    <TableCell align="left" sx={{fontSize: '0.95rem'}}>Thao tác</TableCell>
+                                    <TableCell align='left' >Mã bệnh nhân</TableCell>
+                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Họ tên</TableCell>
+                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Ngày sinh</TableCell>
+                                    {/* <TableCell align="left" sx={{fontSize: '0.9rem'}}>Giới tính</TableCell> */}
+                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Địa chỉ</TableCell>
+                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Họ tên Cha/Mẹ</TableCell>
+                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Số điện thoại</TableCell>
+                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Kỳ khám cũ</TableCell>
+                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Kỳ khám tiếp theo</TableCell>
+                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Ngày hẹn khám</TableCell>
+                                    <TableCell align="left" sx={{fontSize: '0.9rem'}}>Nhấn</TableCell>
                                 </TableRow>
                             </TableHead>
 
                             <TableBody>
                                 {listDataPatientsAppointmentSort.map((dataPantientAppointmentItem, dataPantientAppointmentIndex) => (
                                     <TableRow hover role="checkbox" key={dataPantientAppointmentIndex} sx={{':hover': {backgroundColor: 'rgba(0, 0, 0, 0.1) !important'}}}>
-                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{dataPantientAppointmentItem.patientId}</TableCell>
-                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{dataPantientAppointmentItem.patientFullName}</TableCell>
-                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{moment(dataPantientAppointmentItem.dateOfBirth).format("DD/MM/YYYY")}</TableCell>
-                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{dataPantientAppointmentItem.gender === true ? 'Nam' : 'Nữ'}</TableCell>
+                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.9rem'}}>{dataPantientAppointmentItem.patientId}</TableCell>
+                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.9rem'}}>{dataPantientAppointmentItem.patientFullName}</TableCell>
+                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.9rem'}}>{moment(dataPantientAppointmentItem.dateOfBirth).format("DD/MM/YYYY")}</TableCell>
+                                        {/* <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{dataPantientAppointmentItem.gender === true ? 'Nam' : 'Nữ'}</TableCell> */}
                                         <TableCell align='left' sx={{whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 240, fontSize: '0.9rem'}}>
                                             <Tooltip title={<Typography variant='subtitle2'>{dataPantientAppointmentItem.fullAddress}</Typography>} >
                                                 <span>{dataPantientAppointmentItem.fullAddress}</span>
                                             </Tooltip>
                                         </TableCell>
-                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{dataPantientAppointmentItem.fullNameFather !== '' ? dataPantientAppointmentItem.fullNameFather : dataPantientAppointmentItem.fullNameMother}</TableCell>
-                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{dataPantientAppointmentItem.phoneFather !== '' ? dataPantientAppointmentItem.phoneFather : dataPantientAppointmentItem.phoneMother}</TableCell>
-                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{dataPantientAppointmentItem.examNameOld}</TableCell>
-                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>{dataPantientAppointmentItem.nextExamName}</TableCell>
-                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.95rem'}}>
+                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.9rem'}}>{dataPantientAppointmentItem.fullNameFather !== '' ? dataPantientAppointmentItem.fullNameFather : dataPantientAppointmentItem.fullNameMother}</TableCell>
+                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.9rem'}}>{dataPantientAppointmentItem.phoneFather !== '' ? dataPantientAppointmentItem.phoneFather : dataPantientAppointmentItem.phoneMother}</TableCell>
+                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.9rem'}}>{dataPantientAppointmentItem.examNameOld}</TableCell>
+                                        <TableCell align='left' sx={{width: 'auto', fontSize: '0.9rem'}}>{dataPantientAppointmentItem.nextExamName}</TableCell>
+                                        <TableCell align='left' sx={{width: 'auto'}}>
                                             <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale="vi">
-                                                <DemoContainer components={['DatePicker']}>  
-                                                    <DatePicker label="Ngày khám dự kiến" disablePast
-                                                        format='DD/MM/YYYY' defaultValue={moment(dataPantientAppointmentItem.appointmentDate)}
-                                                        onChange={(value) => onChangeAppointmentDate(dataPantientAppointmentItem.medicalBookId, value)}
-                                                    />
+                                                <DemoContainer components={['DatePicker']}> 
+                                                    <Box sx={{width: 145}}>
+                                                        <div style={{width: '100%'}}>
+                                                            <DatePicker label="Ngày khám dự kiến" disablePast minDate={moment()}
+                                                                format='DD/MM/YYYY' value={moment(dataPantientAppointmentItem.appointmentDate)}
+                                                                onChange={(value) => onChangeAppointmentDate(dataPantientAppointmentItem.medicalBookId, value)}
+                                                            />
+                                                        </div>
+                                                    </Box> 
                                                 </DemoContainer>
                                             </LocalizationProvider>
                                         </TableCell>                                                                                                
                                         <TableCell align={dataPantientAppointmentItem.stateAppointment === 0 ? 'left' : 'center'} sx={{width: 'auto', fontSize: '0.9rem'}}>
                                             {dataPantientAppointmentItem.stateAppointment === 0 ?
                                                 <>   
-                                                    <CheckIcon titleAccess='Đồng ý hẹn khám' sx={{color: 'green', cursor: 'pointer', mr: 0.5}} onClick={() => handleAcceptReExamining()}/>
-                                                    <CancelIcon titleAccess='Từ chối hẹn khám' sx={{color: 'red', cursor: 'pointer'}} onClick={() => handleRejectReExamining()}/>
+                                                    <CheckIcon titleAccess='Đồng ý hẹn khám' sx={{color: 'green', cursor: 'pointer', mr: 0.5}} onClick={() => handleAcceptReExamining(dataPantientAppointmentItem.medicalBookId)}/>
+                                                    <CancelIcon titleAccess='Từ chối hẹn khám' sx={{color: 'red', cursor: 'pointer'}} onClick={() => handleRejectReExamining(dataPantientAppointmentItem.medicalBookId)}/>
                                                 </>
                                                 :
                                                 <>
                                                     {dataPantientAppointmentItem.stateAppointment === 1 ?
-                                                        <CancelIcon titleAccess='Từ chối hẹn khám' sx={{color: 'red', cursor: 'pointer'}} onClick={() => handleRejectReExamining()}/>
+                                                        <CancelIcon titleAccess='Từ chối hẹn khám' sx={{color: 'red', cursor: 'pointer'}} onClick={() => handleRejectReExamining(dataPantientAppointmentItem.medicalBookId)}/>
                                                     :
-                                                        <CheckIcon titleAccess='Đồng ý hẹn khám' sx={{color: 'green', cursor: 'pointer', mr: 0.5}} onClick={() => handleAcceptReExamining()}/>
+                                                        <CheckIcon titleAccess='Đồng ý hẹn khám' sx={{color: 'green', cursor: 'pointer', mr: 0.5}} onClick={() => handleAcceptReExamining(dataPantientAppointmentItem.medicalBookId)}/>
                                                     }
                                                 </>
                                             }
@@ -368,18 +541,17 @@ function MainAppointmentExamining() {
                                 ))}
                             </TableBody>
                         </Table>
-
-                        {listDataPatientsAppointmentSort.length !== 0 ?
-                                <Box sx={{display: 'flex', justifyContent: 'center', position: 'absolute', bottom: 4, width: '100%'}}>
-                                    <Pagination count={pageCount} page={page} onChange={handlePageChange} color="primary" />
-                                </Box>
-                            :
-                                null
-                        }
                     </>
                 }
             </TableContainer>
 
+            {listDataPatientsAppointmentSort.length !== 0 && loading === false ?
+                <Box sx={{display: 'flex', justifyContent: 'center', mt: 1, width: '100%'}}>
+                    <Pagination count={pageCount} page={page} onChange={handlePageChange} color="secondary" />
+                </Box>
+            :
+                null
+            }
         </Container>
     )
 }

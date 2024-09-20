@@ -118,8 +118,8 @@ const Login = () => {
                 else if(response.data.positionName === 'Doctor'){
                     history.push('/doctor-examining');
                 }
-                else{
-                    history.push('/');
+                else if(response.data.positionName === 'Admin'){
+                    history.push('/dashboard');
                 }
             }
         }

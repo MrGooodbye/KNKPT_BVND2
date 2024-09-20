@@ -6,6 +6,7 @@ import Login from "../components/LoginAccount/Log-in";
 import MainMedicalRegister from "../components/MedicalRegister/MainMedicalRegister.jsx";
 import MainAppointmentExamining from "../components/MedicalAppointment/MainAppointmentExamining.jsx";
 import MainDoctorExamining from "../components/DoctorExamining/MainDoctorExamining.jsx";
+import MainDashboard from "../components/Dashboard/MainDashboard.jsx";
 
 const AppRoutes = (props) => {
   return (
@@ -18,6 +19,7 @@ const AppRoutes = (props) => {
           <PrivateRoutes path="/medicalregister" component={MainMedicalRegister}></PrivateRoutes>
           <PrivateRoutes path="/doctor-examining" component={MainDoctorExamining}></PrivateRoutes>
           <PrivateRoutes path="/remind-examining" component={MainAppointmentExamining}></PrivateRoutes>
+          <PrivateRoutes path="/dashboard" component={MainDashboard}></PrivateRoutes>
           <Route path="*"><Page404 />{" "}</Route>
           {/* <PrivateRoutes path="/users" component={Users} /> */}
         </Switch>

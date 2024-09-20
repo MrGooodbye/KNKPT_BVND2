@@ -2065,7 +2065,7 @@ function MainDoctorExamining() {
 
     return (
         <>
-            <Container maxWidth="xl" sx={{mt: 11}}>
+            <Container maxWidth="xl" sx={{mt: 2.5}}>
                 <Box sx={{ bgcolor: '#fff', height: 'auto'}} >
                     <Grid container spacing={2} sx={{pl: 0.6, pr: 0.6}}>
 

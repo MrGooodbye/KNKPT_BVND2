@@ -99,7 +99,7 @@ function MainMedicalRegister() {
 
   return (
     <>
-         <Container maxWidth="xl" sx={{mt: 11}}>
+         <Container maxWidth="xl" sx={{mt: 2.5}}>
             <Box sx={{ bgcolor: '#fff', height: 'auto'}} >
                 <Grid container spacing={0} sx={{marginLeft: 0}}>
                   {currentDoctorExamining ? 

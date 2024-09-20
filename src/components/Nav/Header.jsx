@@ -103,8 +103,8 @@ function Header(props) {
   if(location.pathname !== '/login'){
     return (
       <>
-        <Box sx={{ width: '100%', position: 'fixed', top: 0}} >
-          <AppBar>
+        <Box sx={{ width: '100%'}} >
+          <AppBar sx={{position: 'unset'}}>
             <Toolbar sx={{backgroundColor: '#cfe8fc', height: '78px'}}>
               <Link to="/">
                 <Avatar src={Logo} sx={{ width: 62, height: 62, mt: 'auto', mb: 'auto', mr: 4 }} />
