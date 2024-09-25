@@ -1,4 +1,5 @@
 import axios from "axios";
+//import SignalService from "./SignalService.jsx"
 
 const backendURL = 'https://api-khamnhi.somee.com';
 
@@ -16,6 +17,7 @@ const createConfig = () => {
 const userLogin = async (userId, password) => {
   return await axios.post(`${backendURL}/api/UserAccount/Login`, { userId, password })
   .then(function (response) {
+    //SignalService.startSignalRConnection(response.data.tokenDTO.token)
       return response
   })
   .catch(function (error) {

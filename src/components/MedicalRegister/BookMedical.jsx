@@ -1314,20 +1314,6 @@ function BookMedical(props) {
     //   isValid = false;
     // }
 
-    if(dataPatientsRegister.userIdDoctor === ''){
-      if(props.currentDoctorExamining.userIdDoctor === '') {
-        toast.error('Bạn chưa chọn bác sĩ khám cho ngày hôm nay!', {toastId: 'error1'});
-        isValid = false;
-      }
-
-    else if(props.currentDoctorExamining.userIdDoctor !== ''){
-      setDataPatientsRegister(prevDataPatientsRegister => {
-        prevDataPatientsRegister.userIdDoctor = props.currentDoctorExamining.userIdDoctor
-          return prevDataPatientsRegister
-        })
-      }
-    }
-
     setDataPatientsRegisterError(_dataPatientsRegisterError);
     return isValid;
   }
@@ -1542,8 +1528,8 @@ function BookMedical(props) {
 
   return (
     <>
-      <Container sx={{'&.MuiContainer-maxWidthLg': {pr: 0}}}>
-        <Box sx={{ minHeight: '36.4rem', borderRadius: '20px', boxShadow: 5, pt: 1.2, pb: 1.2, pl: 2.4, pr: 2.4, mt: 1.5}}>
+      <Container sx={{'&.MuiContainer-maxWidthLg': {pr: 0}, height: '100%',}}>
+        <Box sx={{ minHeight: '36.8rem', borderRadius: '20px', boxShadow: 5, pt: 1.2, pb: 1.2, pl: 2.4, pr: 2.4, }}>
           <Typography variant='h6' sx={{textAlign: 'center', fontWeight: 'bolder', color: 'blue'}}>Thông tin đăng ký khám</Typography> 
           <Box sx={{display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap'}} component="form" ref={formRef}>
 

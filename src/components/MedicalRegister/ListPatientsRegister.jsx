@@ -247,7 +247,7 @@ function ListPatientsRegister(props) {
   return (
     <>
       <Box sx={{p: 0}}>
-        <Typography variant='h6' sx={{color: 'red', mb: 0, fontWeight: 'bolder', fontSize: '1.16rem', marginBottom: '5px'}}>
+        {/* <Typography variant='h6' sx={{color: 'red', mb: 0, fontWeight: 'bolder', fontSize: '1.16rem', marginBottom: '5px'}}>
           {loading ? 
             <Skeleton /> 
           : 
@@ -262,9 +262,9 @@ function ListPatientsRegister(props) {
               </>}
             </div>
           }
-        </Typography>
+        </Typography> */}
 
-        <div className='container' style={{border: '1px solid #fff', borderRadius: '10px', height: '562px', padding: 0, boxShadow: '0px 3px 5px -1px rgba(0,0,0,0.2),0px 5px 8px 0px rgba(0,0,0,0.14),0px 1px 14px 0px rgba(0,0,0,0.12)'}}>
+        <div className='container' style={{border: '1px solid #fff', borderRadius: '10px', height: '590px', padding: 0, boxShadow: '0px 3px 5px -1px rgba(0,0,0,0.2),0px 5px 8px 0px rgba(0,0,0,0.14),0px 1px 14px 0px rgba(0,0,0,0.12)'}}>
           {loading ? 
              <>
               <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', height: '100%'}}>
@@ -308,7 +308,7 @@ function ListPatientsRegister(props) {
                   </TextField>
               </Box>
 
-              <TableContainer component={Paper} sx={{ height: '438px', overflowX: 'scroll', borderBottomLeftRadius: '10px', borderBottomRightRadius: '10px' }}>
+              <TableContainer component={Paper} sx={{ height: '465px', overflowX: 'scroll', borderBottomLeftRadius: '10px', borderBottomRightRadius: '10px' }}>
                 <Table stickyHeader sx={{ minWidth: 1200 }}>
                   <TableHead>
                     <TableRow sx={{"& th": {color: "rgba(96, 96, 96)", backgroundColor: "pink"}}}>

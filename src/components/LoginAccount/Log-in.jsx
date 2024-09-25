@@ -70,48 +70,17 @@ const Login = () => {
             }
             else{
                 localStorage.setItem('jwt', response.data.tokenDTO.token)
-                if(response.data.positionName === 'Doctor'){
-                    const responseCurrentDoctorExamining = await getCurrentDoctorExamining();
-                    if(responseCurrentDoctorExamining.status === 200){
-                        const userLogin = {
-                            isAuthenticated: true, 
-                            isLogin: true,
-                            userId: response.data.userId,
-                            userFullName: response.data.userFullName,
-                            positionName: response.data.positionName,
-                            isCurrentDoctorExamining: response.data.userId === responseCurrentDoctorExamining.data.userIdDoctor ? true : false
-                        }
-
-                        localStorage.setItem('userLogin', JSON.stringify(userLogin))
-                        loginContext(userLogin);
-                    }
-                    else{
-                        const userLogin = { 
-                            isAuthenticated: true, 
-                            isLogin: true, 
-                            userId: response.data.userId, 
-                            userFullName: response.data.userFullName, 
-                            positionName: response.data.positionName, 
-                            isCurrentDoctorExamining: false 
-                        }
-                        
-                        localStorage.setItem('userLogin', JSON.stringify(userLogin))
-                        loginContext(userLogin)
-                    }
-                }
-                else{
-                    const userLogin = {
-                        isAuthenticated: true, 
-                        isLogin: true, 
-                        userId: response.data.userId, 
-                        userFullName: response.data.userFullName, 
-                        positionName: response.data.positionName
-                    }
-
-                    localStorage.setItem('userLogin', JSON.stringify(userLogin))
-                    loginContext(userLogin);
+                const userLogin = {
+                    isAuthenticated: true, 
+                    isLogin: true, 
+                    userId: response.data.userId, 
+                    userFullName: response.data.userFullName, 
+                    positionName: response.data.positionName
                 }
 
+                localStorage.setItem('userLogin', JSON.stringify(userLogin))
+                loginContext(userLogin);
+                   
                 if(response.data.positionName === 'Nursing'){
                     history.push('/medicalregister');
                 }

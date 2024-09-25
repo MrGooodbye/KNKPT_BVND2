@@ -291,8 +291,20 @@ const updateStateAppointment = async (dataAppointment, stateAppointment) => {
     })
 }
 
+const deleteMedicalBook = async (medicalBookId) => {
+    const config = createConfig();
+    return await axios.delete(`${backendURL}/api/Medical/DeleteMedicalBook/${medicalBookId}`, config)
+    .then(function (response) {
+        return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
 export {
     createMedicalRegister, createMedicalBackRegister, createCurrentDoctorExamining, createAddPredecessor, createAddMedicalBook,
     getRegistersByDateNow, getListMedicalExaminationsGiveRegister, getListMedicalExaminationsGiveOldRegister, getListOldDisease, getVaccinationByPatientId, getCurrentDoctorExamining, getMedicalDetailPatient, getMedicalBook, getUpdatePredecessor, getUpdateMedicalBook, getAppointmentDate, getAppointmentsNextWeek, getAppointmentsToday,
-    updateMedicalRegister, updateMedicalState, updateStateAppointment
+    updateMedicalRegister, updateMedicalState, updateStateAppointment,
+    deleteMedicalBook
 }

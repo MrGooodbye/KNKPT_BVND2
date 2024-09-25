@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { useHistory } from 'react-router-dom';
+//context
+import { UserContext } from '../../context/UserContext';
 //mui theme
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
@@ -20,9 +23,13 @@ import * as XLSX from 'xlsx';
 import { getReportPatient } from '../../Service/StatisticsService';
 
 function MainDashboard() {
+    const { user, loading } = useContext(UserContext);
+
+    const history = useHistory();
+
     const [dateSelectedReport, setDateSelectedReport] = useState({dateStart: '', dateEnd: ''})
     const [mainDataDashboard, setMainDataDashboard] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loadingDataDashboard, setLoadingDataDashboard] = useState(false);
 
     const typingRef = useRef(null);
 
@@ -36,6 +43,7 @@ function MainDashboard() {
         { field: 'phone', headerName: 'Điện thoại', width: 170, type: 'number', align: 'left', headerAlign: 'left'},
         { field: 'district', headerName: 'Quận/Huyện', width: 185, align: 'left', headerAlign: 'left' },
         { field: 'province', headerName: 'Tỉnh/Thành phố', width: 185, align: 'left', headerAlign: 'left' },
+        { field: 'address', headerName: 'Địa chỉ', width: 700, align: 'left', headerAlign: 'left' },
     ];
 
     // Hàm xử lý xuất file Excel
@@ -50,7 +58,8 @@ function MainDashboard() {
             'Kỳ khám': row.examName,
             'Điện thoại': row.phone,
             'Quận/Huyện': row.district,
-            'Tỉnh/Thành phố': row.province
+            'Tỉnh/Thành phố': row.province,
+            'Địa chỉ': row.address
           }));
 
         // Tạo worksheet từ dữ liệu đã định dạng
@@ -110,7 +119,7 @@ function MainDashboard() {
     }
 
     const handleGetReportPatient = async () => {
-        setLoading(true);
+        setLoadingDataDashboard(true);
         await new Promise(resolve => setTimeout(resolve, 5 * 100));
         const responseGetReportPatient = await getReportPatient(dateSelectedReport);
         const editMainDataDashboard = responseGetReportPatient.map((item) => {
@@ -123,13 +132,22 @@ function MainDashboard() {
                 examName: item.examName,
                 phone: item.phone,
                 district: item.district,
-                province: item.province
+                province: item.province,
+                address: item.address
             }
             return dataReportPatient
         })
         setMainDataDashboard(editMainDataDashboard);
-        setLoading(false);
+        setLoadingDataDashboard(false);
     }
+
+    useEffect(() => {
+        if(loading === false && user.isLogin){
+            if(user.positionName !== 'Admin'){
+                history.push('/404');
+            }
+        }
+    }, [loading, user])
 
     useEffect(() => {
         if(dateSelectedReport.dateStart !== '' && dateSelectedReport.dateEnd !== ''){
@@ -149,7 +167,7 @@ function MainDashboard() {
             </Box>
 
             <Box sx={{ height: 600, width: '100%', mt: 1.2 }}>
-                {loading ? 
+                {loadingDataDashboard ? 
                     <>
                         <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', height: '80%'}}>
                             <CircularProgress />
@@ -179,7 +197,7 @@ function MainDashboard() {
                                         '.MuiTablePagination-selectLabel': {
                                             marginBottom: '3px',
                                         },
-                                        '.css-levciy-MuiTablePagination-displayedRows': {
+                                        '.MuiTablePagination-displayedRows': {
                                             marginBottom: '3px',
                                         },
                                     }}

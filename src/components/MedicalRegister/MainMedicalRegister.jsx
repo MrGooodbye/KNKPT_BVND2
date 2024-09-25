@@ -23,17 +23,12 @@ function MainMedicalRegister() {
 
   const [component1Loading, setComponent1Loading] = useState(true);
 
-  const currentDoctorExaminingDefault = {userFullName: '', userIdDoctor: ''};
-
   const [completeMedicalRegister, setCompleteMedicalRegister] = useState(false);
   const [dataPantientAppointmentsToday, setDataPantientAppointmentsToday] = useState();
 
   const [handleResetField, setHandleResetField] = useState(false); //F2
   const [handleOpenModalExaminingSession, setHandleOpenModalExaminingSession] = useState(false); //F4
   const [handleOpenModalOldDisease, setHandleOpenModalOldDisease] = useState(false); //F8
-
-  const [currentDoctorExamining, setCurrentDoctorExamining] = useState();
-  const [openSelectedDoctorExaminingModal, setOpenSelectedDoctorExaminingModal] = useState(false);
 
   const handleF2Press = () => {
     setHandleOpenModalExaminingSession(true);
@@ -47,23 +42,10 @@ function MainMedicalRegister() {
     setHandleOpenModalOldDisease(true);
   }
 
-  const handleGetCurrentDoctorExamining = async () => {
-    const response = await getCurrentDoctorExamining();
-    if(response.status === 200){
-      setCurrentDoctorExamining( {userIdDoctor: response.data.userIdDoctor, userFullName: response.data.userFullName} );
-    }
-    else{
-      setCurrentDoctorExamining(currentDoctorExaminingDefault);
-    }
-  }
-
   useEffect(() => {
-    if(loading === false && user){
-      if(user.positionName !== 'Nursing' && user.isLogin){
+    if(loading === false && user.isLogin){
+      if(user.positionName !== 'Nursing'){
         history.push('/404');
-      }
-      else{
-        handleGetCurrentDoctorExamining();
       }
     }
   }, [loading, user])
@@ -101,47 +83,38 @@ function MainMedicalRegister() {
     <>
          <Container maxWidth="xl" sx={{mt: 2.5}}>
             <Box sx={{ bgcolor: '#fff', height: 'auto'}} >
-                <Grid container spacing={0} sx={{marginLeft: 0}}>
-                  {currentDoctorExamining ? 
-                    <>
-                      <Grid item xs={5}>  
-                        <ListPatientsRegister 
-                          completeMedicalRegister={completeMedicalRegister} setCompleteMedicalRegister={setCompleteMedicalRegister}
-                          currentDoctorExamining={currentDoctorExamining}
-                          setOpenSelectedDoctorExaminingModal={setOpenSelectedDoctorExaminingModal}
-                          component1Loading={component1Loading} setComponent1Loading={setComponent1Loading}
-                          dataPantientAppointmentsToday={dataPantientAppointmentsToday} setDataPantientAppointmentsToday={setDataPantientAppointmentsToday}
-                        />
-                      </Grid>
+              <Grid container spacing={0} sx={{marginLeft: 0}}>
+                <Grid item xs={5}>  
+                  <ListPatientsRegister 
+                    completeMedicalRegister={completeMedicalRegister} setCompleteMedicalRegister={setCompleteMedicalRegister}
+                    component1Loading={component1Loading} setComponent1Loading={setComponent1Loading}
+                    dataPantientAppointmentsToday={dataPantientAppointmentsToday} setDataPantientAppointmentsToday={setDataPantientAppointmentsToday}
+                  />
+                </Grid>
             
-                      <Grid item xs={7} >
-                        {component1Loading ?
-                          <div style={{marginTop: '20px', marginLeft: '18px'}}>
-                            <Skeleton variant='rectangular' width="100%" height={576} />
-                          </div>
-                          :
-                          <BookMedical 
-                            onF2Press={handleOpenModalExaminingSession} setOnF2Press={setHandleOpenModalExaminingSession}
-                            onF4Press={handleResetField} setOnF4Press={setHandleResetField}
-                            onF8Press={handleOpenModalOldDisease} setOnF8Press={setHandleOpenModalOldDisease}
-                            completeMedicalRegister={completeMedicalRegister} setCompleteMedicalRegister={setCompleteMedicalRegister}
-                            currentDoctorExamining={currentDoctorExamining}
-                            dataPantientAppointmentsToday={dataPantientAppointmentsToday} setDataPantientAppointmentsToday={setDataPantientAppointmentsToday}
-                          />
-                        }
-                      </Grid>
-                    </>
+                <Grid item xs={7} >
+                  {component1Loading ?
+                    <div style={{marginLeft: '18px'}}>
+                      <Skeleton variant='rectangular' width="100%" height={590} />
+                    </div>
                   :
-                      null
+                    <BookMedical 
+                      onF2Press={handleOpenModalExaminingSession} setOnF2Press={setHandleOpenModalExaminingSession}
+                      onF4Press={handleResetField} setOnF4Press={setHandleResetField}
+                      onF8Press={handleOpenModalOldDisease} setOnF8Press={setHandleOpenModalOldDisease}
+                      completeMedicalRegister={completeMedicalRegister} setCompleteMedicalRegister={setCompleteMedicalRegister}
+                      dataPantientAppointmentsToday={dataPantientAppointmentsToday} setDataPantientAppointmentsToday={setDataPantientAppointmentsToday}
+                    />
                   }
                 </Grid>
+              </Grid>
             </Box>
          </Container>
 
-         <SelectedDoctorExamining 
+         {/* <SelectedDoctorExamining 
           openSelectedDoctorExaminingModal={openSelectedDoctorExaminingModal} setOpenSelectedDoctorExaminingModal={setOpenSelectedDoctorExaminingModal}
           currentDoctorExamining={currentDoctorExamining} setCurrentDoctorExamining={setCurrentDoctorExamining}
-         />
+         /> */}
     </>
   )
 }

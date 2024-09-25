@@ -95,6 +95,8 @@ function CompleteExamining(props) {
     }
 
     const handleSetDataCompleteExamining = async () => {
+        setOpenAlertProcessing(true);
+
         const editDataExaminingForConclusion = _.clone(props.dataExaminingForConclusion);
         editDataExaminingForConclusion.categories = editDataExaminingForConclusion.categories.map(categoriesItem => ({
             ...categoriesItem,
@@ -104,37 +106,66 @@ function CompleteExamining(props) {
             // Loại bỏ các categories nếu tất cả categoryContents của nó đều bị loại bỏ
         })).filter(categoriesItem => categoriesItem.categoryContents.length > 0);
 
-        if(editDataExaminingForConclusion.categories.length !== 0){
-            setOpenAlertProcessing(true);
-            const responseAppointmentDate = await getAppointmentDate(props.dataExaminingForConclusion.medicalRegisterId);
+        const responseAppointmentDate = await getAppointmentDate(props.dataExaminingForConclusion.medicalRegisterId);
 
-            if(responseAppointmentDate.status === 200){
-                editDataExaminingForConclusion.appointmentDate = responseAppointmentDate.data.appointmentDate
-                editDataExaminingForConclusion.nextExamId = responseAppointmentDate.data.nextExamId
-                editDataExaminingForConclusion.nextExamName = responseAppointmentDate.data.nextExamName
+        if(responseAppointmentDate.status === 200){
+            editDataExaminingForConclusion.appointmentDate = responseAppointmentDate.data.appointmentDate
+            editDataExaminingForConclusion.nextExamId = responseAppointmentDate.data.nextExamId
+            editDataExaminingForConclusion.nextExamName = responseAppointmentDate.data.nextExamName
 
-                if(editDataExaminingForConclusion.isVaccination){
-                    editDataExaminingForConclusion.nextVaccination = responseAppointmentDate.data.nextVaccination
-                    editDataExaminingForConclusion.reminder = responseAppointmentDate.data.reminder
-                    editDataExaminingForConclusion.vaccination = responseAppointmentDate.data.vaccination
-                }
-
-            }else{
-                toast.error(responseAppointmentDate.data, {toastId: 'error1'});
+            if(editDataExaminingForConclusion.isVaccination){
+                editDataExaminingForConclusion.nextVaccination = responseAppointmentDate.data.nextVaccination
+                editDataExaminingForConclusion.reminder = responseAppointmentDate.data.reminder
+                editDataExaminingForConclusion.vaccination = responseAppointmentDate.data.vaccination
             }
- 
-            setMainDataExaminingForConclusion(editDataExaminingForConclusion);
 
-            setOpenAlertProcessing(false);
-            if(props.dataExaminingForConclusion.conclusion !== ''){
-                const length = textareaRef.current.value.length;
-                textareaRef.current.setSelectionRange(length, length);
-                textareaRef.current.focus();
-            }
-            else{
-                textareaRef.current.focus();
-            }
+        }else{
+            toast.error(responseAppointmentDate.data, {toastId: 'error1'});
         }
+ 
+        setMainDataExaminingForConclusion(editDataExaminingForConclusion);
+
+        setOpenAlertProcessing(false);
+        if(props.dataExaminingForConclusion.conclusion !== ''){
+            const length = textareaRef.current.value.length;
+            textareaRef.current.setSelectionRange(length, length);
+            textareaRef.current.focus();
+        }
+        else{
+            textareaRef.current.focus();
+        }
+
+        // if(editDataExaminingForConclusion.categories.length !== 0){
+            
+        //     const responseAppointmentDate = await getAppointmentDate(props.dataExaminingForConclusion.medicalRegisterId);
+
+        //     if(responseAppointmentDate.status === 200){
+        //         editDataExaminingForConclusion.appointmentDate = responseAppointmentDate.data.appointmentDate
+        //         editDataExaminingForConclusion.nextExamId = responseAppointmentDate.data.nextExamId
+        //         editDataExaminingForConclusion.nextExamName = responseAppointmentDate.data.nextExamName
+
+        //         if(editDataExaminingForConclusion.isVaccination){
+        //             editDataExaminingForConclusion.nextVaccination = responseAppointmentDate.data.nextVaccination
+        //             editDataExaminingForConclusion.reminder = responseAppointmentDate.data.reminder
+        //             editDataExaminingForConclusion.vaccination = responseAppointmentDate.data.vaccination
+        //         }
+
+        //     }else{
+        //         toast.error(responseAppointmentDate.data, {toastId: 'error1'});
+        //     }
+ 
+        //     setMainDataExaminingForConclusion(editDataExaminingForConclusion);
+
+        //     setOpenAlertProcessing(false);
+        //     if(props.dataExaminingForConclusion.conclusion !== ''){
+        //         const length = textareaRef.current.value.length;
+        //         textareaRef.current.setSelectionRange(length, length);
+        //         textareaRef.current.focus();
+        //     }
+        //     else{
+        //         textareaRef.current.focus();
+        //     }
+        // }
     }
 
     const handleAddMedicalBook = async () => {
@@ -285,9 +316,9 @@ function CompleteExamining(props) {
                                             ))}
                                         </div>
                                     :
-                                        <Typography variant='h6' sx={{color: 'blue', fontWeight: 'bolder', textAlign: 'center'}}>Không có nội dung nào được khám.</Typography>
+                                        <Typography variant='h6' sx={{color: 'blue', fontWeight: 'bolder', textAlign: 'center'}}>Không phát hiện gì bất thường khi khám.</Typography>
                                 :
-                                    <Typography variant='h6' sx={{color: 'blue', fontWeight: 'bolder', textAlign: 'center'}}>Không có nội dung nào được khám.</Typography>
+                                    <Typography variant='h6' sx={{color: 'blue', fontWeight: 'bolder', textAlign: 'center'}}>Không phát hiện gì bất thường khi khám.</Typography>
                                 }
                             </Box>
                         </List>
@@ -296,77 +327,72 @@ function CompleteExamining(props) {
 
                 <DialogActions sx={{borderTop: '1px solid black'}}>
                     {mainDataExaminingForConclusion ? 
-                        mainDataExaminingForConclusion.categories.length !== 0 ?
-                            <div style={{width: '100%', padding: '8px 50px 8px 50px'}}>
-                                <TextareaAutosize key={`pantientId ${mainDataExaminingForConclusion.patientId}`} placeholder='Kết luận của bác sĩ' style={{width: '100%', padding: '15px', fontSize: '17px'}} onChange={(e) => onChangeExaminingConclusion(e.target.value)} ref={textareaRef} defaultValue={mainDataExaminingForConclusion.conclusion} /> 
+                        <div style={{width: '100%', padding: '8px 50px 8px 50px'}}>
+                            <TextareaAutosize key={`pantientId ${mainDataExaminingForConclusion.patientId}`} placeholder='Kết luận của bác sĩ' style={{width: '100%', padding: '15px', fontSize: '17px'}} onChange={(e) => onChangeExaminingConclusion(e.target.value)} ref={textareaRef} defaultValue={mainDataExaminingForConclusion.conclusion} /> 
                             
-                                    {mainDataExaminingForConclusion.isVaccination ? 
-                                        <>
-                                            <Box sx={{mb: 0.4}}>
-                                                {mainDataExaminingForConclusion.vaccination === '' || mainDataExaminingForConclusion.vaccination === null?
-                                                    null
-                                                    :
-                                                    <>
-                                                        <Typography variant='h6' sx={{color: 'deeppink', fontWeight: 'bolder', fontSize: '1.2rem'}}>{` ${mainDataExaminingForConclusion.vaccination}`}</Typography>
-                                                    </>
-                                                }
-
-                                                {mainDataExaminingForConclusion.nextVaccination === '' || mainDataExaminingForConclusion.nextVaccination === null?
-                                                    null
-                                                    :
-                                                    <>
-                                                        <Typography variant='h6' sx={{color: 'deeppink', fontWeight: 'bolder', fontSize: '1.2rem'}}>{` ${mainDataExaminingForConclusion.nextVaccination}`}</Typography>
-                                                    </>
-                                                }
-
-                                                {mainDataExaminingForConclusion.reminder === '' ||  mainDataExaminingForConclusion.reminder === null?
-                                                    null
-                                                    :
-                                                    <>
-                                                        <Typography variant='h6' sx={{color: 'deeppink', fontWeight: 'bolder', fontSize: '1.2rem'}}>{` ${mainDataExaminingForConclusion.reminder}`}</Typography>
-                                                    </>
-                                                }
-                                            </Box>
-                                            
-                                        </>
-                                        :
-                                        null
-                                    }
-
-                                    {mainDataExaminingForConclusion.appointmentDate ? 
+                                {mainDataExaminingForConclusion.isVaccination ? 
                                     <>
-                                        <Box sx={{display: 'flex', justifyContent: 'center', mb: 2}}>
-                                            <Typography variant='h6' sx={{mt: 'auto', mb: 'auto', mr: 2}}>Kỳ khám tiếp theo: <span style={{fontWeight: 'bolder', color: '#ff1744'}}>{mainDataExaminingForConclusion.nextExamName}</span></Typography>
-                                            <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale="vi">
-                                                <DemoContainer components={['DatePicker']}>  
-                                                    <DatePicker label="Ngày khám dự kiến" disablePast
-                                                        format='DD/MM/YYYY' defaultValue={moment(mainDataExaminingForConclusion.appointmentDate)}
-                                                        onChange={(value) => onChangeAppointmentDate(value)}
-                                                        slotProps={{ 
-                                                            textField: { inputRef: dateFieldRef, }
-                                                        }}
-                                                    />
-                                                </DemoContainer>
-                                            </LocalizationProvider>
+                                        <Box sx={{mb: 0.4}}>
+                                            {mainDataExaminingForConclusion.vaccination === '' || mainDataExaminingForConclusion.vaccination === null?
+                                                null
+                                                :
+                                                <>
+                                                    <Typography variant='h6' sx={{color: 'deeppink', fontWeight: 'bolder', fontSize: '1.2rem'}}>{` ${mainDataExaminingForConclusion.vaccination}`}</Typography>
+                                                </>
+                                            }
+
+                                            {mainDataExaminingForConclusion.nextVaccination === '' || mainDataExaminingForConclusion.nextVaccination === null?
+                                                null
+                                                :
+                                                <>
+                                                    <Typography variant='h6' sx={{color: 'deeppink', fontWeight: 'bolder', fontSize: '1.2rem'}}>{` ${mainDataExaminingForConclusion.nextVaccination}`}</Typography>
+                                                </>
+                                            }
+
+                                            {mainDataExaminingForConclusion.reminder === '' ||  mainDataExaminingForConclusion.reminder === null?
+                                                null
+                                                :
+                                                <>
+                                                    <Typography variant='h6' sx={{color: 'deeppink', fontWeight: 'bolder', fontSize: '1.2rem'}}>{` ${mainDataExaminingForConclusion.reminder}`}</Typography>
+                                                </>
+                                            }
                                         </Box>
+                                            
                                     </>
-                                    :
-                                        null
-                                    }
+                                :
+                                    null
+                                }
+
+                                {mainDataExaminingForConclusion.appointmentDate ? 
+                                <>
+                                    <Box sx={{display: 'flex', justifyContent: 'center', mb: 2}}>
+                                        <Typography variant='h6' sx={{mt: 'auto', mb: 'auto', mr: 2}}>Kỳ khám tiếp theo: <span style={{fontWeight: 'bolder', color: '#ff1744'}}>{mainDataExaminingForConclusion.nextExamName}</span></Typography>
+                                        <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale="vi">
+                                            <DemoContainer components={['DatePicker']}>  
+                                                <DatePicker label="Ngày khám dự kiến" disablePast
+                                                    format='DD/MM/YYYY' defaultValue={moment(mainDataExaminingForConclusion.appointmentDate)}
+                                                    onChange={(value) => onChangeAppointmentDate(value)}
+                                                    slotProps={{ 
+                                                        textField: { inputRef: dateFieldRef, }
+                                                    }}
+                                                />
+                                            </DemoContainer>
+                                        </LocalizationProvider>
+                                    </Box>
+                                </>
+                                :
+                                    null
+                                }
                         
-                                <div style={{display: 'flex', justifyContent: 'center'}}>
-                                    <Stack spacing={1} direction="row">
-                                        <Button sx={{fontSize: '15px', textTransform: 'none'}} variant='contained' onClick={() => handleAddMedicalBook()}
-                                            >Lưu</Button>
-                                        <Button sx={{fontSize: '15px', textTransform: 'none'}} variant='contained' color={'error'}
-                                            onClick={() => handleCloseModalCompleteExamining()}>Đóng</Button>
-                                    </Stack>
-                                </div>
-                            </div>   
-                        :
-                            null
+                            <div style={{display: 'flex', justifyContent: 'center'}}>
+                                <Stack spacing={1} direction="row">
+                                    <Button sx={{fontSize: '15px', textTransform: 'none'}} variant='contained' onClick={() => handleAddMedicalBook()}>Lưu</Button>
+                                    <Button sx={{fontSize: '15px', textTransform: 'none'}} variant='contained' color={'error'} onClick={() => handleCloseModalCompleteExamining()}>Đóng</Button>
+                                </Stack>
+                            </div>
+                        </div>   
                     :
-                        null                
+                        null            
                     }             
                 </DialogActions>
             </Dialog>

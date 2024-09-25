@@ -59,38 +59,13 @@ const UserProvider = ({ children }) => {
     const fetchUser = async () => {
         setOpenAlertProcessingBackdrop(true);
         const response = await getUserLogin();
-        if(response.positionName === 'Doctor'){
-            const responseCurrentDoctorExamining = await getCurrentDoctorExamining();
-            if(responseCurrentDoctorExamining.status === 200){
-                setUser({
-                    isAuthenticated: true, 
-                    isLogin: true,
-                    userId: response.userId,
-                    userFullName: response.userFullName,
-                    positionName: response.positionName,
-                    isCurrentDoctorExamining: response.userId === responseCurrentDoctorExamining.data.userIdDoctor ? true : false
-                })
-            }
-            else{
-                setUser({
-                    isAuthenticated: true, 
-                    isLogin: true,
-                    userId: response.userId,
-                    userFullName: response.userFullName,
-                    positionName: response.positionName,
-                    isCurrentDoctorExamining: false
-                })
-            }
-        }
-        else{
-            setUser({
+        setUser({
                 isAuthenticated: true, 
                 isLogin: true,
                 userId: response.userId,
                 userFullName: response.userFullName,
                 positionName: response.positionName
             }) 
-        }
         setLoading(false);
         setOpenAlertProcessingBackdrop(false);
     }

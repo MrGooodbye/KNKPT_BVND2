@@ -63,12 +63,15 @@ import VaccinesIcon from '@mui/icons-material/Vaccines';
 import moment from 'moment';
 //scss
 import './SCSS/DoctorExamining.scss';
+//real-time
+import {startSignalRConnection, stopSignalRConnection, removeFromGroup} from '../../Service/SignalService';
 //api
 import { 
     createAddPredecessor,
     getMedicalDetailPatient,
     getRegistersByDateNow, getMedicalBook, getUpdatePredecessor, getUpdateMedicalBook,
-    updateMedicalState
+    updateMedicalState,
+    deleteMedicalBook
 } from '../../Service/MedicalService';
 import { toast } from 'react-toastify';
 
@@ -167,7 +170,7 @@ function MainDoctorExamining() {
           setListDataPatientsRegisterState(listPantientRegisterWaiting);
         }
         else if(chipIndex === 1){
-            const listPantientRegisterDone = listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 2) //đã khám
+            const listPantientRegisterDone = listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 2 && patientsRegisterItem.userIdDoctor === user.userId) //đã khám
             setListDataPatientsRegisterSort(listPantientRegisterDone);
             setListDataPatientsRegisterState(listPantientRegisterDone);
         }
@@ -193,6 +196,7 @@ function MainDoctorExamining() {
     }
 
     const handleCompleteExaminingForPantient = () => {
+        setLoadingPatient(true);
         toast.success(`Đã kết thúc khám cho bệnh nhân ${dataPantientsReadyExamining.patientsName}`, {toastId: 'success1'});
         setDataPantientsReadyExamining(dataPantientsReadyExaminingDefault);
         setMainDataExamining([]);
@@ -240,6 +244,36 @@ function MainDoctorExamining() {
         setLoadingContentsExamining(false);
     }
 
+    const handleDeleteExamining = async () => {
+        const confirmLeave = window.confirm(
+            'Chức năng này sẽ xóa tất cả dữ liệu của kỳ khám hiện tại và đặt bệnh nhân về trạng thái chưa khám. Bạn có muốn xóa không?'
+        );
+        if (confirmLeave) {
+            setLoadingPatient(true);
+            setOpenAlertProcessingBackdrop(true);
+            const responseDeleteMedicalBook = await deleteMedicalBook(prevDataExamining.healthRecords[0].medicalBookId);
+            if(responseDeleteMedicalBook.status === 200){
+                toast.success(responseDeleteMedicalBook.data, {toastId: 'handleDeleteExaminingSuccess'});
+                if(dataPantientsReadyExamining.backRegister){
+                    await updateMedicalState(dataPantientsReadyExamining.id, 3);
+                }
+                setPrevDataExamining();
+                if(previewPredecessor && previewPredecessor.length !== 0){
+                    setPreviewPredecessor();
+                }
+                setDataPantientsReadyExamining(dataPantientsReadyExaminingDefault);
+                setActiveChip({chipOrder: 0, chipLabel: 'BN chờ khám'});
+                handleGetRegistersByDateNow();
+            }
+            else{
+                toast.error(responseDeleteMedicalBook.data, {toastId: 'handleDeleteExaminingError'});
+            }
+            setOpenAlertProcessingBackdrop(false);
+        } else {
+            return false; // Ngăn điều hướng
+        }
+    }
+
     const handleStartExaminingButtonClick = () => {
         if(dataPantientsReadyExamining.status === 0 && dataPantientsReadyExamining.editExamining === false){
             handleBeginExaminingForPantient();
@@ -265,9 +299,15 @@ function MainDoctorExamining() {
     //hàm này dùng khi user đang khám mà bị ngáo lỡ nhấn f5
     const handleReloadUIWhenExamining = async () => {
         setOpenAlertProcessingBackdrop(true);
+
+        const reDataPatientsRegisterSort = JSON.parse(sessionStorage.dataPatientsRegisterSort)
         const reDataPantientsReadyExamining = JSON.parse(sessionStorage.dataPantientsReadyExamining);
         const reMainDataExamining = JSON.parse(sessionStorage.mainDataExamining);
         const reDataExaminingForConclusion = JSON.parse(sessionStorage.dataExaminingForConclusion);
+
+        setListDataPatientsRegisterSort(reDataPatientsRegisterSort);
+        
+        reDataPantientsReadyExamining.isContinueExam = true;
         
         setDataPantientsReadyExamining(_.cloneDeep(reDataPantientsReadyExamining));
         setMainDataExamining(_.cloneDeep(reMainDataExamining));
@@ -275,6 +315,7 @@ function MainDoctorExamining() {
 
         if(sessionStorage.currentHealthRecordExamining){
             const reCurrentHealthRecordExamining = JSON.parse(sessionStorage.currentHealthRecordExamining);
+            setHealthRecordsContents(_.cloneDeep(reCurrentHealthRecordExamining));
             setCurrentHealthRecordExamining(_.cloneDeep(reCurrentHealthRecordExamining));
         }
 
@@ -293,40 +334,32 @@ function MainDoctorExamining() {
             categoryPres: []
         })
         
-        sessionStorage.clear();
+        //sessionStorage.clear();
+
+        setLoadingPatient(false);
+        setLoadingInfoPatient(false);
         setOpenAlertProcessingBackdrop(false);
     }
 
     //lấy danh sách đăng ký khám trong ngày
     const handleGetRegistersByDateNow = async () => {
+        await new Promise(resolve => setTimeout(resolve, 1 * 1000));
         const response = await getRegistersByDateNow();
         if(response !== 400){
-            if(response.list.length !== 0){
-                setListDataPatientsRegister(response.list);
-                if(activeChip.chipOrder === 0 || dataPantientsReadyExamining.editExamining === true){
-                    const listPantientRegisterWaiting = response.list.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1 || patientsRegisterItem.state === 3) //chờ khám và đang khám
-                    setListDataPatientsRegisterSort(listPantientRegisterWaiting);
-                    setListDataPatientsRegisterState(listPantientRegisterWaiting);
-                    const updatedList = listPantientChipState.map((item, index) => ({
-                        ...item,
-                        chipContent: response.listCountState[index]
-                    }));
-                    setListPantientChipState(updatedList);
-                    if(sessionStorage.dataPantientsReadyExamining){
-                        handleReloadUIWhenExamining();
-                    }
-                }
-                else if(activeChip.chipOrder === 1){
-                    const listPantientRegisterDone = response.list.filter(patientsRegisterItem => patientsRegisterItem.state === 2) //đã khám
-                    setListDataPatientsRegisterSort(listPantientRegisterDone);
-                    setListDataPatientsRegisterState(listPantientRegisterDone);
-                    const updatedList = listPantientChipState.map((item, index) => ({
-                        ...item,
-                        chipContent: response.listCountState[index]
-                    }));
-                    setListPantientChipState(updatedList);
-                }
-            }
+            const findListPantientNotExam = response.list.filter(item => item.state !== 1)
+            setListDataPatientsRegister(findListPantientNotExam);
+
+            let listPantientRegisterWaiting = findListPantientNotExam.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1 || patientsRegisterItem.state === 3) //chờ khám và đang khám
+            let listPantientRegisterDone = findListPantientNotExam.filter(patientsRegisterItem => patientsRegisterItem.state === 2 && patientsRegisterItem.userIdDoctor === user.userId) //đã khám
+
+            setListDataPatientsRegisterSort(listPantientRegisterWaiting);
+            setListDataPatientsRegisterState(listPantientRegisterWaiting);
+
+            const updatedList = [
+                { chipLabel: 'BN chờ khám', chipContent: listPantientRegisterWaiting.length },
+                { chipLabel: 'BN đã khám', chipContent: listPantientRegisterDone.length }
+            ]
+            setListPantientChipState(updatedList);
         }
         setLoadingPatient(false);
         setLoadingInfoPatient(false);
@@ -401,13 +434,32 @@ function MainDoctorExamining() {
                     setOldDataPredecessor(_.cloneDeep(prevDataExamining.categoryPres))
                 }
 
-                await handleGetRegistersByDateNow();
+                const _listDataPatientsRegister = [...listDataPatientsRegister];
+                const findIndexPatient = _listDataPatientsRegister.findIndex(item => item.id === dataPantientsReadyExamining.id);
+                _listDataPatientsRegister[findIndexPatient].state = 1;
+
+                setListDataPatientsRegister(_listDataPatientsRegister);
+
+                const listPantientRegisterWaiting = _listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1 || patientsRegisterItem.state === 3) //chờ khám và đang khám
+                setListDataPatientsRegisterSort(listPantientRegisterWaiting);
+                setListDataPatientsRegisterState(listPantientRegisterWaiting);
+
                 await handleSetMainDataExamining();
                 toast.success(`Đang khám cho bệnh nhân ${dataPantientsReadyExamining.patientsName}`, {toastId: 'success1'});
             }
             else{
+                const _listDataPatientsRegister = [...listDataPatientsRegister];
+                const findIndexPatient = _listDataPatientsRegister.findIndex(item => item.id === dataPantientsReadyExamining.id);
+                _listDataPatientsRegister[findIndexPatient].state = 1;
+
+                setListDataPatientsRegister(_listDataPatientsRegister);
+
+                const listPantientRegisterWaiting = _listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1 || patientsRegisterItem.state === 3) //chờ khám và đang khám
+
+                setListDataPatientsRegisterSort(listPantientRegisterWaiting);
+                setListDataPatientsRegisterState(listPantientRegisterWaiting);
+
                 await handleGetCategoryReExamining();
-                await handleGetRegistersByDateNow();
             }
         }
         else if(response.status === 400){
@@ -616,12 +668,23 @@ function MainDoctorExamining() {
         setLoadingPatient(true);
         const response = await updateMedicalState(dataPantientsReadyExamining.id, 1)
         if(response.status === 200){
+            const _listDataPatientsRegister = [...listDataPatientsRegister];
+            const findIndexPatient = _listDataPatientsRegister.findIndex(item => item.id === dataPantientsReadyExamining.id);
+            _listDataPatientsRegister[findIndexPatient].state = 1;
+
+            setListDataPatientsRegister(_listDataPatientsRegister);
+
+            const listPantientRegisterWaiting = _listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1 || patientsRegisterItem.state === 3) //chờ khám và đang khám
+
+            setListDataPatientsRegisterSort(listPantientRegisterWaiting);
+            setListDataPatientsRegisterState(listPantientRegisterWaiting);
+
             const _dataPantientsReadyExamining = {...dataPantientsReadyExamining};
             _dataPantientsReadyExamining.status = 1;
             setDataPantientsReadyExamining(_dataPantientsReadyExamining);
             await handleGetCategoryReExamining();
-            await handleGetRegistersByDateNow();
             setActiveChip({chipOrder: 0, chipLabel: 'BN chờ khám'});
+            setLoadingPatient(false);
         }
     }
 
@@ -1378,6 +1441,9 @@ function MainDoctorExamining() {
                         categoryPatients: mainDataExamining.healthRecords[0].categories
                     });
                 }
+                else if(currentHealthRecordExamining && dataPantientsReadyExamining.isContinueExam && healthRecordsState === 1){
+                    setContentCategorySelectedExamining([]);
+                }
                 else{
                     await findHealthRecord(medicalRegisterId, examinationName, healthRecordsState);
                 }
@@ -1903,6 +1969,17 @@ function MainDoctorExamining() {
 
     const classes = useStyles();
 
+    // useEffect(() => {
+    //     // Khởi tạo kết nối SignalR khi component mount
+    //     const token = localStorage.getItem("jwt");
+    //     startSignalRConnection(token);
+
+    //     return () => {
+    //         // Dừng kết nối SignalR khi component unmount
+    //         stopSignalRConnection();
+    //     };
+    // }, [])
+
     useEffect(() => {
         if(dataPantientsReadyExamining.status === 1 && alertVisible){
                 const userConfirmed = window.confirm(`Bạn đang khám cho bệnh nhân ${dataPantientsReadyExamining.patientsName}, có chắc là muốn đăng xuất không?`);
@@ -1944,6 +2021,9 @@ function MainDoctorExamining() {
                         'Bạn có chắc chắn muốn rời khỏi trang này? Những thay đổi sẽ không được lưu....'
                     );
                     if (confirmLeave) {
+                        const _dataPatientsRegisterSort = listDataPatientsRegisterSort.filter(item => item.state === 1)
+
+                        sessionStorage.setItem('dataPatientsRegisterSort', JSON.stringify(_dataPatientsRegisterSort));
                         sessionStorage.setItem('dataPantientsReadyExamining', JSON.stringify(dataPantientsReadyExamining));
                         sessionStorage.setItem('dataExaminingForConclusion', JSON.stringify(dataExaminingForConclusion));
                         sessionStorage.setItem('mainDataExamining', JSON.stringify(mainDataExamining))
@@ -1971,6 +2051,10 @@ function MainDoctorExamining() {
             });
     
             const handleUnload = () => {                
+                const _dataPatientsRegisterSort = listDataPatientsRegisterSort.filter(item => item.state === 1)
+
+                sessionStorage.setItem('dataPatientsRegisterSort', JSON.stringify(_dataPatientsRegisterSort));
+                
                 sessionStorage.setItem('dataPantientsReadyExamining', JSON.stringify(dataPantientsReadyExamining));
                 sessionStorage.setItem('dataExaminingForConclusion', JSON.stringify(dataExaminingForConclusion));
                 sessionStorage.setItem('mainDataExamining', JSON.stringify(mainDataExamining))
@@ -2004,16 +2088,16 @@ function MainDoctorExamining() {
     }, [dataPantientsReadyExamining, mainDataExamining, currentHealthRecordExamining, dataExaminingForConclusion, alertVisible, confirmAlert, resetAlert, isLogOutClick, history, isFormDirty])
 
     useEffect(() => {
-        if(loading === false && user){
-            if(user.positionName !== 'Doctor' && user.isLogin){
+        if(loading === false && user.isLogin){
+            if(user.positionName !== 'Doctor'){
                 history.push('/404');
             }
             else{
-                if(user.isCurrentDoctorExamining === true){
-                    handleGetRegistersByDateNow();
+                if(sessionStorage.dataPantientsReadyExamining){
+                    handleReloadUIWhenExamining();
                 }
-                else if(user.isCurrentDoctorExamining === false){
-                    toast.error('Bạn không phải bác sĩ khám hôm nay, không thể dùng chức năng này', {toastId: 'error10'});
+                else{
+                    handleGetRegistersByDateNow();
                 }
             }
         }
@@ -2240,11 +2324,27 @@ function MainDoctorExamining() {
                                     </>
                                 }
                             </Box>
-                            <div className='instruction' style={{display: 'flex', justifyContent: 'space-between', marginTop: '4.5px'}}>
-                                <Button variant="contained" color="error" onClick={() => handleCancelExamining()}>Hủy khám (f1)</Button>
-                                <Button variant="contained" color="secondary" onClick={() => handleStartExaminingButtonClick()}>Bắt đầu khám (f2)</Button>
-                                <Button variant="contained" color="primary" onClick={() => handleCompleteExaminingButtonClick()}>Kết thúc khám (f4)</Button>
-                            </div>
+                            {activeChip.chipOrder === 0 && dataPantientsReadyExamining.editExamining === false ?
+                                <div className='instruction' style={{display: 'flex', justifyContent: 'space-between', marginTop: '4.5px'}}>
+                                    <Button variant="contained" color="error" onClick={() => handleCancelExamining()}>Hủy khám (f1)</Button>
+                                    <Button variant="contained" color="secondary" onClick={() => handleStartExaminingButtonClick()}>Bắt đầu khám (f2)</Button>
+                                    <Button variant="contained" color="primary" onClick={() => handleCompleteExaminingButtonClick()}>Kết thúc khám (f4)</Button>
+                                </div>
+                            :
+                                dataPantientsReadyExamining.id === '' ?
+                                    null
+                                :
+                                    dataPantientsReadyExamining.id !== '' && dataPantientsReadyExamining.status === 0 ? 
+                                        <div className='instruction' style={{display: 'flex', marginTop: '4.5px'}}>
+                                            <Button variant="contained" color="error" sx={{mr: 2}} onClick={() => handleDeleteExamining()}>Xóa khám (f1)</Button>
+                                            <Button variant="contained" color="secondary" onClick={() => handleStartExaminingButtonClick()}>Sửa đổi (f2)</Button>
+                                        </div>
+                                    :
+                                        <div className='instruction' style={{display: 'flex', marginTop: '4.5px'}}>
+                                            <Button variant="contained" color="error" sx={{mr: 2}} onClick={() => handleCancelExamining()}>Hủy thay đổi (f1)</Button>
+                                            <Button variant="contained" color="primary" onClick={() => handleCompleteExaminingButtonClick()}>Kết thúc khám (f4)</Button>
+                                        </div>
+                            }
                         </Grid>
 
                         <Grid item xs={7}>
