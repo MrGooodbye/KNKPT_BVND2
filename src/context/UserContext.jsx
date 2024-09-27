@@ -88,6 +88,7 @@ const UserProvider = ({ children }) => {
                 //console.log('Token đã hết hạn hoặc không tồn tại')
                 localStorage.removeItem('jwt'); //xóa localStorage
                 localStorage.removeItem('userLogin');
+                sessionStorage.clear();
                 return result 
             }
             else{

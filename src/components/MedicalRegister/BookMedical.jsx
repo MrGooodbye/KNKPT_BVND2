@@ -1352,36 +1352,51 @@ function BookMedical(props) {
     document.getElementById('patientId').value = dataPatientsRegister.patient.patientId;
     document.getElementById('patientFullName').value = dataPatientsRegister.patient.fullName;
 
-    const _autocompleteValue = {...autocompleteValue};
+    let _autocompleteValue = {...autocompleteValue};
     _autocompleteValue.dayOfBirth = moment(dataPatientsRegister.patient.dayOfBirth);
 
-    const response = await getFullAddressByIdWard(dataPatientsRegister.patient.codeWard);
-    const responseListDistrict = await getListDistrict(response.provinceCode);
-    const responseListWard = await getListWard(response.districtCode);
+    if(dataPatientsRegister.patient.codeWard){
+      const response = await getFullAddressByIdWard(dataPatientsRegister.patient.codeWard);
+      const responseListDistrict = await getListDistrict(response.provinceCode);
+      const responseListWard = await getListWard(response.districtCode);
+  
+      const indexListProvince = listProvince.findIndex(province => province.code === response.provinceCode);
+      const indexListDistrict = responseListDistrict.findIndex(district => district.code === response.districtCode);
+      const indexListWard = responseListWard.findIndex(ward => ward.code === response.wardCode);
+      const indexListMedicalType = listMedicalType.findIndex(medicalType => medicalType.medicalTypeId === dataPatientsRegister.medicalTypeId);
+    
+      _autocompleteValue.province.value = listProvince[indexListProvince];
+      _autocompleteValue.district.value = responseListDistrict[indexListDistrict];
+      _autocompleteValue.ward.value = responseListWard[indexListWard];
+      _autocompleteValue.medicalType.value = listMedicalType[indexListMedicalType];
+      _autocompleteValue.vaccination = dataPatientsRegister.vaccination;
+    }
 
     const indexListGender = listGender.findIndex(gender => gender.genderValue === dataPatientsRegister.patient.gender);
-    const indexListProvince = listProvince.findIndex(province => province.code === response.provinceCode);
-    const indexListDistrict = responseListDistrict.findIndex(district => district.code === response.districtCode);
-    const indexListWard = responseListWard.findIndex(ward => ward.code === response.wardCode);
-    const indexListMedicalType = listMedicalType.findIndex(medicalType => medicalType.medicalTypeId === dataPatientsRegister.medicalTypeId);
-    
     _autocompleteValue.gender.value = listGender[indexListGender];
-    _autocompleteValue.province.value = listProvince[indexListProvince];
-    _autocompleteValue.district.value = responseListDistrict[indexListDistrict];
-    _autocompleteValue.ward.value = responseListWard[indexListWard];
-    _autocompleteValue.medicalType.value = listMedicalType[indexListMedicalType];
-    _autocompleteValue.vaccination = dataPatientsRegister.vaccination;
-    setAutocompleteValue(_autocompleteValue);
 
+    setAutocompleteValue(_autocompleteValue);
+    
     document.getElementById('patientAddress').value = dataPatientsRegister.patient.address;
     document.getElementById('patientFullNameMother').value = dataPatientsRegister.patient.fullNameMother;
     document.getElementById('patientPhoneMother').value = dataPatientsRegister.patient.phoneMother
     document.getElementById('patientFullNameFather').value = dataPatientsRegister.patient.fullNameFather;
     document.getElementById('patientPhoneFather').value = dataPatientsRegister.patient.phoneFather;
 
-    setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
-    setOpenAlertProcessing(false);
-    setFocusField('height');
+    if(dataPatientsRegister.patient.codeWard === null){
+      setTimeout(() => {
+        setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
+        setOpenAlertProcessing(false);
+
+        setFocusField('province');
+      }, 300)
+    }
+    else{
+      setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
+      setOpenAlertProcessing(false);
+      
+      setFocusField('weight');
+    }
   }
 
   const handleApplyPantientAppointmentsTodayData = async () => {
@@ -1537,7 +1552,7 @@ function BookMedical(props) {
             <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.identifier.title}</h6>} open={dataPatientsRegisterError.identifier.openTooltip} placement="left" PopperProps={{sx: { zIndex: 2 } }}> 
               <div style={{width: '18%', marginTop: '20px'}}>
                 <TextField error={true ? dataPatientsRegisterError.identifier.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
-                  label="Mã định danh" variant="outlined" id='patientIdentifier'
+                  label="Mã định danh" variant="outlined" id='patientIdentifier' autoComplete='off'
                   inputRef={focusField === 'identifier' ? (input) => input && focusField === 'identifier' && input.focus() : firstFocusRef}
                   onChange={(e) => onChangeIdentifier(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -1553,7 +1568,7 @@ function BookMedical(props) {
             <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.patientId.title}</h6>} open={dataPatientsRegisterError.patientId.openTooltip} placement="top" PopperProps={{sx: { zIndex: 2 } }}> 
               <div style={{width: '18%', marginTop: '20px'}}>
                 <TextField error={true ? dataPatientsRegisterError.patientId.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
-                  label="Mã BN" variant="outlined" id='patientId'
+                  label="Mã BN" variant="outlined" id='patientId' autoComplete='off'
                   inputRef={(input) => input && focusField === 'patientId' && input.focus()}
                   onChange={(e) => onChangePatientId(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -1580,7 +1595,7 @@ function BookMedical(props) {
               > 
                 <div style={{width: '30%', display: 'inline-grid', marginTop: '20px'}}>
                   <TextField error={true ? dataPatientsRegisterError.fullName.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
-                    label="Họ tên" variant="outlined" id="patientFullName"                   
+                    label="Họ tên" variant="outlined" id="patientFullName" autoComplete='off'                
                     inputRef={(input) => input && focusField === 'fullName' && input.focus()}
                     onChange={(e) => onChangeFullName(e.target.value)}
                     inputProps={{ style: { WebkitTextFillColor: dataPatientsRegister.oldDisease ? "#ff1744" :  "black"} }}
@@ -1633,6 +1648,7 @@ function BookMedical(props) {
                     open={autocompleteValue.gender.openOption}
                     onFocus={() => handleFocus('Gender')}
                     onBlur={(e) => handleBlur(e.target.value, 'Gender')}
+                    autoComplete={false}
                     renderInput={(params) => ( 
                       <TextField {...params} 
                         label="Giới tính" 
@@ -1653,7 +1669,7 @@ function BookMedical(props) {
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.province.title}</h6>} open={dataPatientsRegisterError.province.openTooltip} placement="left" PopperProps={{sx: { zIndex: 2 } }}>
                 <div style={{width: '19.2%', marginTop: '20px'}}>
-                  <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true ? true : false}
+                  <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true && dataPatientsRegister.patient.codeWard ?  true : false}
                     value={autocompleteValue.province.value}
                     options={listProvince} 
                     noOptionsText={'Đang tải...'}
@@ -1668,6 +1684,7 @@ function BookMedical(props) {
                     open={autocompleteValue.province.openOption}
                     onFocus={() => handleFocus('Province')}
                     onBlur={(e) => handleBlur(e.target.value, 'Province')}
+                    autoComplete={false}
                     renderInput={(params) => (
                       <TextField {...params} 
                         label="Thành phố" 
@@ -1686,7 +1703,7 @@ function BookMedical(props) {
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.district.title}</h6>} open={dataPatientsRegisterError.district.openTooltip} placement="top" PopperProps={{sx: { zIndex: 2 } }}>
                 <div style={{width: '24%', marginTop: '20px'}}>
-                  <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true ? true : false}
+                  <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true && dataPatientsRegister.patient.codeWard ? true : false}
                     value={autocompleteValue.district.value}
                     options={listDistrict.list} 
                     noOptionsText={listDistrict.loading ? 'Đang tải...' : ''}
@@ -1701,6 +1718,7 @@ function BookMedical(props) {
                       </li>
                     )}
                     onChange={(e, value) => onSelectDistrict(e, value)}
+                    autoComplete={false}
                     renderInput={(params) => (
                       <TextField {...params} 
                         label="Quận/Huyện" 
@@ -1729,12 +1747,13 @@ function BookMedical(props) {
               <>
                 <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.ward.title}</h6>} open={dataPatientsRegisterError.ward.openTooltip} placement="bottom" PopperProps={{sx: { zIndex: 2 } }}>
                   <div style={{width: '23.5%', marginTop: '20px'}}>
-                    <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true ? true : false}
+                    <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true && dataPatientsRegister.patient.codeWard ? true : false}
                       value={autocompleteValue.ward.value}
                       options={listWard.list} 
                       noOptionsText={listWard.loading ? 'Đang tải...' : ''}
                       filterOptions={filterOptions}
                       getOptionLabel={(option) => option.name}
+                      autoComplete={false}
                       renderOption={(props, option) => (
                         <li {...props}>
                           {option.fullName}
@@ -1773,7 +1792,7 @@ function BookMedical(props) {
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.address.title}</h6>} open={dataPatientsRegisterError.address.openTooltip} placement="bottom" PopperProps={{sx: { zIndex: 2 } }}>
                 <div style={{width: '30%', display: 'inline-grid', marginTop: '20px'}}>
                   <TextField error={true ? dataPatientsRegisterError.address.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
-                    label="Địa chỉ" variant="outlined" id='patientAddress'
+                    label="Địa chỉ" variant="outlined" id='patientAddress' autoComplete='off'
                     inputRef={(input) => input && focusField === 'address' && input.focus()}
                     onChange={(e) => onChangeAddress(e.target.value)}
                     inputProps={{ style: { WebkitTextFillColor: dataPatientsRegister.oldDisease ? "#ff1744" :  "black"} }}
@@ -1787,7 +1806,7 @@ function BookMedical(props) {
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.fullNameMother.title}</h6>} open={dataPatientsRegisterError.fullNameMother.openTooltip} placement="left" PopperProps={{sx: { zIndex: 2 } }}>
                 <div style={{width: '30%', display: 'inline-grid', marginTop: '20px'}}>
                   <TextField error={true ? dataPatientsRegisterError.fullNameMother.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
-                    label="Họ tên mẹ" variant="outlined" id='patientFullNameMother'
+                    label="Họ tên mẹ" variant="outlined" id='patientFullNameMother' autoComplete='off'
                     inputRef={(input) => input && focusField === 'fullNameMother' && input.focus()}
                     autoFocus={dataPatientsRegisterError.fullNameMother.focus}
                     onChange={(e) => onChangeFullNameMother(e.target.value)}
@@ -1802,7 +1821,7 @@ function BookMedical(props) {
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.phoneMother.title}</h6>} open={dataPatientsRegisterError.phoneMother.openTooltip} placement="bottom" PopperProps={{sx: { zIndex: 2 } }}>
                 <div style={{width: '18%', marginTop: '20px'}}>
                   <TextField error={true ? dataPatientsRegisterError.phoneMother.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
-                    label="Điện thoại" variant="outlined" id='patientPhoneMother' 
+                    label="Điện thoại" variant="outlined" id='patientPhoneMother' autoComplete='off'
                     inputRef={(input) => input && focusField === 'phoneMother' && input.focus()}
                     onChange={(e) => onChangePhoneMother(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -1816,7 +1835,7 @@ function BookMedical(props) {
             
 
             <TextField label="Họ tên cha" disabled={dataPatientsRegister.oldDisease === true ? true : false}
-              variant="outlined" id='patientFullNameFather' 
+              variant="outlined" id='patientFullNameFather' autoComplete='off'
               sx={{width: '30.4%', '&.MuiTextField-root' : {marginTop: '20px'}}} 
               onChange={(e) => onChangeFullNameFather(e.target.value)}
               inputProps={{ style: { WebkitTextFillColor: dataPatientsRegister.oldDisease ? "#ff1744" :  "black"} }}
@@ -1828,7 +1847,7 @@ function BookMedical(props) {
                 <div style={{width: '18%', marginTop: '20px'}}>
                   <TextField label="Điện thoại" disabled={dataPatientsRegister.oldDisease === true ? true : false}
                     inputRef={(input) => input && focusField === 'phoneFather' && input.focus()}
-                    variant="outlined" id='patientPhoneFather'
+                    variant="outlined" id='patientPhoneFather' autoComplete='off'
                     onChange={(e) => onChangePhoneFather(e, e.target.value)}
                     onKeyDown={handleKeyDown}
                     onBlur={(e) => handleBlur(e.target.value, 'PhoneFather')}
@@ -1842,7 +1861,7 @@ function BookMedical(props) {
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.weight.title}</h6>} open={dataPatientsRegisterError.weight.openTooltip} PopperProps={{sx: { zIndex: 2 } }}>
                 <div style={{width: '22%', marginTop: '20px'}}>
-                  <TextField label="Cân nặng bé" variant="outlined" id='patientWeight' error={true ? dataPatientsRegisterError.weight.isError === true : false}
+                  <TextField label="Cân nặng bé" variant="outlined" id='patientWeight' autoComplete='off' error={true ? dataPatientsRegisterError.weight.isError === true : false}
                     inputRef={(input) => input && focusField === 'weight' && input.focus()}
                     InputProps={{endAdornment: <InputAdornment position="end">(kg)</InputAdornment>}}
                     onChange={(e) => onChangeWeight(e.target.value)}
@@ -1854,7 +1873,7 @@ function BookMedical(props) {
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.height.title}</h6>} open={dataPatientsRegisterError.height.openTooltip} placement='left' PopperProps={{sx: { zIndex: 2 } }}>
                 <div style={{width: '22%', marginTop: '20px'}}>
-                  <TextField label="Chiều cao bé" variant="outlined" id='patientHeight' error={true ? dataPatientsRegisterError.height.isError === true : false}
+                  <TextField label="Chiều cao bé" variant="outlined" id='patientHeight' autoComplete='off' error={true ? dataPatientsRegisterError.height.isError === true : false}
                     inputRef={(input) => input && focusField === 'height' && input.focus()}
                     InputProps={{endAdornment: <InputAdornment position="end">(cm)</InputAdornment>}}
                     onChange={(e) => onChangeHeight(e.target.value)}
@@ -1877,7 +1896,7 @@ function BookMedical(props) {
                 }} 
               >
                 <div style={{width: '22%', marginTop: '20px'}}>
-                  <TextField label="Vòng đầu bé" variant="outlined" id='patientHeadCircumference' error={true ? dataPatientsRegisterError.headCircumference.isError === true : false}
+                  <TextField label="Vòng đầu bé" variant="outlined" id='patientHeadCircumference' autoComplete='off' error={true ? dataPatientsRegisterError.headCircumference.isError === true : false}
                     inputRef={(input) => input && focusField === 'headCircumference' && input.focus()}
                     InputProps={{endAdornment: <InputAdornment position="end">(cm)</InputAdornment>}}
                     onChange={(e) => onChangeHeadCircumference(e.target.value)}
@@ -1902,6 +1921,7 @@ function BookMedical(props) {
                     open={autocompleteValue.medicalType.openOption}
                     onFocus={() => handleFocus('MedicalType')}
                     onBlur={(e) => handleBlur(e.target.value, 'MedicalType')}
+                    autoComplete={false}
                     renderInput={(params) => ( 
                       <TextField {...params} 
                         label="Loại hình khám" 
@@ -1924,7 +1944,7 @@ function BookMedical(props) {
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.reason.title}</h6>} open={dataPatientsRegisterError.reason.openTooltip} >
                 <div style={{width: '100%' }}>
-                  <TextField fullWidth label="Lý do khám" multiline rows={3} variant="outlined" id='patientReason' error={true ? dataPatientsRegisterError.reason.isError === true : false}
+                  <TextField fullWidth label="Lý do khám" multiline rows={3} variant="outlined" id='patientReason' autoComplete='off' error={true ? dataPatientsRegisterError.reason.isError === true : false}
                     sx={{'&.MuiTextField-root' : {marginTop: '20px'}}} 
                     onChange={(e) => onChangeReason(e.target.value)}
                   />

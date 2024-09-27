@@ -334,7 +334,7 @@ function MainDoctorExamining() {
             categoryPres: []
         })
         
-        //sessionStorage.clear();
+        sessionStorage.clear();
 
         setLoadingPatient(false);
         setLoadingInfoPatient(false);
@@ -391,6 +391,7 @@ function MainDoctorExamining() {
         _dataPantientsReadyExamining.vaccination = dataPantientItem.vaccination === true ? true : false;
         _dataPantientsReadyExamining.editExamining = dataPantientItem.state === 2 ? true : false;
         _dataPantientsReadyExamining.backRegister = dataPantientItem.state === 3 ? true : false;
+        _dataPantientsReadyExamining.isContinueExam = false;
         setDataPantientsReadyExamining(_dataPantientsReadyExamining);
         setLoadingInfoPatient(false);
         setLoadingPrevDataExamining(false);
@@ -1426,7 +1427,7 @@ function MainDoctorExamining() {
                 if(healthRecordsState === 2){
                     await findHealthRecord(medicalRegisterId, examinationName, healthRecordsState);
                 }
-                else if(healthRecordsState === 1 && dataPantientsReadyExamining.editExamining){
+                else if(healthRecordsState === 1 && dataPantientsReadyExamining.editExamining || healthRecordsState === 1 && dataPantientsReadyExamining.backRegister){
                     setHealthRecordsContents({
                         healthRecordsName: examinationName,
                         newMedicalBook: true,
@@ -1441,8 +1442,13 @@ function MainDoctorExamining() {
                         categoryPatients: mainDataExamining.healthRecords[0].categories
                     });
                 }
-                else if(currentHealthRecordExamining && dataPantientsReadyExamining.isContinueExam && healthRecordsState === 1){
-                    setContentCategorySelectedExamining([]);
+                else if(healthRecordsState === 1 && mainDataExamining.healthRecords.length === 1){
+                    setHealthRecordsContents(currentHealthRecordExamining);
+                    setCurrentHealthRecordExamining(currentHealthRecordExamining);
+                }
+                else if(healthRecordsState === 1 && mainDataExamining.healthRecords.length === 1 && dataPantientsReadyExamining.isContinueExam){
+                    setHealthRecordsContents(currentHealthRecordExamining);
+                    setCurrentHealthRecordExamining(currentHealthRecordExamining);
                 }
                 else{
                     await findHealthRecord(medicalRegisterId, examinationName, healthRecordsState);
@@ -1969,6 +1975,15 @@ function MainDoctorExamining() {
 
     const classes = useStyles();
 
+    const reFetchListDataPatientsRegister = async () => {
+        if(dataPantientsReadyExamining.id === ''){
+            const response = await getRegistersByDateNow();
+            if(response.list.length !== listDataPatientsRegister.length){
+                handleGetRegistersByDateNow();
+            }
+        }
+    }
+
     // useEffect(() => {
     //     // Khởi tạo kết nối SignalR khi component mount
     //     const token = localStorage.getItem("jwt");
@@ -1979,6 +1994,16 @@ function MainDoctorExamining() {
     //         stopSignalRConnection();
     //     };
     // }, [])
+
+    useEffect(() => {
+        // Đặt setInterval để gọi API sau 30 giây
+        const intervalId = setInterval(() => {
+            reFetchListDataPatientsRegister();
+        }, 30000); // 30000ms = 30 giây
+
+        // Cleanup interval khi component unmount để tránh memory leak
+        return () => clearInterval(intervalId);
+    }, [])
 
     useEffect(() => {
         if(dataPantientsReadyExamining.status === 1 && alertVisible){
@@ -2467,7 +2492,7 @@ function MainDoctorExamining() {
                                                             <Typography variant='h6'>Bệnh nhân không có tiền căn đang được theo dõi ở mục này</Typography>
                                                         </Box>
                                                     :
-                                                        contentCategorySelectedExamining.healthRecordsContentsType !== 'tree' && healthRecordsContents.length === 0 ? 
+                                                        contentCategorySelectedExamining.healthRecordsContentsType !== 'tree' && healthRecordsContents.length === 0 && dataPantientsReadyExamining.isContinueExam === false ? 
                                                             categorySelectedExamining.categoryContents.map((categoryContentsItem, categoryContentsIndex) => (
                                                                 <Box key={categoryContentsIndex} sx={categoryContentsItem.categoryContentTitle === null ? {marginTop: '30px'} : {}}>
 
@@ -2564,7 +2589,7 @@ function MainDoctorExamining() {
                                                                 </Box>
                                                             ))
                                                         :
-                                                            contentCategorySelectedExamining.healthRecordsContentsType === 'tree' && healthRecordsContents.length === 0 ? 
+                                                            contentCategorySelectedExamining.healthRecordsContentsType === 'tree' && healthRecordsContents.length === 0 && dataPantientsReadyExamining.isContinueExam === false ? 
                                                                 <>
                                                                     <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center', fontSize: '1.2rem', mb: 0.2}}>Khám và theo dõi sức khỏe định kỳ</Typography>
                                                                     <TableContainer component={Paper}>
