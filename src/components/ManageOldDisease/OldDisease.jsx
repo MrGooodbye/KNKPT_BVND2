@@ -232,6 +232,50 @@ function OldDisease(props) {
 
     const onChangePhone = (value) => {
         if(value !== ''){
+            const takenValue = value
+            if(typingRef.current){
+                clearInterval(typingRef.current);
+            }
+
+            typingRef.current = setTimeout(() => {
+                const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
+                if(value.length < 10){
+                    _dataPatientsForSearchOldDiseaseError.phone.title = 'Số điện thoại chưa đủ 10 số';
+                    _dataPatientsForSearchOldDiseaseError.phone.isError = true;
+                    _dataPatientsForSearchOldDiseaseError.phone.openTooltip = true;
+                    setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
+                }
+
+                else{
+                    if(focusField === 'phone'){
+                        setFocusField(null);
+                    }
+
+                    setDataPatientsForSearchOldDisease((prevDataPatientsForSearchOldDisease) => {
+                        prevDataPatientsForSearchOldDisease.phone = takenValue;
+                        return {...prevDataPatientsForSearchOldDisease}
+                    })
+
+                    _dataPatientsForSearchOldDiseaseError.phone.title = '';
+                    _dataPatientsForSearchOldDiseaseError.phone.openTooltip = false;
+                    _dataPatientsForSearchOldDiseaseError.phone.isError = false;
+                    _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
+                    _dataPatientsForSearchOldDiseaseError.fullName.isError = false;
+                    _dataPatientsForSearchOldDiseaseError.dayOfBirth.isError = false;                
+                    setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
+                }
+            }, 100)
+        }
+        else{
+            const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
+            _dataPatientsForSearchOldDiseaseError.patientId.title = '';
+            _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = false;
+            _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
+            setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
+        } 
+
+
+        if(value !== ''){
             const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
             if(value.length < 10){
                 _dataPatientsForSearchOldDiseaseError.phone.title = 'Số điện thoại chưa đủ 10 số';
@@ -331,6 +375,7 @@ function OldDisease(props) {
     }
 
     const handleFindOldDisease = async () => {
+        await new Promise(resolve => setTimeout(resolve, 5 * 100));
         setOpenAlertProcessing(true);
         const response = await getListOldDisease(dataPatientsForSearchOldDisease.patientId, dataPatientsForSearchOldDisease.phone, dataPatientsForSearchOldDisease.fullName, dataPatientsForSearchOldDisease.dayOfBirth, '');
         setOpenAlertProcessing(false);
@@ -345,9 +390,7 @@ function OldDisease(props) {
 
     const handleClickFindOldDisease = () => {
         if(validate()){
-            setTimeout(()=> {
-                handleFindOldDisease()
-            }, 200)
+            handleFindOldDisease()
         }
     }
 
@@ -373,6 +416,7 @@ function OldDisease(props) {
         const dataPantientOldOldDiseaseRegister = {
             examinationId: '',
             oldDisease: true,
+            oldDiseaseWithNullCodeWard: foundOldDiseaseItem.codeWard ? false : true,
             height: '',
             weight: '',
             headCircumference: '',

@@ -25,6 +25,8 @@ const UserProvider = ({ children }) => {
 
     const [openAlertProcessingBackdrop, setOpenAlertProcessingBackdrop] = useState(false);
 
+    const [isDialogChangePasswordOpen, setIsDialogChangePasswordOpen] = useState(false);
+
     const loginContext = (userContextLogin) => {
         setUser({ ...userContextLogin });
         setLoading(false);
@@ -126,7 +128,8 @@ const UserProvider = ({ children }) => {
         <>
             <UserContext.Provider 
                 value={{ user, loading, loadingContext, loginContext, 
-                    logoutContext, alertVisible, triggerAlert, confirmAlert, resetAlert, isLogOutClick
+                    logoutContext, alertVisible, triggerAlert, confirmAlert, resetAlert, isLogOutClick,
+                    isDialogChangePasswordOpen, setIsDialogChangePasswordOpen
                 }}>
                 {children}
             </UserContext.Provider>

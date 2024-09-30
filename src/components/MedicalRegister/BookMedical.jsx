@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
+//context
+import { UserContext } from '../../context/UserContext';
 //ExaminingSessios modal
 import ExaminingSession from '../ManageExaminingSession/ExaminingSession';
 //old disease modal
@@ -115,6 +117,8 @@ function BookMedical(props) {
     {medicalTypeOrder: 1, medicalTypeName: 'Khám Nhi khoa phát triển', medicalTypeId: 1},
     {medicalTypeOrder: 2, medicalTypeName: 'Khám trẻ nguy cơ cao', medicalTypeId: 2},
   ]
+
+  const { isDialogChangePasswordOpen } = useContext(UserContext);
 
   const [openModalExaminingSession, setOpenModalExaminingSession] = useState(false);
   const [isContinueSelectedExaminingSession, setIsContinueSelectedExaminingSession] = useState(false);
@@ -1261,17 +1265,6 @@ function BookMedical(props) {
       isValid = false;
     }
 
-    if(dataPatientsRegister.height === ''){
-      _dataPatientsRegisterError.height.title = 'Bạn chưa nhập chiều cao';
-      _dataPatientsRegisterError.height.openTooltip = true;
-      _dataPatientsRegisterError.height.isError = true;
-      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
-        _dataPatientsRegisterError.height.focus = true;
-        setFocusField('height');
-      }
-      isValid = false;
-    }
-
     if(dataPatientsRegister.weight === ''){
       _dataPatientsRegisterError.weight.title = 'Bạn chưa nhập cân nặng';
       _dataPatientsRegisterError.weight.openTooltip = true;
@@ -1279,6 +1272,17 @@ function BookMedical(props) {
       if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
         _dataPatientsRegisterError.weight.focus = true;
         setFocusField('weight');
+      }
+      isValid = false;
+    }
+
+    if(dataPatientsRegister.height === ''){
+      _dataPatientsRegisterError.height.title = 'Bạn chưa nhập chiều cao';
+      _dataPatientsRegisterError.height.openTooltip = true;
+      _dataPatientsRegisterError.height.isError = true;
+      if(Object.values(_dataPatientsRegisterError).every(item => item.focus === false)){
+        _dataPatientsRegisterError.height.focus = true;
+        setFocusField('height');
       }
       isValid = false;
     }
@@ -1363,17 +1367,18 @@ function BookMedical(props) {
       const indexListProvince = listProvince.findIndex(province => province.code === response.provinceCode);
       const indexListDistrict = responseListDistrict.findIndex(district => district.code === response.districtCode);
       const indexListWard = responseListWard.findIndex(ward => ward.code === response.wardCode);
-      const indexListMedicalType = listMedicalType.findIndex(medicalType => medicalType.medicalTypeId === dataPatientsRegister.medicalTypeId);
-    
+      
       _autocompleteValue.province.value = listProvince[indexListProvince];
       _autocompleteValue.district.value = responseListDistrict[indexListDistrict];
       _autocompleteValue.ward.value = responseListWard[indexListWard];
-      _autocompleteValue.medicalType.value = listMedicalType[indexListMedicalType];
       _autocompleteValue.vaccination = dataPatientsRegister.vaccination;
     }
 
     const indexListGender = listGender.findIndex(gender => gender.genderValue === dataPatientsRegister.patient.gender);
     _autocompleteValue.gender.value = listGender[indexListGender];
+
+    const indexListMedicalType = listMedicalType.findIndex(medicalType => medicalType.medicalTypeId === dataPatientsRegister.medicalTypeId);
+    _autocompleteValue.medicalType.value = listMedicalType[indexListMedicalType];
 
     setAutocompleteValue(_autocompleteValue);
     
@@ -1383,7 +1388,7 @@ function BookMedical(props) {
     document.getElementById('patientFullNameFather').value = dataPatientsRegister.patient.fullNameFather;
     document.getElementById('patientPhoneFather').value = dataPatientsRegister.patient.phoneFather;
 
-    if(dataPatientsRegister.patient.codeWard === null){
+    if(dataPatientsRegister.oldDiseaseWithNullCodeWard){
       setTimeout(() => {
         setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
         setOpenAlertProcessing(false);
@@ -1461,14 +1466,48 @@ function BookMedical(props) {
 
     setFocusField(null);
 
+
+    const oldDisease = dataPatientsRegister.oldDisease ? true : false
+
     setDataPatientsRegister(dataPatientsRegisterDefault);
     setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
 
-    firstFocusRef.current.focus();
+    if(oldDisease){
+      setTimeout(() => {
+        firstFocusRef.current.focus();
+      }, 100)
+    }
+    else{
+      firstFocusRef.current.focus();
+    }
   }
 
   const handleOpenModalOldDisease = () => {
-    handleResetField();
+    formRef.current.reset();
+    const inputs = formRef.current.querySelectorAll('input, textarea');
+    inputs.forEach(input => input.dispatchEvent(new Event('input', { bubbles: true })));
+
+    setAutocompleteValue(autocompleteValueDefault);
+
+    setListDistrict(prevListDistrict => {
+      prevListDistrict.loading = false
+      prevListDistrict.list = []
+      return {...prevListDistrict}
+    })
+    setListWard(prevListWard => {
+      prevListWard.loading = false
+      prevListWard.list = []
+      return {...prevListWard}
+    })
+
+    if(props.dataPantientAppointmentsToday){
+      props.setDataPantientAppointmentsToday();
+    }
+
+    setFocusField(null);
+
+    firstFocusRef.current.focus();
+
     setDataPatientsRegister(dataPatientsRegisterDefault);
     setAutocompleteValue(autocompleteValueDefault);
     setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
@@ -1509,37 +1548,39 @@ function BookMedical(props) {
   }, [props.dataPantientAppointmentsToday]) 
 
   useEffect(() => {
-    if(props.onF2Press){
-      if(openModalExaminingSession === true && openModalOldDisease === false){
-        setIsContinueSelectedExaminingSession(true);
-        props.setOnF2Press(false);
+    if(isDialogChangePasswordOpen === false){
+      if(props.onF2Press){
+        if(openModalExaminingSession === true && openModalOldDisease === false){
+          setIsContinueSelectedExaminingSession(true);
+          props.setOnF2Press(false);
+        }
+        else{
+          handleMedicalRegister();
+          props.setOnF2Press(false);
+        }
       }
-      else{
-        handleMedicalRegister();
-        props.setOnF2Press(false);
+      
+      if(props.onF4Press){
+        if(openModalExaminingSession === true || openModalOldDisease === true){
+          props.setOnF4Press(false);
+        }
+        else{
+          handleResetField();
+          props.setOnF4Press(false);
+        }
       }
-    }
-    
-    if(props.onF4Press){
-      if(openModalExaminingSession === true || openModalOldDisease === true){
-        props.setOnF4Press(false);
-      }
-      else{
-        handleResetField();
-        props.setOnF4Press(false);
-      }
-    }
 
-    if(props.onF8Press){
-      if(openModalExaminingSession === true || openModalOldDisease === true){
-        props.setOnF8Press(false);
-      }
-      else{
-        handleOpenModalOldDisease();
-        props.setOnF8Press(false);
+      if(props.onF8Press){
+        if(openModalExaminingSession === true || openModalOldDisease === true){
+          props.setOnF8Press(false);
+        }
+        else{
+          handleOpenModalOldDisease();
+          props.setOnF8Press(false);
+        }
       }
     }
-  }, [props.onF2Press, props.onF4Press, props.onF8Press])
+  }, [props.onF2Press, props.onF4Press, props.onF8Press, isDialogChangePasswordOpen])
 
   return (
     <>
@@ -1669,7 +1710,7 @@ function BookMedical(props) {
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.province.title}</h6>} open={dataPatientsRegisterError.province.openTooltip} placement="left" PopperProps={{sx: { zIndex: 2 } }}>
                 <div style={{width: '19.2%', marginTop: '20px'}}>
-                  <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true && dataPatientsRegister.patient.codeWard ?  true : false}
+                  <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true && dataPatientsRegister.oldDiseaseWithNullCodeWard === false ? true : false}
                     value={autocompleteValue.province.value}
                     options={listProvince} 
                     noOptionsText={'Đang tải...'}
@@ -1703,7 +1744,7 @@ function BookMedical(props) {
             <ThemeProvider theme={tooltipTheme}>
               <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.district.title}</h6>} open={dataPatientsRegisterError.district.openTooltip} placement="top" PopperProps={{sx: { zIndex: 2 } }}>
                 <div style={{width: '24%', marginTop: '20px'}}>
-                  <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true && dataPatientsRegister.patient.codeWard ? true : false}
+                  <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true && dataPatientsRegister.oldDiseaseWithNullCodeWard === false ? true : false}
                     value={autocompleteValue.district.value}
                     options={listDistrict.list} 
                     noOptionsText={listDistrict.loading ? 'Đang tải...' : ''}
@@ -1747,7 +1788,7 @@ function BookMedical(props) {
               <>
                 <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.ward.title}</h6>} open={dataPatientsRegisterError.ward.openTooltip} placement="bottom" PopperProps={{sx: { zIndex: 2 } }}>
                   <div style={{width: '23.5%', marginTop: '20px'}}>
-                    <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true && dataPatientsRegister.patient.codeWard ? true : false}
+                    <Autocomplete disablePortal disabled={dataPatientsRegister.oldDisease === true && dataPatientsRegister.oldDiseaseWithNullCodeWard === false ? true : false}
                       value={autocompleteValue.ward.value}
                       options={listWard.list} 
                       noOptionsText={listWard.loading ? 'Đang tải...' : ''}

@@ -91,7 +91,7 @@ function MainDoctorExamining() {
         patientsAddress: ''
     }
 
-    const { user, loading, alertVisible, confirmAlert, resetAlert, isLogOutClick } = useContext(UserContext);
+    const { user, loading, alertVisible, confirmAlert, resetAlert, isLogOutClick, isDialogChangePasswordOpen } = useContext(UserContext);
 
     const history = useHistory();
 
@@ -2129,48 +2129,50 @@ function MainDoctorExamining() {
     }, [loading, user])
 
     useEffect(() => {
-        const handleKeyDown = (event) => {
-            if(event.keyCode === 112){
-                event.preventDefault();
-            }
-
-            if(dataPantientsReadyExamining.patientsId !== '' && openAlertProcessingBackdrop === false && openModalCompleteExamining === false && event.keyCode !== 116){
-                if(event.keyCode === 112 && dataPantientsReadyExamining.status === 1){
+        if(isDialogChangePasswordOpen === false){
+            const handleKeyDown = (event) => {
+                if(event.keyCode === 112){
                     event.preventDefault();
-                    handleCancelExamining();
                 }
 
-                else if(event.keyCode === 113 && prevDataExamining){
-                    if(dataPantientsReadyExamining.status === 0 && dataPantientsReadyExamining.editExamining === false){
-                        handleBeginExaminingForPantient();
+                if(dataPantientsReadyExamining.patientsId !== '' && openAlertProcessingBackdrop === false && openModalCompleteExamining === false && event.keyCode !== 116){
+                    if(event.keyCode === 112 && dataPantientsReadyExamining.status === 1){
+                        event.preventDefault();
+                        handleCancelExamining();
                     }
-                    else if(dataPantientsReadyExamining.status === 1){
-                        alert(`Bạn đang trong quá trình khám cho bệnh nhân ${dataPantientsReadyExamining.patientsName}, vui lòng kết thúc đợt khám hiện tại để bắt đầu đợt khám mới!`);
-                    }
-                    else if(dataPantientsReadyExamining.status === 0  && dataPantientsReadyExamining.editExamining === true){
-                        handleBeginEditExaminingForPantient();
-                    }
-                }
 
-                else if(event.keyCode === 115){
-                setOpenAlertProcessingBackdrop(true)
-                    if(dataPantientsReadyExamining.status === 1){
-                        setTimeout(() => {
-                            setOpenAlertProcessingBackdrop(false)
-                            setOpenModalCompleteExamining(true);
-                        }, 1000)
+                    else if(event.keyCode === 113 && prevDataExamining){
+                        if(dataPantientsReadyExamining.status === 0 && dataPantientsReadyExamining.editExamining === false){
+                            handleBeginExaminingForPantient();
+                        }
+                        else if(dataPantientsReadyExamining.status === 1){
+                            alert(`Bạn đang trong quá trình khám cho bệnh nhân ${dataPantientsReadyExamining.patientsName}, vui lòng kết thúc đợt khám hiện tại để bắt đầu đợt khám mới!`);
+                        }
+                        else if(dataPantientsReadyExamining.status === 0  && dataPantientsReadyExamining.editExamining === true){
+                            handleBeginEditExaminingForPantient();
+                        }
+                    }
+
+                    else if(event.keyCode === 115){
+                    setOpenAlertProcessingBackdrop(true)
+                        if(dataPantientsReadyExamining.status === 1){
+                            setTimeout(() => {
+                                setOpenAlertProcessingBackdrop(false)
+                                setOpenModalCompleteExamining(true);
+                            }, 1000)
+                        }
                     }
                 }
             }
+
+            document.addEventListener('keydown', handleKeyDown);
+
+            return () => {
+                document.removeEventListener('keydown', handleKeyDown);
+            };
         }
-
-        document.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-        };
-
-    }, [dataPantientsReadyExamining, openModalCompleteExamining, openAlertProcessingBackdrop, openModalCompleteExamining])
+        
+    }, [dataPantientsReadyExamining, openModalCompleteExamining, openAlertProcessingBackdrop, openModalCompleteExamining, isDialogChangePasswordOpen])
 
     return (
         <>

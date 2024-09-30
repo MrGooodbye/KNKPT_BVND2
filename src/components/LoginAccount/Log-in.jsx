@@ -30,22 +30,22 @@ const Login = () => {
 
     const [openAlertProcessingBackdrop, setOpenAlertProcessingBackdrop] = useState(false);
 
-    const [userAccount, setUserAccount] = useState({userId: '', password: ''})
+    const [userAccount, setUserAccount] = useState({userName: '', password: ''})
     const [openModalRegister, setOpenModalRegister] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     const handleClickShowPassword = () => setShowPassword(!showPassword);
 
-    const onChangeUserName = (e, value) => {
+    const onChangeUserName = (value) => {
         setUserAccount(prevUserAccount => {
             return {
                 ...prevUserAccount,
-                userId: value
+                userName: value
             }
         }) 
     }
 
-    const onChangeUserPassword = (e, value) => {
+    const onChangeUserPassword = (value) => {
         setUserAccount(prevUserAccount => {
             return {
                 ...prevUserAccount,
@@ -63,7 +63,7 @@ const Login = () => {
         }
         else{
             setOpenAlertProcessingBackdrop(true);
-            const response = await userLogin(userAccount.userId, userAccount.password);
+            const response = await userLogin(userAccount.userName, userAccount.password);
             setOpenAlertProcessingBackdrop(false);
             if(response.status !== 200){
                 toast.error(response.data);
@@ -73,7 +73,8 @@ const Login = () => {
                 const userLogin = {
                     isAuthenticated: true, 
                     isLogin: true, 
-                    userId: response.data.userId, 
+                    userId: response.data.userId,
+                    userName: response.data.userName, 
                     userFullName: response.data.userFullName, 
                     positionName: response.data.positionName
                 }
@@ -134,9 +135,9 @@ const Login = () => {
                         <Avatar src={Logo} sx={{ width: 120, height: 120, ml: 'auto', mr: 'auto', mb: 2 }} />
                         <Typography sx={{ textAlign: 'center', textTransform: 'uppercase', fontWeight: 'bolder', fontSize: '1.15rem', mb: 2, color: '#4caf50' }} variant="h5">Chương trình khám nhi khoa phát triển</Typography>
                         <Box component="form" autoComplete="off" style={{ textAlign: 'center' }}>
-                            <TextField label="Tài khoản" variant="outlined" sx={{ width: '40ch', mb: 2.5 }} onChange={(e) => onChangeUserName(e, e.target.value)}/>
+                            <TextField label="Tài khoản" variant="outlined" sx={{ width: '40ch', mb: 2.5 }} onChange={(e) => onChangeUserName(e.target.value)}/>
                             <TextField label="Mật khẩu" variant="outlined" type={showPassword ? "text" : "password"} sx={{ width: '40ch', mb: 3 }} 
-                            onChange={(e) => onChangeUserPassword(e, e.target.value)} onKeyDown={(e) => handlePressEnter(e)}
+                            onChange={(e) => onChangeUserPassword(e.target.value)} onKeyDown={(e) => handlePressEnter(e)}
                                 InputProps={{ // <-- This is where the toggle button is added.
                                     endAdornment: (
                                         <InputAdornment position="end">
@@ -147,7 +148,8 @@ const Login = () => {
                             />
                             <Stack spacing={2} direction="column">
                                 <Button sx={{ height: '6.5vh', width: '28ch' }} variant="contained" style={{ margin: 'auto' }} onClick={(e) => handleLogin()}>Đăng nhập</Button>
-                                <Typography sx={{textAlign: 'center'}} variant="subtitle1">Chưa có tài khoản? <strong style={{cursor: 'pointer'}} onClick={() => setOpenModalRegister(true)}>Đăng ký</strong></Typography>
+                                <Typography sx={{textAlign: 'center', color: 'red', fontSize: '18px'}} variant="subtitle1"><strong style={{cursor: 'pointer'}} onClick={() => setOpenModalRegister(true)}>Quên mật khẩu</strong></Typography>
+                                <Typography sx={{textAlign: 'center', mt: '10px !important'}} variant="subtitle1">Chưa có tài khoản? <strong style={{cursor: 'pointer'}} onClick={() => setOpenModalRegister(true)}>Đăng ký</strong></Typography>
                             </Stack>
                         </Box>
                     </Box>

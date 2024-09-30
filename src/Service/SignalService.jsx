@@ -1,6 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 
-const backendURL = 'https://api-khamnhi.somee.com';
+const backendURL = 'https://api-knkpt.somee.com';
 
 let connection = null; // Biến toàn cục lưu trữ kết nối SignalR
 

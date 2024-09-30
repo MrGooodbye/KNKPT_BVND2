@@ -1,7 +1,7 @@
 import axios from "axios";
 //import SignalService from "./SignalService.jsx"
 
-const backendURL = 'https://api-khamnhi.somee.com';
+const backendURL = 'https://api-knkpt.somee.com';
 
 const createConfig = () => {
   const token = localStorage.getItem("jwt");
@@ -14,8 +14,8 @@ const createConfig = () => {
   return config;
 }
 
-const userLogin = async (userId, password) => {
-  return await axios.post(`${backendURL}/api/UserAccount/Login`, { userId, password })
+const userLogin = async (userName, password) => {
+  return await axios.post(`${backendURL}/api/UserAccount/Login`, { userName, password })
   .then(function (response) {
     //SignalService.startSignalRConnection(response.data.tokenDTO.token)
       return response
@@ -47,7 +47,24 @@ const getGetListDoctor = async () => {
   })
 }
 
+const updatePassword = async (inputPayloadPassword) => {
+  const token = localStorage.getItem("jwt");
+    return await axios.put(`${backendURL}/api/UserAccount/ChangePassword`, inputPayloadPassword, {
+        headers: {
+            "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+    })
+    .then(function (response) {
+        return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
 export {
     userLogin, 
-    getUserLogin, getGetListDoctor
+    getUserLogin, getGetListDoctor,
+    updatePassword
 }

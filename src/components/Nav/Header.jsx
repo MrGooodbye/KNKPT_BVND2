@@ -2,7 +2,9 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 import { Link, NavLink, useHistory } from "react-router-dom";
 import { withRouter } from 'react-router';
+//modal
 import UserManual from '../ManageUserManual/UserManual';
+import ChangePassword from '../ManageChangePassword/ChangePassword';
 //mui theme
 import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
@@ -25,12 +27,13 @@ import { UserContext } from '../../context/UserContext';
 
 function Header(props) {
 
-  const { user, logoutContext, triggerAlert } = useContext(UserContext);
+  const { user, logoutContext, triggerAlert, isDialogChangePasswordOpen, setIsDialogChangePasswordOpen } = useContext(UserContext);
 
   const location = useLocation();
   const history = useHistory();
 
   const [openModalUserManual, setOpenModalUserManual] = useState(false);
+  const [openModalChangePassword, setOpenModalChangePassword] = useState(false);
 
   //mui state menu
   const [anchorEl, setAnchorEl] = useState(null);
@@ -127,7 +130,7 @@ function Header(props) {
 
                     <Button onClick={handleClick} sx={{color: '#000', textTransform: 'none'}}>{user.userFullName}</Button>
                     <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-                      <MenuItem>Đổi mật khẩu</MenuItem>
+                      <MenuItem onClick={() => [setOpenModalChangePassword(true), setIsDialogChangePasswordOpen(true), setAnchorEl(null)]}>Đổi mật khẩu</MenuItem>
                       <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
                     </Menu>
                     <HelpIcon titleAccess='Hướng dẫn' sx={{color: 'black', fontSize: '30px', cursor: 'pointer'}} onClick={() => setOpenModalUserManual(true)} />
@@ -145,6 +148,7 @@ function Header(props) {
         </Box>
   
         <UserManual openModalUserManual={openModalUserManual} setOpenModalUserManual={setOpenModalUserManual}/>
+        <ChangePassword openModalChangePassword={openModalChangePassword} setOpenModalChangePassword={setOpenModalChangePassword} setIsDialogChangePasswordOpen={setIsDialogChangePasswordOpen}/>
       </>
     )
   }
