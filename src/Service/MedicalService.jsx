@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const backendURL = 'https://api-knkpt.somee.com';
+const backendURL = 'https://api-khamnhi.somee.com';
 
 const createConfig = () => {
     const token = localStorage.getItem("jwt");
@@ -94,6 +94,25 @@ const createAddMedicalBook = async (dataMedicalBook) => {
     )
     .then(function (response) {
         return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
+const createNotificationForMedicalRegister = async () => {
+    const token = localStorage.getItem("jwt");
+    const medicalRegisterMessage = true
+    return await axios.post(`${backendURL}/api/Notification/SendSignalRGroup?groupId=doctor`, medicalRegisterMessage,
+        {
+            headers: {
+                "content-type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    )
+    .then(function (response) {
+        return response.data
     })
     .catch(function (error) {
         return error.response
@@ -303,7 +322,7 @@ const deleteMedicalBook = async (medicalBookId) => {
 }
 
 export {
-    createMedicalRegister, createMedicalBackRegister, createCurrentDoctorExamining, createAddPredecessor, createAddMedicalBook,
+    createMedicalRegister, createMedicalBackRegister, createCurrentDoctorExamining, createAddPredecessor, createAddMedicalBook, createNotificationForMedicalRegister,
     getRegistersByDateNow, getListMedicalExaminationsGiveRegister, getListMedicalExaminationsGiveOldRegister, getListOldDisease, getVaccinationByPatientId, getCurrentDoctorExamining, getMedicalDetailPatient, getMedicalBook, getUpdatePredecessor, getUpdateMedicalBook, getAppointmentDate, getAppointmentsNextWeek, getAppointmentsToday,
     updateMedicalRegister, updateMedicalState, updateStateAppointment,
     deleteMedicalBook

@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 import { Link, NavLink, useHistory } from "react-router-dom";
 import { withRouter } from 'react-router';
 //modal
-import UserManual from '../ManageUserManual/UserManual';
+//import UserManual from '../ManageUserManual/UserManual';
 import ChangePassword from '../ManageChangePassword/ChangePassword';
 //mui theme
 import Box from '@mui/material/Box';
@@ -24,15 +24,17 @@ import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 //context
 import { UserContext } from '../../context/UserContext';
+//real-time
+import {removeFromGroup} from '../../Service/SignalService';
 
 function Header(props) {
 
-  const { user, logoutContext, triggerAlert, isDialogChangePasswordOpen, setIsDialogChangePasswordOpen } = useContext(UserContext);
+  const { user, logoutContext, triggerAlert, isDialogChangePasswordOpen, setIsDialogChangePasswordOpen, isOldDiseaseWithNullCodeWard } = useContext(UserContext);
 
   const location = useLocation();
   const history = useHistory();
 
-  const [openModalUserManual, setOpenModalUserManual] = useState(false);
+  // const [openModalUserManual, setOpenModalUserManual] = useState(false);
   const [openModalChangePassword, setOpenModalChangePassword] = useState(false);
 
   //mui state menu
@@ -41,8 +43,13 @@ function Header(props) {
   const token = localStorage.getItem("jwt");
   
   const open = Boolean(anchorEl);
+  
   const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+    if(isOldDiseaseWithNullCodeWard === true){
+      event.preventDefault();
+    }else{
+      setAnchorEl(event.currentTarget)
+    }
   };
   
   const handleClose = () => {
@@ -73,7 +80,8 @@ function Header(props) {
 
   const handleLogout = () => {
     if(user.positionName === 'Doctor'){
-      triggerAlert(() => {
+      triggerAlert(async () => {
+        await removeFromGroup();
         localStorage.removeItem('jwt');
         localStorage.removeItem('userLogin');
         logoutContext();
@@ -90,6 +98,10 @@ function Header(props) {
       history.push('/login');
     }
   }
+
+  useEffect(() => {
+
+  }, [isOldDiseaseWithNullCodeWard])
   
   useEffect(() => {
     if(user.positionName === 'Nursing'){        
@@ -112,42 +124,42 @@ function Header(props) {
               {/* <Link to="/"> */}
                 <Avatar src={Logo} sx={{ width: 62, height: 62, mt: 'auto', mb: 'auto', mr: 4 }} />
               {/* </Link> */}
-                {user.isAuthenticated === true || token ? 
-                  <>
-                    <BottomNavigation showLabels value={value}
-                      sx={{display: 'flex', justifyContent: 'flex-start', backgroundColor: '#cfe8fc', flexGrow: 1}}>
-                      {userAction.map(actionItem => (
-                        <BottomNavigationAction
-                          key={actionItem.key}
-                          label={actionItem.label}
-                          icon={actionItem.icon}
-                          LinkComponent={actionItem.LinkComponent}
-                          to={actionItem.to}
-                          sx={{color: '#000', maxWidth: actionItem.maxWidth}}
-                        />
-                      ))}  
-                    </BottomNavigation>
+              {user.isAuthenticated === true || token ? 
+                <>
+                  <BottomNavigation showLabels value={value}
+                    sx={{display: 'flex', justifyContent: 'flex-start', backgroundColor: '#cfe8fc', flexGrow: 1}}>
+                    {userAction.map(actionItem => (
+                      <BottomNavigationAction
+                        key={actionItem.key}
+                        label={actionItem.label}
+                        icon={actionItem.icon}
+                        LinkComponent={actionItem.LinkComponent}
+                        to={actionItem.to}
+                        sx={{color: '#000', maxWidth: actionItem.maxWidth}}
+                      />
+                    ))}  
+                  </BottomNavigation>
 
-                    <Button onClick={handleClick} sx={{color: '#000', textTransform: 'none'}}>{user.userFullName}</Button>
-                    <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-                      <MenuItem onClick={() => [setOpenModalChangePassword(true), setIsDialogChangePasswordOpen(true), setAnchorEl(null)]}>Đổi mật khẩu</MenuItem>
-                      <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
-                    </Menu>
-                    <HelpIcon titleAccess='Hướng dẫn' sx={{color: 'black', fontSize: '30px', cursor: 'pointer'}} onClick={() => setOpenModalUserManual(true)} />
+                  <Button onClick={(e) => handleClick(e)} sx={{color: '#000', textTransform: 'none'}}>{user.userFullName}</Button>
+                  <Menu anchorEl={anchorEl} open={open} onClose={() => handleClose()}>
+                    <MenuItem onClick={() => [setOpenModalChangePassword(true), setIsDialogChangePasswordOpen(true), setAnchorEl(null)]}>Đổi mật khẩu</MenuItem>
+                    <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
+                  </Menu>
+                  {/* <HelpIcon titleAccess='Hướng dẫn' sx={{color: 'black', fontSize: '30px', cursor: 'pointer'}} onClick={() => setOpenModalUserManual(true)} /> */}
+                </>
+                :
+                  <>
+                    <Box sx={{position: 'absolute', right: 22}}>
+                      <NavLink exact to="/login"><Button sx={{textTransform: 'none', color: '#000'}}>Đăng nhập</Button></NavLink>
+                      {/* <HelpIcon titleAccess='Hướng dẫn' sx={{color: 'black', fontSize: '30px', cursor: 'pointer'}} onClick={() => setOpenModalUserManual(true)} /> */}
+                    </Box>
                   </>
-                  :
-                    <>
-                      <Box sx={{position: 'absolute', right: 22}}>
-                        <NavLink exact to="/login"><Button sx={{textTransform: 'none', color: '#000'}}>Đăng nhập</Button></NavLink>
-                        <HelpIcon titleAccess='Hướng dẫn' sx={{color: 'black', fontSize: '30px', cursor: 'pointer'}} onClick={() => setOpenModalUserManual(true)} />
-                      </Box>
-                    </>
-                  }            
-                </Toolbar>
+                }            
+            </Toolbar>
           </AppBar>
         </Box>
   
-        <UserManual openModalUserManual={openModalUserManual} setOpenModalUserManual={setOpenModalUserManual}/>
+        {/* <UserManual openModalUserManual={openModalUserManual} setOpenModalUserManual={setOpenModalUserManual}/> */}
         <ChangePassword openModalChangePassword={openModalChangePassword} setOpenModalChangePassword={setOpenModalChangePassword} setIsDialogChangePasswordOpen={setIsDialogChangePasswordOpen}/>
       </>
     )

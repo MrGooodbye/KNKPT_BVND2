@@ -118,7 +118,7 @@ function BookMedical(props) {
     {medicalTypeOrder: 2, medicalTypeName: 'Khám trẻ nguy cơ cao', medicalTypeId: 2},
   ]
 
-  const { isDialogChangePasswordOpen } = useContext(UserContext);
+  const { isDialogChangePasswordOpen, isOldDiseaseWithNullCodeWard, setIsOldDiseaseWithNullCodeWard } = useContext(UserContext);
 
   const [openModalExaminingSession, setOpenModalExaminingSession] = useState(false);
   const [isContinueSelectedExaminingSession, setIsContinueSelectedExaminingSession] = useState(false);
@@ -1381,6 +1381,8 @@ function BookMedical(props) {
     _autocompleteValue.medicalType.value = listMedicalType[indexListMedicalType];
 
     setAutocompleteValue(_autocompleteValue);
+
+    setIsOldDiseaseWithNullCodeWard(true);
     
     document.getElementById('patientAddress').value = dataPatientsRegister.patient.address;
     document.getElementById('patientFullNameMother').value = dataPatientsRegister.patient.fullNameMother;
@@ -1472,6 +1474,10 @@ function BookMedical(props) {
     setDataPatientsRegister(dataPatientsRegisterDefault);
     setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
 
+    if(isOldDiseaseWithNullCodeWard){
+      setIsOldDiseaseWithNullCodeWard(false);
+    }
+
     if(oldDisease){
       setTimeout(() => {
         firstFocusRef.current.focus();
@@ -1508,6 +1514,10 @@ function BookMedical(props) {
 
     firstFocusRef.current.focus();
 
+    if(isOldDiseaseWithNullCodeWard){
+      setIsOldDiseaseWithNullCodeWard(false);
+    }
+
     setDataPatientsRegister(dataPatientsRegisterDefault);
     setAutocompleteValue(autocompleteValueDefault);
     setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
@@ -1535,10 +1545,14 @@ function BookMedical(props) {
   }, [])
 
   useEffect(() => {
+
+  }, [isOldDiseaseWithNullCodeWard])
+
+  useEffect(() => {
     if(dataPatientsRegister.oldDisease === true){
       handleApplyPantientOldDiseaseData();
     }
-  }, [dataPatientsRegister.oldDisease])
+  }, [dataPatientsRegister])
 
   useEffect(() => {
     if(props.dataPantientAppointmentsToday){

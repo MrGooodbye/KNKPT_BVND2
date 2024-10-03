@@ -115,22 +115,21 @@ function ChangePassword(props) {
                         </div>
                     :
                         <>
-
-                            <TextField autoFocus={true} label="Mật khẩu hiện tại" variant="outlined" type={inputPassword.openCurrentPassword ? "text" : "password"} sx={{ width: '40ch', mb: 2.5 }} onChange={(e) => onChangeCurrentPassword(e.target.value)} 
+                            <TextField autoFocus={true} label="Mật khẩu mới" variant="outlined" type={inputPassword.openNewPassword ? "text" : "password"} sx={{ width: '40ch', mb: 2.5 }} onChange={(e) => onChangeNewPassword(e.target.value)}
                                 InputProps={{ // <-- This is where the toggle button is added.
                                     endAdornment: (
                                         <InputAdornment position="end">
-                                            <IconButton onClick={handleClickShowCurrentPassword} sx={{padding: '1px'}}> {inputPassword.openCurrentPassword  ? <VisibilityIcon /> : <VisibilityOffIcon />}</IconButton>
+                                            <IconButton onClick={handleClickShowNewPassword} sx={{padding: '1px'}}> {inputPassword.openNewPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}</IconButton>
                                         </InputAdornment>
                                     )
                                 }}
                             />
 
-                            <TextField label="Mật khẩu mới" variant="outlined" type={inputPassword.openNewPassword ? "text" : "password"} sx={{ width: '40ch', mb: 2.5 }} onChange={(e) => onChangeNewPassword(e.target.value)}
+                            <TextField label="Mật khẩu hiện tại" variant="outlined" type={inputPassword.openCurrentPassword ? "text" : "password"} sx={{ width: '40ch', mb: 2.5 }} onChange={(e) => onChangeCurrentPassword(e.target.value)} 
                                 InputProps={{ // <-- This is where the toggle button is added.
                                     endAdornment: (
                                         <InputAdornment position="end">
-                                            <IconButton onClick={handleClickShowNewPassword} sx={{padding: '1px'}}> {inputPassword.openNewPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}</IconButton>
+                                            <IconButton onClick={handleClickShowCurrentPassword} sx={{padding: '1px'}}> {inputPassword.openCurrentPassword  ? <VisibilityIcon /> : <VisibilityOffIcon />}</IconButton>
                                         </InputAdornment>
                                     )
                                 }}

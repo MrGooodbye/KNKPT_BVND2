@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 //modal
 import AlertProcessingBackdrop from '../components/ManageAlertProcessingBackdrop/AlertProcessingBackdrop';
-//api
-import { getUserLogin } from '../Service/UserService';
-import { getCurrentDoctorExamining } from '../Service/MedicalService';
 
 const UserContext = React.createContext(null);
 
@@ -26,6 +23,8 @@ const UserProvider = ({ children }) => {
     const [openAlertProcessingBackdrop, setOpenAlertProcessingBackdrop] = useState(false);
 
     const [isDialogChangePasswordOpen, setIsDialogChangePasswordOpen] = useState(false);
+
+    const [isOldDiseaseWithNullCodeWard, setIsOldDiseaseWithNullCodeWard] = useState(false);
 
     const loginContext = (userContextLogin) => {
         setUser({ ...userContextLogin });
@@ -58,19 +57,19 @@ const UserProvider = ({ children }) => {
         setLoading(...loading);
     }
 
-    const fetchUser = async () => {
-        setOpenAlertProcessingBackdrop(true);
-        const response = await getUserLogin();
-        setUser({
-                isAuthenticated: true, 
-                isLogin: true,
-                userId: response.userId,
-                userFullName: response.userFullName,
-                positionName: response.positionName
-            }) 
-        setLoading(false);
-        setOpenAlertProcessingBackdrop(false);
-    }
+    // const fetchUser = async () => {
+    //     setOpenAlertProcessingBackdrop(true);
+    //     const response = await getUserLogin();
+    //     setUser({
+    //             isAuthenticated: true, 
+    //             isLogin: true,
+    //             userId: response.userId,
+    //             userFullName: response.userFullName,
+    //             positionName: response.positionName
+    //         }) 
+    //     setLoading(false);
+    //     setOpenAlertProcessingBackdrop(false);
+    // }
 
     const parseJwt = (token) => {
         try {
@@ -129,7 +128,8 @@ const UserProvider = ({ children }) => {
             <UserContext.Provider 
                 value={{ user, loading, loadingContext, loginContext, 
                     logoutContext, alertVisible, triggerAlert, confirmAlert, resetAlert, isLogOutClick,
-                    isDialogChangePasswordOpen, setIsDialogChangePasswordOpen
+                    isDialogChangePasswordOpen, setIsDialogChangePasswordOpen,
+                    isOldDiseaseWithNullCodeWard, setIsOldDiseaseWithNullCodeWard
                 }}>
                 {children}
             </UserContext.Provider>

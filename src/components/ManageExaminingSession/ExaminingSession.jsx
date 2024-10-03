@@ -1,4 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
+//context
+import { UserContext } from '../../context/UserContext';
 //mui theme
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -20,13 +22,15 @@ import AlertProcessing from '../ManageAlertProcessing/AlertProcessing';
 //toast
 import {toast} from 'react-toastify';
 //api
-import { createMedicalRegister, createMedicalBackRegister, getListMedicalExaminationsGiveRegister, getListMedicalExaminationsGiveOldRegister } from '../../Service/MedicalService';
+import { createMedicalRegister, createMedicalBackRegister, createNotificationForMedicalRegister, getListMedicalExaminationsGiveRegister, getListMedicalExaminationsGiveOldRegister } from '../../Service/MedicalService';
 
 function ExaminingSession(props) {
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const [openAlertProcessing, setOpenAlertProcessing] = useState(false);
 
     const [listExaminingSession, setListExaminingSession] = useState(null);
+
+    const { isOldDiseaseWithNullCodeWard, setIsOldDiseaseWithNullCodeWard } = useContext(UserContext);
 
     const onChangeRadioSelect = (value) => {
         props.dataPatientsRegister.examinationId = value;
@@ -59,6 +63,10 @@ function ExaminingSession(props) {
                 const response = await createMedicalBackRegister(props.dataPatientsRegister);
                 setOpenAlertProcessing(false);
                 if(response.status === 200){
+                    await createNotificationForMedicalRegister();
+                    if(isOldDiseaseWithNullCodeWard){
+                        setIsOldDiseaseWithNullCodeWard(false);
+                    }
                     toast.success(response.data);
                     setListExaminingSession(null);
                     props.setIsContinueSelectedExaminingSession(false);
@@ -77,6 +85,7 @@ function ExaminingSession(props) {
                 const response = await createMedicalBackRegister(props.dataPatientsRegister);
                 setOpenAlertProcessing(false);
                 if(response.status === 200){
+                    await createNotificationForMedicalRegister();
                     toast.success(response.data);
                     setListExaminingSession(null);
                     props.setIsContinueSelectedExaminingSession(false);
@@ -97,6 +106,7 @@ function ExaminingSession(props) {
             setOpenAlertProcessing(false);
 
             if(response.status === 200){
+                await createNotificationForMedicalRegister();
                 toast.success(response.data);
                 setListExaminingSession(null);
                 props.handleResetField();

@@ -23,6 +23,8 @@ import { UserContext } from '../../context/UserContext';
 //api
 import { userLogin } from '../../Service/UserService';
 import { getCurrentDoctorExamining } from '../../Service/MedicalService';
+//signal
+import { startSignalRConnection } from '../../Service/SignalService';
 
 const Login = () => {
     const { user, loadingContext, loginContext } = useContext(UserContext);
@@ -64,11 +66,14 @@ const Login = () => {
         else{
             setOpenAlertProcessingBackdrop(true);
             const response = await userLogin(userAccount.userName, userAccount.password);
-            setOpenAlertProcessingBackdrop(false);
             if(response.status !== 200){
                 toast.error(response.data);
             }
             else{
+                if(response.data.positionName === 'Doctor'){
+                    await startSignalRConnection(response.data.tokenDTO.token);
+                }
+
                 localStorage.setItem('jwt', response.data.tokenDTO.token)
                 const userLogin = {
                     isAuthenticated: true, 
@@ -91,6 +96,7 @@ const Login = () => {
                 else if(response.data.positionName === 'Admin'){
                     history.push('/dashboard');
                 }
+                setOpenAlertProcessingBackdrop(false);
             }
         }
     }

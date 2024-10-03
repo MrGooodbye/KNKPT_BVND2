@@ -64,7 +64,7 @@ import moment from 'moment';
 //scss
 import './SCSS/DoctorExamining.scss';
 //real-time
-import {startSignalRConnection, stopSignalRConnection, removeFromGroup} from '../../Service/SignalService';
+import {startSignalRConnection, onReceiveMessage} from '../../Service/SignalService';
 //api
 import { 
     createAddPredecessor,
@@ -1975,34 +1975,22 @@ function MainDoctorExamining() {
 
     const classes = useStyles();
 
-    const reFetchListDataPatientsRegister = async () => {
-        if(dataPantientsReadyExamining.id === ''){
-            const response = await getRegistersByDateNow();
-            if(response.list.length !== listDataPatientsRegister.length){
+    useEffect(() => {
+        // Đăng ký sự kiện nhận thông báo bn đăng ký khám khi component được mount
+        const handleReceiveMessage = (medicalRegisterMessage) => {
+            if(medicalRegisterMessage === true && dataPantientsReadyExamining.id === ''){
+                setLoadingPatient(true);
                 handleGetRegistersByDateNow();
             }
-        }
-    }
+        };
 
-    // useEffect(() => {
-    //     // Khởi tạo kết nối SignalR khi component mount
-    //     const token = localStorage.getItem("jwt");
-    //     startSignalRConnection(token);
+        startSignalRConnection(localStorage.getItem('jwt', handleReceiveMessage))
 
-    //     return () => {
-    //         // Dừng kết nối SignalR khi component unmount
-    //         stopSignalRConnection();
-    //     };
-    // }, [])
+        onReceiveMessage(handleReceiveMessage);
 
-    useEffect(() => {
-        // Đặt setInterval để gọi API sau 30 giây
-        const intervalId = setInterval(() => {
-            reFetchListDataPatientsRegister();
-        }, 30000); // 30000ms = 30 giây
-
-        // Cleanup interval khi component unmount để tránh memory leak
-        return () => clearInterval(intervalId);
+        return () => {
+            // Dừng lắng nghe sự kiện nếu cần khi component Chat unmount
+        };
     }, [])
 
     useEffect(() => {
