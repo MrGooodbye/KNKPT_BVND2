@@ -1545,14 +1545,10 @@ function BookMedical(props) {
   }, [])
 
   useEffect(() => {
-
-  }, [isOldDiseaseWithNullCodeWard])
-
-  useEffect(() => {
     if(dataPatientsRegister.oldDisease === true){
       handleApplyPantientOldDiseaseData();
     }
-  }, [dataPatientsRegister])
+  }, [dataPatientsRegister.oldDisease])
 
   useEffect(() => {
     if(props.dataPantientAppointmentsToday){
