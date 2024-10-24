@@ -80,6 +80,7 @@ function MainDoctorExamining() {
         stt: '',
         id: '',
         patientsId: '',
+        patientCode: '',
         patientsName: '',
         patientsDOB: '',
         patientsMonthsOld: '',
@@ -378,6 +379,7 @@ function MainDoctorExamining() {
         _dataPantientsReadyExamining.id = dataPantientItem.id;
         _dataPantientsReadyExamining.status = 0;
         _dataPantientsReadyExamining.patientsId = dataPantientItem.patient.patientId;
+        _dataPantientsReadyExamining.patientCode = dataPantientItem.patient.patientCode;
         _dataPantientsReadyExamining.patientsName = dataPantientItem.patient.fullName;
         _dataPantientsReadyExamining.patientsDOB = dataPantientItem.patient.dayOfBirth;
         _dataPantientsReadyExamining.patientsMonthsOld = dataPantientItem.patient.monthsOfAge;
@@ -1978,6 +1980,7 @@ function MainDoctorExamining() {
     useEffect(() => {
         // Đăng ký sự kiện nhận thông báo bn đăng ký khám khi component được mount
         const handleReceiveMessage = (medicalRegisterMessage) => {
+            console.log(medicalRegisterMessage);
             if(medicalRegisterMessage === true && dataPantientsReadyExamining.id === ''){
                 setLoadingPatient(true);
                 handleGetRegistersByDateNow();
@@ -2229,7 +2232,7 @@ function MainDoctorExamining() {
                                                         onClick={() => handleSelectPantientExamining(dataPantientItem)}
                                                     >
                                                         <TableCell align='left' sx={{width: '20px'}}>{dataPantientItem.order}</TableCell>
-                                                        <TableCell align='left' sx={{width: '150px'}}>{dataPantientItem.patient.patientId}</TableCell>
+                                                        <TableCell align='left' sx={{width: '150px'}}>{dataPantientItem.patient.patientCode}</TableCell>
                                                         <TableCell align='left' sx={{width: '240px'}}>{dataPantientItem.patient.fullName}</TableCell>
                                                     </TableRow>
                                                 ))}
@@ -2377,7 +2380,7 @@ function MainDoctorExamining() {
                                             <Grid container rowSpacing={2} columnSpacing={{ xs: 1, sm: 2, md: 4}}>
 
                                                 <Grid item xs={4} sx={{display: 'inline-flex'}}>
-                                                    <PinIcon sx={{color: 'tomato'}}/><Typography variant='subtitle1' sx={{ml: 1}}>{`Mã BN: ${dataPantientsReadyExamining.patientsId || ''}`}</Typography>
+                                                    <PinIcon sx={{color: 'tomato'}}/><Typography variant='subtitle1' sx={{ml: 1}}>{`Mã BN: ${dataPantientsReadyExamining.patientCode || ''}`}</Typography>
                                                 </Grid>
                                                 <Grid item xs={5} sx={{display: 'inline-flex'}}>
                                                     <PersonIcon sx={{color: 'tomato'}}/><Typography variant='subtitle1' sx={{ml: 1}}>{`Họ tên: ${dataPantientsReadyExamining.patientsName || ''}`}</Typography>
@@ -2610,7 +2613,7 @@ function MainDoctorExamining() {
                                                             :
                                                                 
                                                                 <>
-                                                                    <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center', fontSize: '1.2rem', lineHeight: 1, mt: 1}}>{currentHealthRecordExamining.healthRecordsName}</Typography>
+                                                                    <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center', fontSize: '1.2rem', lineHeight: 1, mt: 1}}>{currentHealthRecordExamining ? currentHealthRecordExamining.healthRecordsName : ''}</Typography>
                                                                     <div className='health-record-content'>
                                                                         <List sx={{p: 0}}>
                                                                             {currentHealthRecordExamining.categoryPatients.map((categoryPatientsItem, categoryPatientsIndex) => (

@@ -1177,6 +1177,7 @@ function ManageInfoPantients(props) {
       if(response.status === 200){
         toast.success(response.data, {toastId: 'success1'});
         props.setCompleteMedicalRegister(true);
+        props.setIsEditedInfo(true);
         handleCloseModalInfoPantients();
       }
       else{

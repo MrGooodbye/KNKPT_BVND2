@@ -1,4 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
+//lodash
+import _ from "lodash";
 //info pantients modal
 import ManageInfoPantients from '../ManageInfoPantients/ManageInfoPantients';
 import AlertProcessingBackdrop from '../ManageAlertProcessingBackdrop/AlertProcessingBackdrop';
@@ -59,6 +61,8 @@ function ListPatientsRegister(props) {
   const [openModalInfoPantients, setOpenModalInfoPantients] = useState(false);
   const [isContinueUpdateMedicalRegister, setIsContinueUpdateMedicalRegister] = useState();
 
+  const [isEditedInfo, setIsEditedInfo] = useState(false);
+
   const renderPatientsStatus = (state) => {
     if(state === 0 || state === 3){
       return(
@@ -115,8 +119,8 @@ function ListPatientsRegister(props) {
   const searchPatients = (patients, searchTerm) => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
     return patients.filter(patientObj => {
-      const { patientId, fullName, phoneMother, phoneFather } = patientObj.patient;
-      return patientId.toLowerCase().includes(lowerCaseSearchTerm) || fullName.toLowerCase().includes(lowerCaseSearchTerm) || phoneMother.toLowerCase().includes(lowerCaseSearchTerm) || phoneFather.toLowerCase().includes(lowerCaseSearchTerm);
+      const { patientCode, fullName, phoneMother, phoneFather } = patientObj.patient;
+      return patientCode.toLowerCase().includes(lowerCaseSearchTerm) || fullName.toLowerCase().includes(lowerCaseSearchTerm) || phoneMother.toLowerCase().includes(lowerCaseSearchTerm) || phoneFather.toLowerCase().includes(lowerCaseSearchTerm);
     });
   }
 
@@ -128,11 +132,11 @@ function ListPatientsRegister(props) {
 
   const handleSelectedPantientAppointmentsToday = async (patientsRegisterSortItem) => {
     setOpenAlertProcessingBackdrop(true);
-    const responseVaccinationByPatientId = await getVaccinationByPatientId(patientsRegisterSortItem.patient.patientId);
+    const responseVaccinationByPatientId = await getVaccinationByPatientId(patientsRegisterSortItem.patient.patientCode);
     const dataPantientOldOldDiseaseRegister = {
       examinationId: patientsRegisterSortItem.patient.nextExamId,
       oldDisease: true,
-      height: '',
+      height: '', 
       weight: '',
       headCircumference: '',
       reason: '',
@@ -163,7 +167,7 @@ function ListPatientsRegister(props) {
         const result = {
           patient : {
             identifier: item.identifier,
-            patientId: item.patientId,
+            patientCode: item.patientCode,
             fullName: item.patientFullName,
             gender: item.gender,
             dayOfBirth: item.dateOfBirth,
@@ -190,28 +194,34 @@ function ListPatientsRegister(props) {
         setListDataPatientsRegister(response.list);
         if(activeChip.chipOrder === 0){
           const listPantientRegisterWaiting = response.list.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1 || patientsRegisterItem.state === 3) //chờ khám và đang khám và tái khám
-          setListDataPatientsRegisterSort(listPantientRegisterWaiting);
-          setListDataPatientsRegisterState(listPantientRegisterWaiting);
+          setListDataPatientsRegisterSort(_.cloneDeep(listPantientRegisterWaiting));
+          setListDataPatientsRegisterState(_.cloneDeep(listPantientRegisterWaiting));
           updatedList[0].chipContent = response.listCountState[0];
           updatedList[1].chipContent = response.listCountState[1];
         }
         else if(activeChip.chipOrder === 1){
           const listPantientRegisterDone = listDataPatientsRegister.filter(patientsRegisterItem => patientsRegisterItem.state === 2) //đã khám
-          setListDataPatientsRegisterSort(listPantientRegisterDone);
-          setListDataPatientsRegisterState(listPantientRegisterDone);
+          setListDataPatientsRegisterSort(_.cloneDeep(listPantientRegisterDone));
+          setListDataPatientsRegisterState(_.cloneDeep(listPantientRegisterDone));
           updatedList[0].chipContent = response.listCountState[0];
           updatedList[1].chipContent = response.listCountState[1];
         }
         else if(activeChip.chipOrder === 2){
-          setListDataPatientsRegisterSort(_listDataPatientsAppointmentsToday);
-          setListDataPatientsRegisterState(_listDataPatientsAppointmentsToday);
+          setListDataPatientsRegisterSort(_.cloneDeep(_listDataPatientsAppointmentsToday));
+          setListDataPatientsRegisterState(_.cloneDeep(_listDataPatientsAppointmentsToday));
           updatedList[0].chipContent = response.listCountState[0];
           updatedList[1].chipContent = response.listCountState[1];
         }
       }
     }
     setListPantientChipState(updatedList);
+
+    if(isEditedInfo){
+      setIsEditedInfo(false);
+    }
+
     props.setComponent1Loading(false);
+
     setLoading(false);
   }
 
@@ -238,8 +248,16 @@ function ListPatientsRegister(props) {
   }, [openModalInfoPantients, isContinueUpdateMedicalRegister]);
 
   useEffect(() => {
-    if(props.completeMedicalRegister === true){
+    if(isEditedInfo){
       handleGetRegistersByDateNow();
+    }
+  }, [isEditedInfo, listDataPatientsRegister, listDataPatientsRegisterSort])
+
+  useEffect(() => {
+    if(props.completeMedicalRegister === true){
+      setListDataPatientsRegister([]);
+      setListDataPatientsRegisterSort([]);
+      setListDataPatientsRegisterState([]);
       props.setCompleteMedicalRegister(false);
     }
   }, [props.completeMedicalRegister])
@@ -346,7 +364,7 @@ function ListPatientsRegister(props) {
                                 <TableCell align='left' sx={{width: '20px'}}>{patientsRegisterSortItem.order}</TableCell>
                               </>
                             }
-                            <TableCell align='left' sx={{width: '150px'}}>{patientsRegisterSortItem.patient.patientId}</TableCell>
+                            <TableCell align='left' sx={{width: '150px'}}>{patientsRegisterSortItem.patient.patientCode}</TableCell>
                             <TableCell align='left' sx={{width: '200px'}}>{patientsRegisterSortItem.patient.fullName}</TableCell>
                             <TableCell align='left' sx={{width: '110px'}}>{patientsRegisterSortItem.patient.gender === true ? 'Nam' : 'Nữ'}</TableCell>
                             <TableCell align='left' sx={{width: '110px'}}>{moment(patientsRegisterSortItem.patient.dayOfBirth).format("DD/MM/YYYY")}</TableCell>
@@ -378,6 +396,7 @@ function ListPatientsRegister(props) {
         selectedPantientInfo={selectedPantientInfo} setSelectedPantientInfo={setSelectedPantientInfo}
         isContinueUpdateMedicalRegister={isContinueUpdateMedicalRegister} setIsContinueUpdateMedicalRegister={setIsContinueUpdateMedicalRegister}
         setCompleteMedicalRegister={props.setCompleteMedicalRegister}
+        setIsEditedInfo={setIsEditedInfo}
       />
     </>
   )

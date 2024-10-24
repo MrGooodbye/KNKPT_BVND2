@@ -32,9 +32,9 @@ import { getListOldDisease, getVaccinationByPatientId } from '../../Service/Medi
 
 function OldDisease(props) {
 
-    const dataPatientsForSearchOldDiseaseDefault = {patientId: '', phone: '', fullName: '', dayOfBirth: ''}
+    const dataPatientsForSearchOldDiseaseDefault = {patientCode: '', phone: '', fullName: '', dayOfBirth: ''}
     const dataPatientsForSearchOldDiseaseErrorDefault = {
-        patientId: { title: '', isError: false, openTooltip: false, focus: false},
+        patientCode: { title: '', isError: false, openTooltip: false, focus: false},
         phone: { title: '', isError: false, openTooltip: false, focus: false },
         fullName: { title: '', isError: false, openTooltip: false, focus: false },
         dayOfBirth: { title: '', isError: false, openTooltip: false, focus: false },
@@ -89,18 +89,18 @@ function OldDisease(props) {
     const handleBlur = (value, fieldName) => {
         if(value === '' || value === 'DD/MM/YYYY'){
             const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
-            if(fieldName === 'patientId'){
+            if(fieldName === 'patientCode'){
                 if(typingRef.current){
                     clearInterval(typingRef.current);
                 }
                 
                 typingRef.current = setTimeout(() => {  
-                    _dataPatientsForSearchOldDiseaseError.patientId.title = '';
-                    _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = false;
+                    _dataPatientsForSearchOldDiseaseError.patientCode.title = '';
+                    _dataPatientsForSearchOldDiseaseError.patientCode.openTooltip = false;
                     setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
                 }, 10)
                 
-                if(focusField === 'patientId'){
+                if(focusField === 'patientCode'){
                     setFocusField(null);
                 }
             }
@@ -133,26 +133,26 @@ function OldDisease(props) {
             typingRef.current = setTimeout(() => {
                 const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
                 if(value.length < 8){
-                    _dataPatientsForSearchOldDiseaseError.patientId.title = 'Mã bệnh nhân phải từ 8 đến 12 số';
-                    _dataPatientsForSearchOldDiseaseError.patientId.isError = true;
-                    _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = true;
+                    _dataPatientsForSearchOldDiseaseError.patientCode.title = 'Mã bệnh nhân phải từ 8 đến 12 số';
+                    _dataPatientsForSearchOldDiseaseError.patientCode.isError = true;
+                    _dataPatientsForSearchOldDiseaseError.patientCode.openTooltip = true;
                     setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
                 }
 
                 else{
-                    if(focusField === 'patientId'){
+                    if(focusField === 'patientCode'){
                         setFocusField(null);
                     }
 
                     setDataPatientsForSearchOldDisease((prevDataPatientsForSearchOldDisease) => {
-                        prevDataPatientsForSearchOldDisease.patientId = takenValue;
+                        prevDataPatientsForSearchOldDisease.patientCode = takenValue;
                         return {...prevDataPatientsForSearchOldDisease}
                     })
 
-                    _dataPatientsForSearchOldDiseaseError.patientId.title = '';
-                    _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
-                    _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = false;
-                    _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
+                    _dataPatientsForSearchOldDiseaseError.patientCode.title = '';
+                    _dataPatientsForSearchOldDiseaseError.patientCode.isError = false;
+                    _dataPatientsForSearchOldDiseaseError.patientCode.openTooltip = false;
+                    _dataPatientsForSearchOldDiseaseError.patientCode.isError = false;
                     _dataPatientsForSearchOldDiseaseError.fullName.isError = false;
                     _dataPatientsForSearchOldDiseaseError.dayOfBirth.isError = false;
                     _dataPatientsForSearchOldDiseaseError.phone.isError = false;
@@ -162,9 +162,9 @@ function OldDisease(props) {
         }
         else{
             const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
-            _dataPatientsForSearchOldDiseaseError.patientId.title = '';
-            _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = false;
-            _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
+            _dataPatientsForSearchOldDiseaseError.patientCode.title = '';
+            _dataPatientsForSearchOldDiseaseError.patientCode.openTooltip = false;
+            _dataPatientsForSearchOldDiseaseError.patientCode.isError = false;
             setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
         } 
     }
@@ -180,7 +180,7 @@ function OldDisease(props) {
         })
 
         const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
-        _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
+        _dataPatientsForSearchOldDiseaseError.patientCode.isError = false;
         _dataPatientsForSearchOldDiseaseError.fullName.isError = false;
         _dataPatientsForSearchOldDiseaseError.dayOfBirth.isError = false;
         _dataPatientsForSearchOldDiseaseError.phone.isError = false;
@@ -221,7 +221,7 @@ function OldDisease(props) {
 
                 _dataPatientsForSearchOldDiseaseError.dayOfBirth.title = '';
                 _dataPatientsForSearchOldDiseaseError.dayOfBirth.openTooltip = false;
-                _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
+                _dataPatientsForSearchOldDiseaseError.patientCode.isError = false;
                 _dataPatientsForSearchOldDiseaseError.fullName.isError = false;
                 _dataPatientsForSearchOldDiseaseError.dayOfBirth.isError = false;
                 _dataPatientsForSearchOldDiseaseError.phone.isError = false;
@@ -259,7 +259,7 @@ function OldDisease(props) {
                     _dataPatientsForSearchOldDiseaseError.phone.title = '';
                     _dataPatientsForSearchOldDiseaseError.phone.openTooltip = false;
                     _dataPatientsForSearchOldDiseaseError.phone.isError = false;
-                    _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
+                    _dataPatientsForSearchOldDiseaseError.patientCode.isError = false;
                     _dataPatientsForSearchOldDiseaseError.fullName.isError = false;
                     _dataPatientsForSearchOldDiseaseError.dayOfBirth.isError = false;                
                     setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
@@ -268,9 +268,9 @@ function OldDisease(props) {
         }
         else{
             const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
-            _dataPatientsForSearchOldDiseaseError.patientId.title = '';
-            _dataPatientsForSearchOldDiseaseError.patientId.openTooltip = false;
-            _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
+            _dataPatientsForSearchOldDiseaseError.patientCode.title = '';
+            _dataPatientsForSearchOldDiseaseError.patientCode.openTooltip = false;
+            _dataPatientsForSearchOldDiseaseError.patientCode.isError = false;
             setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
         } 
 
@@ -294,7 +294,7 @@ function OldDisease(props) {
                 _dataPatientsForSearchOldDiseaseError.phone.title = '';
                 _dataPatientsForSearchOldDiseaseError.phone.openTooltip = false;
                 _dataPatientsForSearchOldDiseaseError.phone.isError = false;
-                _dataPatientsForSearchOldDiseaseError.patientId.isError = false;
+                _dataPatientsForSearchOldDiseaseError.patientCode.isError = false;
                 _dataPatientsForSearchOldDiseaseError.fullName.isError = false;
                 _dataPatientsForSearchOldDiseaseError.dayOfBirth.isError = false;                
                 setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
@@ -333,21 +333,21 @@ function OldDisease(props) {
         const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
         let isValid = true;
 
-        if(dataPatientsForSearchOldDisease.patientId === '' && dataPatientsForSearchOldDisease.fullName === '' && 
+        if(dataPatientsForSearchOldDisease.patientCode === '' && dataPatientsForSearchOldDisease.fullName === '' && 
             dataPatientsForSearchOldDisease.dayOfBirth === '' && dataPatientsForSearchOldDisease.phone === '')
         {
-            _dataPatientsForSearchOldDiseaseError.patientId.isError = true;
+            _dataPatientsForSearchOldDiseaseError.patientCode.isError = true;
             _dataPatientsForSearchOldDiseaseError.fullName.isError = true;
             _dataPatientsForSearchOldDiseaseError.dayOfBirth.isError = true;
             _dataPatientsForSearchOldDiseaseError.phone.isError = true;
             isValid = false;
         }
 
-        if(dataPatientsForSearchOldDiseaseError.patientId.title !== ''){
+        if(dataPatientsForSearchOldDiseaseError.patientCode.title !== ''){
             if(Object.values(dataPatientsForSearchOldDiseaseError).every(item => item.focus === false)){
-                _dataPatientsForSearchOldDiseaseError.patientId.isError = true;
-                _dataPatientsForSearchOldDiseaseError.patientId.focus = true;
-                setFocusField('patientId');
+                _dataPatientsForSearchOldDiseaseError.patientCode.isError = true;
+                _dataPatientsForSearchOldDiseaseError.patientCode.focus = true;
+                setFocusField('patientCode');
             }
             isValid = false;
         }
@@ -377,7 +377,7 @@ function OldDisease(props) {
     const handleFindOldDisease = async () => {
         await new Promise(resolve => setTimeout(resolve, 5 * 100));
         setOpenAlertProcessing(true);
-        const response = await getListOldDisease(dataPatientsForSearchOldDisease.patientId, dataPatientsForSearchOldDisease.phone, dataPatientsForSearchOldDisease.fullName, dataPatientsForSearchOldDisease.dayOfBirth, '');
+        const response = await getListOldDisease(dataPatientsForSearchOldDisease.patientCode, dataPatientsForSearchOldDisease.phone, dataPatientsForSearchOldDisease.fullName, dataPatientsForSearchOldDisease.dayOfBirth, '');
         setOpenAlertProcessing(false);
         setListFoundOldDisease(response);
         setDataPatientsForSearchOldDisease(dataPatientsForSearchOldDiseaseDefault);
@@ -412,7 +412,7 @@ function OldDisease(props) {
 
     const handleApplyDataPatientOldDisease = async (foundOldDiseaseItem) => {
         setOpenAlertProcessing(true);
-        const responseVaccinationByPatientId = await getVaccinationByPatientId(foundOldDiseaseItem.patientId);
+        const responseVaccinationByPatientId = await getVaccinationByPatientId(foundOldDiseaseItem.patientCode);
         const dataPantientOldOldDiseaseRegister = {
             examinationId: '',
             oldDisease: true,
@@ -425,7 +425,7 @@ function OldDisease(props) {
             medicalTypeId: responseVaccinationByPatientId.medicalTypeId,
             userIdDoctor: '',
             patient: {
-                patientId: foundOldDiseaseItem.patientId,
+                patientCode: foundOldDiseaseItem.patientCode,
                 identifier: foundOldDiseaseItem.identifier,
                 address: foundOldDiseaseItem.address,
                 fullName: foundOldDiseaseItem.fullName,
@@ -453,16 +453,16 @@ function OldDisease(props) {
                 <DialogContent dividers sx={{p: '10px 24px'}}>
                     <Box sx={{display: 'flex', justifyContent: 'space-around'}} component="form" ref={formRef}>
                         <ThemeProvider theme={tooltipTheme}>
-                            <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsForSearchOldDiseaseError.patientId.title}</h6>} open={dataPatientsForSearchOldDiseaseError.patientId.openTooltip}>
+                            <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsForSearchOldDiseaseError.patientCode.title}</h6>} open={dataPatientsForSearchOldDiseaseError.patientCode.openTooltip}>
                                 <TextField 
                                     sx={{'&.MuiTextField-root' : {marginTop: '7.5px'}}} 
-                                    error={true ? dataPatientsForSearchOldDiseaseError.patientId.isError === true : false}
+                                    error={true ? dataPatientsForSearchOldDiseaseError.patientCode.isError === true : false}
                                     label="Mã BN" variant="outlined" size='small'
                                     autoFocus
-                                    inputRef={(input) => input && focusField === 'patientId' && input.focus()}
+                                    inputRef={(input) => input && focusField === 'patientCode' && input.focus()}
                                     inputProps={{ maxLength: 12 }}
                                     onChange={(e) => onChangePatientId(e.target.value)}
-                                    onBlur={(e) => handleBlur(e.target.value, 'patientId')}
+                                    onBlur={(e) => handleBlur(e.target.value, 'patientCode')}
                                     onKeyDown={handleKeyDown} 
                                 />
                             </Tooltip>
@@ -552,7 +552,7 @@ function OldDisease(props) {
                                                             selected={selectedRowIndex === foundOldDiseaseIndex} 
                                                             onDoubleClick={() => handleApplyDataPatientOldDisease(foundOldDiseaseItem)}
                                                         >
-                                                            <TableCell align='left' >{foundOldDiseaseItem.patientId}</TableCell>
+                                                            <TableCell align='left' >{foundOldDiseaseItem.patientCode}</TableCell>
                                                             <TableCell align='left' >{foundOldDiseaseItem.fullName}</TableCell>
                                                             <TableCell align='left' >{moment(foundOldDiseaseItem.dayOfBirth).format('DD/MM/YYYY')}</TableCell>
                                                             <TableCell align='left' >{foundOldDiseaseItem.gender === true ? 'Nam' : 'Nữ'}</TableCell>

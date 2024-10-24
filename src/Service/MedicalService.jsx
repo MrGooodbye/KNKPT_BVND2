@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const backendURL = 'https://api-knkpt.somee.com';
+const backendURL = 'https://beknkpt2.dvtien.id.vn';
 
 const createConfig = () => {
     const token = localStorage.getItem("jwt");

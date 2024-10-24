@@ -39,7 +39,7 @@ function ExaminingSession(props) {
     const handleListMedicalExaminationsGiveRegister = async () =>  {
         if(props.dataPatientsRegister.oldDisease){
             setOpenAlertProcessing(true);
-            const response = await getListMedicalExaminationsGiveOldRegister(props.dataPatientsRegister.patient.dayOfBirth, props.dataPatientsRegister.patient.patientId);
+            const response = await getListMedicalExaminationsGiveOldRegister(props.dataPatientsRegister.patient.dayOfBirth, props.dataPatientsRegister.patient.patientCode);
             setListExaminingSession(response);
             props.dataPatientsRegister.examinationId = response.exams[0].id;
             setOpenAlertProcessing(false);
@@ -58,10 +58,9 @@ function ExaminingSession(props) {
         if(props.dataPatientsRegister.oldDisease === true && props.dataPatientsRegister.examinationId !== ''){
             //là bênh mới đã đăng ký nhưng chưa từng khám bao giờ
             if(listExaminingSession.isAppointment === false && listExaminingSession.oldExams.length === 0){
-                setIsConfirmOpen(false);
+                //setIsConfirmOpen(false);
                 setOpenAlertProcessing(true);
                 const response = await createMedicalBackRegister(props.dataPatientsRegister);
-                setOpenAlertProcessing(false);
                 if(response.status === 200){
                     await createNotificationForMedicalRegister();
                     if(isOldDiseaseWithNullCodeWard){
@@ -77,13 +76,13 @@ function ExaminingSession(props) {
                 else{
                     toast.error(response.data, {toastId: 'error1'});
                 }
+                setOpenAlertProcessing(false);
             }
             //có hẹn khám nhưng không nhắc khám hoặc đến trễ ngày hẹn khám
             else{
-                setIsConfirmOpen(false);
+                //setIsConfirmOpen(false);
                 setOpenAlertProcessing(true);
                 const response = await createMedicalBackRegister(props.dataPatientsRegister);
-                setOpenAlertProcessing(false);
                 if(response.status === 200){
                     await createNotificationForMedicalRegister();
                     toast.success(response.data);
@@ -96,6 +95,7 @@ function ExaminingSession(props) {
                 else{
                     toast.error(response.data, {toastId: 'error1'});
                 }
+                setOpenAlertProcessing(false);
             }
         }
         //bệnh mới
@@ -103,7 +103,6 @@ function ExaminingSession(props) {
             //setIsConfirmOpen(false);
             setOpenAlertProcessing(true);
             const response = await createMedicalRegister(props.dataPatientsRegister);
-            setOpenAlertProcessing(false);
 
             if(response.status === 200){
                 await createNotificationForMedicalRegister();
@@ -117,6 +116,7 @@ function ExaminingSession(props) {
             else{
                 toast.error(response.data, {toastId: 'error1'});
             }
+            setOpenAlertProcessing(false);
         }
     }
 
@@ -187,7 +187,7 @@ function ExaminingSession(props) {
                                     <Box sx={{border: '2px solid red', p: 1, height: '50vh'}}>
                                         <div style={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center'}}>
                                             <Typography variant='h6' sx={{fontWeight: 'bolder', color: 'red'}}>Chọn kỳ khám</Typography>
-                                            <RadioGroup key={`${props.dataPatientsRegister.patient.patientId}`} defaultValue={listExaminingSession.exams[0].id} onChange={(e) => onChangeRadioSelect(e.target.value)}>
+                                            <RadioGroup key={`${props.dataPatientsRegister.patient.patientCode}`} defaultValue={listExaminingSession.exams[0].id} onChange={(e) => onChangeRadioSelect(e.target.value)}>
                                                 {listExaminingSession.exams.map((examItem, examIndex) => (
                                                     <FormControlLabel key={`${examIndex}`} value={examItem.id} control={<Radio />} label={examItem.name} />
                                                 ))}

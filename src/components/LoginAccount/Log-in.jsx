@@ -68,6 +68,7 @@ const Login = () => {
             const response = await userLogin(userAccount.userName, userAccount.password);
             if(response.status !== 200){
                 toast.error(response.data);
+                setOpenAlertProcessingBackdrop(false);
             }
             else{
                 if(response.data.positionName === 'Doctor'){
