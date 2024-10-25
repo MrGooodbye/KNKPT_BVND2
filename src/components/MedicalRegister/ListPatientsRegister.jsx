@@ -132,7 +132,7 @@ function ListPatientsRegister(props) {
 
   const handleSelectedPantientAppointmentsToday = async (patientsRegisterSortItem) => {
     setOpenAlertProcessingBackdrop(true);
-    const responseVaccinationByPatientId = await getVaccinationByPatientId(patientsRegisterSortItem.patient.patientCode);
+    const responseVaccinationByPatientId = await getVaccinationByPatientId(patientsRegisterSortItem.patient.patientId);
     const dataPantientOldOldDiseaseRegister = {
       examinationId: patientsRegisterSortItem.patient.nextExamId,
       oldDisease: true,
@@ -167,6 +167,7 @@ function ListPatientsRegister(props) {
         const result = {
           patient : {
             identifier: item.identifier,
+            patientId: item.patientId,
             patientCode: item.patientCode,
             fullName: item.patientFullName,
             gender: item.gender,
@@ -254,13 +255,14 @@ function ListPatientsRegister(props) {
   }, [isEditedInfo, listDataPatientsRegister, listDataPatientsRegisterSort])
 
   useEffect(() => {
-    if(props.completeMedicalRegister === true){
+    if(props.completeMedicalRegister === true && isEditedInfo === false){
       setListDataPatientsRegister([]);
       setListDataPatientsRegisterSort([]);
       setListDataPatientsRegisterState([]);
+      handleGetRegistersByDateNow();
       props.setCompleteMedicalRegister(false);
     }
-  }, [props.completeMedicalRegister])
+  }, [props.completeMedicalRegister, listDataPatientsRegister, listDataPatientsRegisterSort])
 
   return (
     <>

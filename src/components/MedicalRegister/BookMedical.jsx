@@ -1451,7 +1451,7 @@ function BookMedical(props) {
 
     setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
     setOpenAlertProcessing(false);
-    setFocusField('height');
+    setFocusField('weight');
   }
 
   const handleResetField = () => {
