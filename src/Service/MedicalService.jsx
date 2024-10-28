@@ -152,9 +152,9 @@ const getListMedicalExaminationsGiveOldRegister = async (dayOfBirth, patientId) 
     })
 }
 
-const getListOldDisease = async (patientId, phone, fullName, dayOfBirth, gender) => {
+const getListOldDisease = async (patientCode, phone, fullName, dayOfBirth) => {
     const config = createConfig();
-    return await axios.get(`${backendURL}/api/Medical/SearchPatients?patientId=${patientId}&phone=${phone}&fullName=${fullName}&dayOfBirth=${dayOfBirth}&gender=${gender}`, config)
+    return await axios.get(`${backendURL}/api/Medical/SearchPatients?patientCode=${patientCode}&phone=${phone}&fullName=${fullName}&dayOfBirth=${dayOfBirth}`, config)
     .then(function (response) {
         return response.data
     })

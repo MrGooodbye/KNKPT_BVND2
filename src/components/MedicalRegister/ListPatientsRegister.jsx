@@ -25,6 +25,7 @@ import Tooltip from '@mui/material/Tooltip';
 //mui icon
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
+import CachedIcon from '@mui/icons-material/Cached';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
 //scss
@@ -226,6 +227,12 @@ function ListPatientsRegister(props) {
     setLoading(false);
   }
 
+  const handleReloadGetRegistersByDateNow = async () => {
+    props.setComponent1Loading(true);
+    await handleGetRegistersByDateNow();
+    props.setComponent1Loading(false);
+  }
+
   useEffect(() => {
     handleGetRegistersByDateNow();
   }, [])
@@ -303,7 +310,11 @@ function ListPatientsRegister(props) {
                 ))}
               </Stack>
 
-              <Typography variant="h6" sx={{mt: 0.2, textAlign: 'center', fontSize: '1.12rem'}}>Danh sách {activeChip.chipLabel} ngày {moment().format("DD/MM/YYYY")}</Typography>
+              <Box sx={{mt: 0.2, position: 'relative', display: 'flex', justifyContent: 'center', flexDirection: 'column'}}> 
+                <Typography variant="subtitle2" sx={{textAlign: 'center', mt: 0.2, fontSize: '1rem'}}>Nếu không tìm thấy bệnh nhân, hãy nhấn nút tải lại phía dưới</Typography>
+                <Typography variant="h6" sx={{textAlign: 'center', fontSize: '1.12rem'}}>Danh sách {activeChip.chipLabel} ngày {moment().format("DD/MM/YYYY")}</Typography>
+                <CachedIcon sx={{color: 'brown', fontWeight: 'bolder', position: 'absolute', right: 75, top: 30, fontSize: '2.5rem', cursor: 'pointer'}} titleAccess='Tải lại' onClick={() => handleReloadGetRegistersByDateNow()}/>
+              </Box>
             
               <Box sx={{display: 'flex', justifyContent: 'center', position: 'relative'}}>
                 <TextField sx={{mt: 0.2, mb: 1, width: 360, '& .MuiInputBase-inputSizeSmall': {textAlign: 'center'}}} size="small" 
@@ -322,13 +333,13 @@ function ListPatientsRegister(props) {
                         : 
                           null
                         }
-                        </InputAdornment>  
-                      )
-                    }}>
-                  </TextField>
+                      </InputAdornment>  
+                    )
+                  }}>
+                </TextField>
               </Box>
 
-              <TableContainer component={Paper} sx={{ height: '465px', overflowX: 'scroll', borderBottomLeftRadius: '10px', borderBottomRightRadius: '10px' }}>
+              <TableContainer component={Paper} sx={{ height: '440px', overflowX: 'scroll', borderBottomLeftRadius: '10px', borderBottomRightRadius: '10px' }}>
                 <Table stickyHeader sx={{ minWidth: 1200 }}>
                   <TableHead>
                     <TableRow sx={{"& th": {color: "rgba(96, 96, 96)", backgroundColor: "pink"}}}>

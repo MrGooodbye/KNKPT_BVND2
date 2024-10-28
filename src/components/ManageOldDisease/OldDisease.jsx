@@ -133,7 +133,7 @@ function OldDisease(props) {
             typingRef.current = setTimeout(() => {
                 const _dataPatientsForSearchOldDiseaseError = {...dataPatientsForSearchOldDiseaseError};
                 if(value.length < 8){
-                    _dataPatientsForSearchOldDiseaseError.patientCode.title = 'Mã bệnh nhân phải từ 8 đến 12 số';
+                    _dataPatientsForSearchOldDiseaseError.patientCode.title = 'Mã bệnh nhân phải từ 8 đến 14 số';
                     _dataPatientsForSearchOldDiseaseError.patientCode.isError = true;
                     _dataPatientsForSearchOldDiseaseError.patientCode.openTooltip = true;
                     setDataPatientsForSearchOldDiseaseError(_dataPatientsForSearchOldDiseaseError);
@@ -460,7 +460,7 @@ function OldDisease(props) {
                                     label="Mã BN" variant="outlined" size='small'
                                     autoFocus
                                     inputRef={(input) => input && focusField === 'patientCode' && input.focus()}
-                                    inputProps={{ maxLength: 12 }}
+                                    inputProps={{ maxLength: 14 }}
                                     onChange={(e) => onChangePatientId(e.target.value)}
                                     onBlur={(e) => handleBlur(e.target.value, 'patientCode')}
                                     onKeyDown={handleKeyDown} 
@@ -543,6 +543,7 @@ function OldDisease(props) {
                                                     <TableCell align="left" sx={{fontSize: '1rem'}}>Giới tính</TableCell>
                                                     <TableCell align="left" sx={{fontSize: '1rem'}}>Địa chỉ</TableCell>
                                                     <TableCell align="left" sx={{fontSize: '1rem'}}>Cha/Mẹ</TableCell>
+                                                    <TableCell align="left" sx={{fontSize: '1rem'}}>Điện thoại</TableCell>
                                                 </TableRow>
                                             </TableHead>
                                             <TableBody>
@@ -558,6 +559,7 @@ function OldDisease(props) {
                                                             <TableCell align='left' >{foundOldDiseaseItem.gender === true ? 'Nam' : 'Nữ'}</TableCell>
                                                             <TableCell align='left' >{foundOldDiseaseItem.fullAddress}</TableCell>
                                                             <TableCell align='left' >{foundOldDiseaseItem.fullNameMother || foundOldDiseaseItem.fullNameFather}</TableCell>
+                                                            <TableCell align='left' >{foundOldDiseaseItem.phoneMother || foundOldDiseaseItem.phoneFather}</TableCell>
                                                         </TableRow>
                                                     ))
                                                 :

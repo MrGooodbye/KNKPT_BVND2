@@ -38,10 +38,12 @@ function OldDiseaseForRegister(props) {
 
     const handleApplyDataPatientOldDisease = async (foundOldDiseaseItem) => {
         setOpenAlertProcessing(true);
-        const responseVaccinationByPatientId = await getVaccinationByPatientId(foundOldDiseaseItem.patientId);
+        setOpenAlertProcessing(true);
+        const responseVaccinationByPatientId = await getVaccinationByPatientId(foundOldDiseaseItem.patientCode);
         const dataPantientOldOldDiseaseRegister = {
             examinationId: '',
             oldDisease: true,
+            oldDiseaseWithNullCodeWard: foundOldDiseaseItem.codeWard ? false : true,
             height: '',
             weight: '',
             headCircumference: '',
@@ -50,7 +52,7 @@ function OldDiseaseForRegister(props) {
             medicalTypeId: responseVaccinationByPatientId.medicalTypeId,
             userIdDoctor: '',
             patient: {
-                patientId: foundOldDiseaseItem.patientId,
+                patientCode: foundOldDiseaseItem.patientCode,
                 identifier: foundOldDiseaseItem.identifier,
                 address: foundOldDiseaseItem.address,
                 fullName: foundOldDiseaseItem.fullName,
@@ -88,18 +90,20 @@ function OldDiseaseForRegister(props) {
                                             <TableCell align="left" sx={{fontSize: '1rem'}}>Giới tính</TableCell>
                                             <TableCell align="left" sx={{fontSize: '1rem'}}>Địa chỉ</TableCell>
                                             <TableCell align="left" sx={{fontSize: '1rem'}}>Cha/Mẹ</TableCell>
+                                            <TableCell align="left" sx={{fontSize: '1rem'}}>Điện thoại</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {
                                             props.listOldDiseaseRegister.map((foundOldDiseaseItem, foundOldDiseaseIndex) => (
                                                 <TableRow hover role="checkbox" key={foundOldDiseaseIndex} sx={{cursor: 'pointer'}} onDoubleClick={() => handleApplyDataPatientOldDisease(foundOldDiseaseItem)}>
-                                                    <TableCell align='left' >{foundOldDiseaseItem.patientId}</TableCell>
+                                                    <TableCell align='left' >{foundOldDiseaseItem.patientCode}</TableCell>
                                                     <TableCell align='left' >{foundOldDiseaseItem.fullName}</TableCell>
                                                     <TableCell align='left' >{moment(foundOldDiseaseItem.dayOfBirth).format('DD/MM/YYYY')}</TableCell>
                                                     <TableCell align='left' >{foundOldDiseaseItem.gender === true ? 'Nam' : 'Nữ'}</TableCell>
                                                     <TableCell align='left' >{foundOldDiseaseItem.fullAddress}</TableCell>
                                                     <TableCell align='left' >{foundOldDiseaseItem.fullNameMother || foundOldDiseaseItem.fullNameFather}</TableCell>
+                                                    <TableCell align='left' >{foundOldDiseaseItem.phoneMother || foundOldDiseaseItem.phoneFather}</TableCell>
                                                 </TableRow>
                                             ))
                                         }

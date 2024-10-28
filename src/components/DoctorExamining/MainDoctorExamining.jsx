@@ -58,6 +58,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
 import BeenhereIcon from '@mui/icons-material/Beenhere';
+import CachedIcon from '@mui/icons-material/Cached';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
 //moment
 import moment from 'moment';
@@ -125,6 +126,7 @@ function MainDoctorExamining() {
 
     //tiền căn show ở thông tin bệnh nhân
     const [previewPredecessor, setPreviewPredecessor] = useState();
+    const [oldPreviewPredecessor, setOldPreviewPredecessor] = useState();
 
     //state các câu hỏi được bác sĩ khám tích hoặc gõ vào
     const [dataExaminingForConclusion , setDataExaminingForConclusion ] = useState({});
@@ -353,17 +355,40 @@ function MainDoctorExamining() {
             let listPantientRegisterWaiting = findListPantientNotExam.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1 || patientsRegisterItem.state === 3) //chờ khám và đang khám
             let listPantientRegisterDone = findListPantientNotExam.filter(patientsRegisterItem => patientsRegisterItem.state === 2 && patientsRegisterItem.userIdDoctor === user.userId) //đã khám
 
-            setListDataPatientsRegisterSort(listPantientRegisterWaiting);
-            setListDataPatientsRegisterState(listPantientRegisterWaiting);
-
             const updatedList = [
                 { chipLabel: 'BN chờ khám', chipContent: listPantientRegisterWaiting.length },
                 { chipLabel: 'BN đã khám', chipContent: listPantientRegisterDone.length }
             ]
             setListPantientChipState(updatedList);
+
+            if(activeChip.chipOrder === 0){
+                setListDataPatientsRegisterSort(listPantientRegisterWaiting);
+            }
+            else{
+                setListDataPatientsRegisterState(listPantientRegisterWaiting);
+            }
         }
         setLoadingPatient(false);
         setLoadingInfoPatient(false);
+    }
+
+    const handleReloadGetRegistersByDateNow = () => {
+        setLoadingPatient(true);
+        //setLoadingInfoPatient(true);
+        setDataPantientsReadyExamining(dataPantientsReadyExaminingDefault);
+        setMainDataExamining([]);
+        setOpenCollapseHealthRecords(false);
+        setOpenCollapseHealthRecordsItem([]);
+        setCategorySelectedExamining({});
+        setContentCategorySelectedExamining([]);
+        setHealthRecordsContents([]);
+        setCurrentHealthRecordExamining();
+        setDataExaminingForConclusion({});
+        setPrevDataPredecessor();
+        setCurrentHealthRecordExamining();
+        setOldDataPredecessor();
+        setPreviewPredecessor();
+        handleGetRegistersByDateNow();
     }
 
     const handleAppyPantientData = async (dataPantientItem) => {
@@ -423,6 +448,7 @@ function MainDoctorExamining() {
 
     //bắt đầu khám bệnh cho bệnh nhân
     const handleBeginExaminingForPantient = async () => {
+        setOpenAlertProcessingBackdrop(true);
         setLoadingPatient(true);
         const response = await updateMedicalState(dataPantientsReadyExamining.id, 1)
         if(response.status === 200){
@@ -435,6 +461,7 @@ function MainDoctorExamining() {
                     setPrevDataPredecessor(_.cloneDeep(prevDataExamining.categoryPres));
                     //backup prevDataPredecessor để khi cần dùng
                     setOldDataPredecessor(_.cloneDeep(prevDataExamining.categoryPres))
+                    setOldPreviewPredecessor(_.cloneDeep(previewPredecessor));
                 }
 
                 const _listDataPatientsRegister = [...listDataPatientsRegister];
@@ -469,6 +496,7 @@ function MainDoctorExamining() {
             toast.error(response.data, {toastId: 'error1'});
         }
         setLoadingPatient(false);
+        setOpenAlertProcessingBackdrop(false);
     }
 
     //chỉnh dữ liệu khám cho bệnh nhân khám mới
@@ -704,7 +732,8 @@ function MainDoctorExamining() {
             if(prevDataExamining.newPredecessor === false){
                 setPrevDataPredecessor(_.cloneDeep(prevDataExamining.categoryPres));
                 //backup prevDataPredecessor để khi cần dùng
-                setOldDataPredecessor(_.cloneDeep(prevDataExamining.categoryPres))
+                setOldDataPredecessor(_.cloneDeep(prevDataExamining.categoryPres));
+                setOldPreviewPredecessor(_.cloneDeep(previewPredecessor));
             }
             
             await handleSetMainDataReExamining(responseGetUpdateMedicalBook.data);
@@ -916,8 +945,14 @@ function MainDoctorExamining() {
             setPrevDataPredecessor(_.cloneDeep(oldDataPredecessor));
 
             const selectCategoryReExamining = mainDataExamining.categoryPres.find(categoryPresItem => categoryPresItem.categoryOrder === categoryOrder);
-            handleSelectCategoryClick(selectCategoryReExamining)
-   
+            handleSelectCategoryClick(selectCategoryReExamining);
+
+            const findOldDataPredecessorByCategoryOrder = oldPreviewPredecessor.filter(item => item.categoryOrder === categoryOrder);
+            const findPreviewPredecessorNotByCategoryOrder = previewPredecessor.filter(item => item.categoryOrder !== categoryOrder);
+
+            const newPreviewPredecessor = findOldDataPredecessorByCategoryOrder.concat(findPreviewPredecessorNotByCategoryOrder);
+            setPreviewPredecessor(newPreviewPredecessor);
+
             setOpenAlertProcessingBackdrop(false);
         }, 300)       
     }
@@ -956,7 +991,7 @@ function MainDoctorExamining() {
             setCategorySelectedExamining(_categorySelectedExamining);
 
             createSelectedQuestionsPredecessorForReExamOrBackExam(categoryContentsIndex, _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentOrder, _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex], takenValue, isEditNote)
-        }, 300)
+        }, 0)
     }
 
     //câu trả lời dạng giá trị, sửa lại note
@@ -978,7 +1013,7 @@ function MainDoctorExamining() {
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex], 
                 takenValue
             )
-        }, 300)
+        }, 0)
     }
 
     const createSelectedQuestionsValuePredecessorForReExamOrBackExam = (categoryContentsIndex, categoryContentOrder, categoryContentQuestion, takenValue) => {
@@ -1157,7 +1192,6 @@ function MainDoctorExamining() {
                     }
                 }
             }
-
         }
 
         else{
@@ -1239,7 +1273,7 @@ function MainDoctorExamining() {
             }
         }
 
-        createPreviewDataPredecessor(categoryContentQuestion, isEditNote);
+        createPreviewDataPredecessor(categoryContentQuestion, isEditNote, categorySelectedExamining.categoryOrder);
     }
 
     //lưu dữ liệu tiền căn khi sửa xong
@@ -1345,7 +1379,7 @@ function MainDoctorExamining() {
             })
 
             setMainDataExamining(_mainDataExamining);
-            setPreviewPredecessor(saveNewDataPredecessor);
+            setPreviewPredecessor(previewPredecessor);
 
             const selectCategoryReExamining = _mainDataExamining.categoryPres.find(categoryPresItem => categoryPresItem.categoryOrder === findNewDataPredecessor.categoryOrder);
             
@@ -1365,8 +1399,22 @@ function MainDoctorExamining() {
         setPrevDataExamining(responseDataExamining);
 
         if(responseDataExamining.newPredecessor === false){
-            const previewDataPredecessor = responseDataExamining.categoryPres.filter(item => item.newCategoryPre === false).flatMap(item => item.categoryContents).flatMap(content => content.categoryContentQuestions).filter(question => question.categoryContentAnswer === true || question.categoryContentNote !== null)
-            setPreviewPredecessor(previewDataPredecessor);     
+            const findNewCategoryPreIsFalse = responseDataExamining.categoryPres.filter(item => item.newCategoryPre === false);
+            const previewDataPredecessor = findNewCategoryPreIsFalse.flatMap(item => 
+                item.categoryContents.flatMap(content => 
+                    content.categoryContentQuestions.map(question => ({
+                        categoryContentQuestionOrder: question.categoryContentQuestionOrder,
+                        categoryContentQuestionName: question.categoryContentQuestionName,
+                        categoryContentQuestionType: question.categoryContentQuestionType,
+                        categoryContentAnswer: question.categoryContentAnswer,
+                        categoryContentNote: question.categoryContentNote,
+                        categoryContentDefauls: question.categoryContentDefauls,
+                        categoryOrder: item.categoryOrder // Thêm categoryOrder từ cấp trên
+                    }))
+                )
+            )
+            setPreviewPredecessor(previewDataPredecessor);
+            // const previewDataPredecessor = responseDataExamining.categoryPres.filter(item => item.newCategoryPre === false).flatMap(item => item.categoryContents).flatMap(content => content.categoryContentQuestions).filter(question => question.categoryContentAnswer === true || question.categoryContentNote !== null)  
         }
     }
 
@@ -1548,7 +1596,7 @@ function MainDoctorExamining() {
 
             const isPredecessor = true;
             createSelectedQuestionsExaminingForConclusion(
-                _categorySelectedExamining.categoryName,
+                _categorySelectedExamining.categoryOrder,
                 isPredecessor,
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex],
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].categoryContentQuestionOrder,
@@ -1562,7 +1610,7 @@ function MainDoctorExamining() {
 
             const isPredecessor = true;
             createSelectedQuestionsExaminingForConclusion(
-                _categorySelectedExamining.categoryName,
+                _categorySelectedExamining.categoryOrder,
                 isPredecessor,
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex],
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].categoryContentQuestionOrder,
@@ -1576,7 +1624,7 @@ function MainDoctorExamining() {
 
             const isPredecessor = true;
             createSelectedQuestionsExaminingForConclusion(
-                _categorySelectedExamining.categoryName,
+                _categorySelectedExamining.categoryOrder,
                 isPredecessor,
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex],
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].categoryContentQuestionOrder,
@@ -1602,14 +1650,14 @@ function MainDoctorExamining() {
             const isEditNote = true;
             const isPredecessor = true;
             createSelectedQuestionsExaminingForConclusion(
-                _categorySelectedExamining.categoryName,
+                _categorySelectedExamining.categoryOrder,
                 isPredecessor,
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex],
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].categoryContentQuestionOrder,
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentTitle,
                 isEditNote
             )
-        }, 1000)
+        }, 0)
     }
 
     const handleAnswerValueQuestion = (categoryContentsIndex, questionIndex, value) => {
@@ -1627,13 +1675,13 @@ function MainDoctorExamining() {
 
             const isPredecessor = true;
             createSelectedQuestionsExaminingForConclusion(
-                _categorySelectedExamining.categoryName,
+                _categorySelectedExamining.categoryOrder,
                 isPredecessor,
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex],
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].categoryContentQuestionOrder,
                 _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentTitle,
             )
-        }, 300)
+        }, 0)
     }
 
     const handleAnswerCheckQuestionHealthRecords = (categoryPatientsIndex, categoryPatientsContentsIndex, questionIndex, answer) => {
@@ -1644,7 +1692,7 @@ function MainDoctorExamining() {
 
             const isPredecessor = false;
             createSelectedQuestionsExaminingForConclusion(
-                _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryName, 
+                _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryOrder, 
                 isPredecessor,
                 _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[categoryPatientsContentsIndex].categoryContentQuestions[questionIndex],
                 _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[categoryPatientsContentsIndex].categoryContentQuestions[questionIndex].categoryContentQuestionOrder,
@@ -1659,7 +1707,7 @@ function MainDoctorExamining() {
 
             const isPredecessor = false;
             createSelectedQuestionsExaminingForConclusion(
-                _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryName, 
+                _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryOrder, 
                 isPredecessor,
                 _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[categoryPatientsContentsIndex].categoryContentQuestions[questionIndex],
                 _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[categoryPatientsContentsIndex].categoryContentQuestions[questionIndex].categoryContentQuestionOrder,
@@ -1674,7 +1722,7 @@ function MainDoctorExamining() {
 
             const isPredecessor = false;
             createSelectedQuestionsExaminingForConclusion(
-                _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryName, 
+                _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryOrder, 
                 isPredecessor,
                 _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[categoryPatientsContentsIndex].categoryContentQuestions[questionIndex],
                 _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[categoryPatientsContentsIndex].categoryContentQuestions[questionIndex].categoryContentQuestionOrder,
@@ -1699,24 +1747,24 @@ function MainDoctorExamining() {
             const isEditNote = true;
             const isPredecessor = false;
             createSelectedQuestionsExaminingForConclusion(
-                _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryName, 
+                _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryOrder, 
                 isPredecessor,
                 _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[categoryPatientsContentsIndex].categoryContentQuestions[questionIndex],
                 _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[categoryPatientsContentsIndex].categoryContentQuestions[questionIndex].categoryContentQuestionOrder,
                 _healthRecordsContents.categoryPatients[categoryPatientsIndex].categoryContents[categoryPatientsContentsIndex].categoryContentTitle,
                 isEditNote
             );
-        }, 1000)
+        }, 0)
     }
 
-    const createSelectedQuestionsExaminingForConclusion = (categoryName, isPredecessor, categoryContentQuestion, questionOrder, categoryContentTitle, isEditNote) => {
+    const createSelectedQuestionsExaminingForConclusion = (categoryOrder, isPredecessor, categoryContentQuestion, questionOrder, categoryContentTitle, isEditNote) => {
         if(categoryContentQuestion.categoryContentQuestionType === 'check'){
             if(isEditNote){
                 if(categoryContentQuestion.categoryContentNote !== ''){
                     const _dataExaminingForConclusion = {...dataExaminingForConclusion};
                         // Duyệt qua từng categoriesItem trong categories
                         _dataExaminingForConclusion.categories.forEach(categoriesItem => {
-                            if(categoriesItem.categoryName === categoryName){
+                            if(categoriesItem.categoryOrder === categoryOrder){
                                 // Duyệt qua từng categoryContentsItem trong categoryContents
                                 categoriesItem.categoryContents.forEach(categoryContentsItem => {
                                     if(categoryContentsItem.categoryContentTitle === categoryContentTitle){
@@ -1750,7 +1798,7 @@ function MainDoctorExamining() {
                 else if(categoryContentQuestion.categoryContentNote === ''){
                     const _dataExaminingForConclusion = {...dataExaminingForConclusion};
                     _dataExaminingForConclusion.categories.forEach(categoriesItem => {
-                        if(categoriesItem.categoryName === categoryName){
+                        if(categoriesItem.categoryOrder === categoryOrder){
                             categoriesItem.categoryContents.forEach(categoryContentsItem => {
                                 if(categoryContentsItem.categoryContentTitle === categoryContentTitle){
                                     categoryContentsItem.categoryContentQuestions.forEach(categoryContentQuestionsItem => {
@@ -1772,7 +1820,7 @@ function MainDoctorExamining() {
                     const _dataExaminingForConclusion = {...dataExaminingForConclusion};
                         // Duyệt qua từng categoriesItem trong categories
                         _dataExaminingForConclusion.categories.forEach(categoriesItem => {
-                            if(categoriesItem.categoryName === categoryName){
+                            if(categoriesItem.categoryOrder === categoryOrder){
                                 // Duyệt qua từng categoryContentsItem trong categoryContents
                                 categoriesItem.categoryContents.forEach(categoryContentsItem => {
                                     if(categoryContentsItem.categoryContentTitle === categoryContentTitle){
@@ -1807,7 +1855,7 @@ function MainDoctorExamining() {
                 else if(categoryContentQuestion.categoryContentAnswer === false && categoryContentQuestion.categoryContentQuestionType === 'check'){
                     const _dataExaminingForConclusion = {...dataExaminingForConclusion};
                     _dataExaminingForConclusion.categories.forEach((categoriesItem, categoriesIndex) => {
-                        if(categoriesItem.categoryName === categoryName){
+                        if(categoriesItem.categoryOrder === categoryOrder){
                             categoriesItem.categoryContents.forEach(categoryContentsItem => {
                                 if(categoryContentsItem.categoryContentTitle === categoryContentTitle){
                                     categoryContentsItem.categoryContentQuestions.forEach(categoryContentQuestionsItem => {
@@ -1830,7 +1878,7 @@ function MainDoctorExamining() {
                 const _dataExaminingForConclusion = {...dataExaminingForConclusion};
                 // Duyệt qua từng categoriesItem trong categories
                 _dataExaminingForConclusion.categories.forEach(categoriesItem => {
-                    if(categoriesItem.categoryName === categoryName){
+                    if(categoriesItem.categoryOrder === categoryOrder){
                         // Duyệt qua từng categoryContentsItem trong categoryContents
                         categoriesItem.categoryContents.forEach(categoryContentsItem => {
                             if(categoryContentsItem.categoryContentTitle === categoryContentTitle){
@@ -1864,7 +1912,7 @@ function MainDoctorExamining() {
             else if(categoryContentQuestion.categoryContentNote === '' && categoryContentQuestion.categoryContentQuestionType === 'string'){
                 const _dataExaminingForConclusion = {...dataExaminingForConclusion};
                 _dataExaminingForConclusion.categories.forEach(categoriesItem => {
-                    if(categoriesItem.categoryName === categoryName){
+                    if(categoriesItem.categoryOrder === categoryOrder){
                         categoriesItem.categoryContents.forEach(categoryContentsItem => {
                             if(categoryContentsItem.categoryContentTitle === categoryContentTitle){
                                 categoryContentsItem.categoryContentQuestions = categoryContentsItem.categoryContentQuestions.filter(categoryContentQuestionsItem => categoryContentQuestionsItem.categoryContentQuestionName !== categoryContentQuestion.categoryContentQuestionName)
@@ -1878,12 +1926,12 @@ function MainDoctorExamining() {
         }
 
         if(isPredecessor === true){
-            createPreviewDataPredecessor(categoryContentQuestion, isEditNote);
+            createPreviewDataPredecessor(categoryContentQuestion, isEditNote, categoryOrder);
         }
             
-    }
+    }   
 
-    const createPreviewDataPredecessor = (categoryContentQuestion, isEditNote) => {
+    const createPreviewDataPredecessor = (categoryContentQuestion, isEditNote, categoryOrder) => {
         if(previewPredecessor && previewPredecessor.length !== 0){
             let _previewPredecessor = [...previewPredecessor];
 
@@ -1899,6 +1947,7 @@ function MainDoctorExamining() {
                             existingQuestion.categoryContentNote = categoryContentQuestion.categoryContentNote;
                         }
                         else{
+                            categoryContentQuestion.categoryOrder = categoryOrder;
                             _previewPredecessor.push(categoryContentQuestion);
                         }
                     }
@@ -1923,6 +1972,7 @@ function MainDoctorExamining() {
                                 existingQuestion.categoryContentNote = categoryContentQuestion.categoryContentNote;
                             }
                             else{
+                                categoryContentQuestion.categoryOrder = categoryOrder;
                                 _previewPredecessor.push(categoryContentQuestion);
                             }
                         }                       
@@ -1947,6 +1997,7 @@ function MainDoctorExamining() {
                                 existingQuestion.categoryContentAnswer = categoryContentQuestion.categoryContentAnswer;
                             }
                             else{
+                                categoryContentQuestion.categoryOrder = categoryOrder;
                                 _previewPredecessor.push(categoryContentQuestion);
                             }
                         }        
@@ -1955,6 +2006,7 @@ function MainDoctorExamining() {
             }
 
             else{
+                categoryContentQuestion.categoryOrder = categoryOrder;
                 _previewPredecessor.push(categoryContentQuestion);
             }
             setPreviewPredecessor(_previewPredecessor)
@@ -1981,7 +2033,6 @@ function MainDoctorExamining() {
     useEffect(() => {
         // Đăng ký sự kiện nhận thông báo bn đăng ký khám khi component được mount
         const handleReceiveMessage = (medicalRegisterMessage) => {
-            console.log(medicalRegisterMessage);
             if(medicalRegisterMessage === true && dataPantientsReadyExamining.id === ''){
                 setLoadingPatient(true);
                 handleGetRegistersByDateNow();
@@ -2163,7 +2214,6 @@ function MainDoctorExamining() {
                 document.removeEventListener('keydown', handleKeyDown);
             };
         }
-        
     }, [dataPantientsReadyExamining, openModalCompleteExamining, openAlertProcessingBackdrop, openModalCompleteExamining, isDialogChangePasswordOpen])
 
     return (
@@ -2193,7 +2243,17 @@ function MainDoctorExamining() {
                                                     </Badge>
                                                 ))}
                                             </Stack>
-                                            <Typography variant="h6" sx={{mt: 0.2, textAlign: 'center', fontSize: '1.12rem'}}>Danh sách {activeChip.chipLabel} ngày {moment().format("DD/MM/YYYY")}</Typography>
+
+                                            <Box sx={{mt: 0.2, position: 'relative', display: 'flex', justifyContent: 'center', flexDirection: 'column'}}>
+                                                <Typography variant="subtitle2" sx={{textAlign: 'center', mt: 0.2, fontSize: '1rem'}}>Nếu không tìm thấy bệnh nhân, hãy nhấn nút tải lại phía dưới</Typography>
+                                                <Typography variant="h6" sx={{textAlign: 'center', fontSize: '1.12rem'}}>Danh sách {activeChip.chipLabel} ngày {moment().format("DD/MM/YYYY")}</Typography>
+                                                {dataPantientsReadyExamining.status !== 1 ?
+                                                    <CachedIcon sx={{color: 'brown', fontWeight: 'bolder', position: 'absolute', right: 55, top: 30, fontSize: '2.5rem', cursor: 'pointer'}} titleAccess='Tải lại' onClick={() => handleReloadGetRegistersByDateNow()}/>
+                                                :
+                                                    null
+                                                }
+                                            </Box>
+
                                             <Box sx={{display: 'flex', justifyContent: 'center', position: 'relative'}}>
                                                 <TextField sx={{mb: 0.6, width: 360, '& .MuiInputBase-inputSizeSmall': {textAlign: 'center'}}} size="small" 
                                                     variant="outlined" placeholder='Tìm với Mã BN hoặc Tên BN' value={searchPatientsQuery} onChange={(e) => handleSearchPantient(e.target.value)}

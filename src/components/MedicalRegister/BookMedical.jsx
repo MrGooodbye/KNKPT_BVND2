@@ -5,7 +5,7 @@ import { UserContext } from '../../context/UserContext';
 import ExaminingSession from '../ManageExaminingSession/ExaminingSession';
 //old disease modal
 import OldDisease from '../ManageOldDisease/OldDisease';
-// import OldDiseaseForRegister from '../ManageOldDisease/OldDiseaseForRegister';
+import OldDiseaseForRegister from '../ManageOldDisease/OldDiseaseForRegister';
 import AlertProcessing from '../ManageAlertProcessing/AlertProcessing';
 //mui theme
 import Container from '@mui/material/Container';
@@ -33,7 +33,7 @@ import './SCSS/Shared.scss';
 import moment from 'moment';
 //api
 import { getListProvince, getListDistrict, getListWard, getFullAddressByIdWard } from '../../Service/PlaceService';
-import { createMedicalBackRegister } from '../../Service/MedicalService';
+import { createMedicalBackRegister, getListOldDisease } from '../../Service/MedicalService';
 import { toast } from 'react-toastify';
 
 function BookMedical(props) {
@@ -125,8 +125,8 @@ function BookMedical(props) {
 
   const [openModalOldDisease, setOpenModalOldDisease] = useState(false);
 
-  // const [openOldDiseaseRegister, setOpenOldDiseaseRegister] = useState(false);
-  // const [listOldDiseaseRegister, setListOldDiseaseRegister] = useState([]);
+  const [openOldDiseaseRegister, setOpenOldDiseaseRegister] = useState(false);
+  const [listOldDiseaseRegister, setListOldDiseaseRegister] = useState([]);
 
   const [openAlertProcessing, setOpenAlertProcessing] = useState(false);
 
@@ -467,6 +467,10 @@ function BookMedical(props) {
           _dataPatientsRegisterError.patientCode.focus = false;
           setDataPatientsRegisterError(_dataPatientsRegisterError);
         }
+        
+        if(dataPatientsRegister.patient.patientCode.length === 14){
+          handleFindOldDisease()
+        }
       }, 100)
     }
     // else{
@@ -506,11 +510,13 @@ function BookMedical(props) {
         _dataPatientsRegisterError.fullName.focus = false;
         setDataPatientsRegisterError(_dataPatientsRegisterError);
       }
-
-      // if(dataPatientsRegister.patient.fullName !== '' && dataPatientsRegister.patient.dayOfBirth !== '' && dataPatientsRegister.patient.gender !== ''){
-      //   handleFindOldDisease();
-      // }
     }, 100)
+
+    // setTimeout(() => {
+    //   if(dataPatientsRegister.patient.fullName !== ''){
+    //     handleFindOldDisease()
+    //   }
+    // }, 500)
   }
 
   const onChangeDOB = (value) => {
@@ -577,12 +583,12 @@ function BookMedical(props) {
           _dataPatientsRegisterError.dayOfBirth.isError = false;
           _dataPatientsRegisterError.dayOfBirth.focus = false;
           setDataPatientsRegisterError(_dataPatientsRegisterError);
-
-          // if(dataPatientsRegister.patient.fullName !== '' && dataPatientsRegister.patient.dayOfBirth !== '' && dataPatientsRegister.patient.gender !== ''){
-          //   handleFindOldDisease();
-          // }
         }
       }, 100)
+
+      // if(dataPatientsRegister.patient.dayOfBirth !== ''){
+      //   handleFindOldDisease()
+      // }
     }  
   }
 
@@ -857,7 +863,10 @@ function BookMedical(props) {
       _dataPatientsRegisterError.phoneMother.isError = false;
       _dataPatientsRegisterError.phoneMother.focus = false;
       setDataPatientsRegisterError(_dataPatientsRegisterError);
-    }  
+    } 
+    // if(dataPatientsRegister.patient.phoneMother.length === 10){
+    //   handleFindOldDisease()
+    // }
   }
 
   const onChangeFullNameFather = (value) => {
@@ -942,6 +951,10 @@ function BookMedical(props) {
       _dataPatientsRegisterError.phoneFather.focus = false;
       setDataPatientsRegisterError(_dataPatientsRegisterError);
     }
+
+    // if(dataPatientsRegister.patient.phoneFather.length === 10){
+    //   handleFindOldDisease()
+    // }
   }
 
   const onChangeHeight = (value) => {
@@ -1541,13 +1554,13 @@ function BookMedical(props) {
     }
   }
 
-  // const handleFindOldDisease = async () => {
-  //   const response = await getListOldDisease('', '', dataPatientsRegister.patient.fullName, dataPatientsRegister.patient.dayOfBirth, dataPatientsRegister.patient.gender);
-  //   if(response.length !== 0){
-  //     setListOldDiseaseRegister(response);
-  //     setOpenOldDiseaseRegister(true);
-  //   }
-  // }
+  const handleFindOldDisease = async () => {
+    const response = await getListOldDisease(dataPatientsRegister.patient.patientCode, dataPatientsRegister.patient.phoneMother ? dataPatientsRegister.patient.phoneMother : dataPatientsRegister.patient.phoneFather, dataPatientsRegister.patient.fullName, dataPatientsRegister.patient.dayOfBirth);
+    if(response.length !== 0){
+      setListOldDiseaseRegister(response);
+      setOpenOldDiseaseRegister(true);
+    }
+  }
 
   useEffect(() => {
     handleGetListProvince();
@@ -2050,11 +2063,11 @@ function BookMedical(props) {
         dataPatientsRegister={dataPatientsRegister} setDataPatientsRegister={setDataPatientsRegister}
       />
 
-      {/* <OldDiseaseForRegister
+      <OldDiseaseForRegister
         openOldDiseaseRegister={openOldDiseaseRegister} setOpenOldDiseaseRegister={setOpenOldDiseaseRegister}
         setDataPatientsRegister={setDataPatientsRegister}
         listOldDiseaseRegister={listOldDiseaseRegister} setListOldDiseaseRegister={setListOldDiseaseRegister}
-      /> */}
+      />
 
       <AlertProcessing
         openAlertProcessing={openAlertProcessing} setOpenAlertProcessing={setOpenAlertProcessing}            
