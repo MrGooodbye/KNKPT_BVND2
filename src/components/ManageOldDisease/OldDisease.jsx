@@ -412,7 +412,7 @@ function OldDisease(props) {
 
     const handleApplyDataPatientOldDisease = async (foundOldDiseaseItem) => {
         setOpenAlertProcessing(true);
-        const responseVaccinationByPatientId = await getVaccinationByPatientId(foundOldDiseaseItem.patientCode);
+        const responseVaccinationByPatientId = await getVaccinationByPatientId(foundOldDiseaseItem.patientId);
         const dataPantientOldOldDiseaseRegister = {
             examinationId: '',
             oldDisease: true,

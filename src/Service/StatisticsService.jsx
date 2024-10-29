@@ -24,6 +24,17 @@ const getReportPatient = async (dateSelectedReport) => {
     })
 }
 
+const getListUser = async () => {
+    const config = createConfig();
+    return await axios.get(`${backendURL}/api/UserAccount/GetUserAccounts`, config)
+    .then(function (response) {
+        return response.data
+    })
+    .catch(function (error) {
+        return error.response.status
+    })
+}
+
 export {
-    getReportPatient
+    getReportPatient, getListUser
 }

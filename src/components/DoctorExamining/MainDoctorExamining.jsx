@@ -1380,6 +1380,7 @@ function MainDoctorExamining() {
 
             setMainDataExamining(_mainDataExamining);
             setPreviewPredecessor(previewPredecessor);
+            setOldPreviewPredecessor(previewPredecessor);
 
             const selectCategoryReExamining = _mainDataExamining.categoryPres.find(categoryPresItem => categoryPresItem.categoryOrder === findNewDataPredecessor.categoryOrder);
             
