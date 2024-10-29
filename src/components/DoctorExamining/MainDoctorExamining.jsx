@@ -59,6 +59,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
 import BeenhereIcon from '@mui/icons-material/Beenhere';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
+import CachedIcon from '@mui/icons-material/Cached';
 //moment
 import moment from 'moment';
 //scss
@@ -365,6 +366,25 @@ function MainDoctorExamining() {
         }
         setLoadingPatient(false);
         setLoadingInfoPatient(false);
+    }
+
+    const handleReloadGetRegistersByDateNow = async () => {
+        setLoadingPatient(true);
+        setLoadingInfoPatient(true);
+        setDataPantientsReadyExamining(dataPantientsReadyExaminingDefault);
+        setMainDataExamining([]);
+        setOpenCollapseHealthRecords(false);
+        setOpenCollapseHealthRecordsItem([]);
+        setCategorySelectedExamining({});
+        setContentCategorySelectedExamining([]);
+        setHealthRecordsContents([]);
+        setCurrentHealthRecordExamining();
+        setDataExaminingForConclusion({});
+        setPrevDataPredecessor();
+        setCurrentHealthRecordExamining();
+        setOldDataPredecessor();
+        setPreviewPredecessor();
+        handleGetRegistersByDateNow();
     }
 
     const handleAppyPantientData = async (dataPantientItem) => {
@@ -2221,7 +2241,19 @@ function MainDoctorExamining() {
                                                     </Badge>
                                                 ))}
                                             </Stack>
-                                            <Typography variant="h6" sx={{mt: 0.2, textAlign: 'center', fontSize: '1.12rem'}}>Danh sách {activeChip.chipLabel} ngày {moment().format("DD/MM/YYYY")}</Typography>
+
+                                            <Box sx={{mt: 0.2, position: 'relative', display: 'flex', justifyContent: 'center', flexDirection: 'column'}}>
+                                                {dataPantientsReadyExamining.status !== 1 ?
+                                                    <>
+                                                        <Typography variant="subtitle2" sx={{textAlign: 'center', mt: 0.2, fontSize: '1rem'}}>Nếu không tìm thấy bệnh nhân, hãy nhấn nút tải lại phía dưới</Typography>
+                                                        <CachedIcon sx={{color: 'brown', fontWeight: 'bolder', position: 'absolute', right: 55, top: 30, fontSize: '2.5rem', cursor: 'pointer'}} titleAccess='Tải lại' onClick={() => handleReloadGetRegistersByDateNow()}/>
+                                                    </>
+                                                :
+                                                    null
+                                                }
+                                                <Typography variant="h6" sx={{textAlign: 'center', fontSize: '1.12rem'}}>Danh sách {activeChip.chipLabel} ngày {moment().format("DD/MM/YYYY")}</Typography>
+                                            </Box>
+                                            
                                             <Box sx={{display: 'flex', justifyContent: 'center', position: 'relative'}}>
                                                 <TextField sx={{mb: 0.6, width: 360, '& .MuiInputBase-inputSizeSmall': {textAlign: 'center'}}} size="small" 
                                                     variant="outlined" placeholder='Tìm với Mã BN hoặc Tên BN' value={searchPatientsQuery} onChange={(e) => handleSearchPantient(e.target.value)}
