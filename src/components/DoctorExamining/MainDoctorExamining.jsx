@@ -208,7 +208,6 @@ function MainDoctorExamining() {
         setCategorySelectedExamining({});
         setContentCategorySelectedExamining([]);
         setHealthRecordsContents([]);
-        setCurrentHealthRecordExamining();
         setDataExaminingForConclusion({});
         setPrevDataPredecessor();
         setCurrentHealthRecordExamining();
@@ -2029,7 +2028,6 @@ function MainDoctorExamining() {
     useEffect(() => {
         // Đăng ký sự kiện nhận thông báo bn đăng ký khám khi component được mount
         const handleReceiveMessage = (medicalRegisterMessage) => {
-            console.log(medicalRegisterMessage);
             if(medicalRegisterMessage === true && dataPantientsReadyExamining.id === ''){
                 setLoadingPatient(true);
                 handleGetRegistersByDateNow();
@@ -2676,100 +2674,107 @@ function MainDoctorExamining() {
                                                                 <>
                                                                     <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center', fontSize: '1.2rem', lineHeight: 1, mt: 1}}>{currentHealthRecordExamining ? currentHealthRecordExamining.healthRecordsName : ''}</Typography>
                                                                     <div className='health-record-content'>
-                                                                        <List sx={{p: 0}}>
-                                                                            {currentHealthRecordExamining.categoryPatients.map((categoryPatientsItem, categoryPatientsIndex) => (
-                                                                                <div key={`categoryPatients ${categoryPatientsIndex}`}>
-                                                                                    <ListItemButton     
-                                                                                        sx={{pt: '0px', pb: '0px', borderRadius: '8px', ':hover': {backgroundColor: 'rgba(0, 0, 0, 0.1)'}}}
-                                                                                        onClick={() => handleOpenHealthRecordsItem(categoryPatientsIndex)}
-                                                                                    >
-                                                                                        <Box sx={{display: 'flex', alignItems: 'center'}}>
-                                                                                            <ListItemIcon sx={{minWidth: '30px', '& .MuiSvgIcon-fontSizeMedium': {fontSize: '1rem', color: '#2962ff', transform: openCollapseHealthRecordsItem[categoryPatientsIndex] === true ? 'rotate(90deg)' : 'rotate(0deg)'}}}><SendIcon /></ListItemIcon>
-                                                                                            <ListItemText primary={categoryPatientsItem.categoryName} sx={{'& .MuiListItemText-primary': {fontSize: '1.25rem', fontWeight: 'bolder', color: 'deeppink'}}}/>
-                                                                                        </Box>
-                                                                                    </ListItemButton>
+                                                                        {currentHealthRecordExamining ? 
+                                                                            <List sx={{p: 0}}>
+                                                                                {currentHealthRecordExamining.categoryPatients.map((categoryPatientsItem, categoryPatientsIndex) => (
+                                                                                    <div key={`categoryPatients ${categoryPatientsIndex}`}>
+                                                                                        <ListItemButton     
+                                                                                            sx={{pt: '0px', pb: '0px', borderRadius: '8px', ':hover': {backgroundColor: 'rgba(0, 0, 0, 0.1)'}}}
+                                                                                            onClick={() => handleOpenHealthRecordsItem(categoryPatientsIndex)}
+                                                                                        >
+                                                                                            <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                                                                                <ListItemIcon sx={{minWidth: '30px', '& .MuiSvgIcon-fontSizeMedium': {fontSize: '1rem', color: '#2962ff', transform: openCollapseHealthRecordsItem[categoryPatientsIndex] === true ? 'rotate(90deg)' : 'rotate(0deg)'}}}><SendIcon /></ListItemIcon>
+                                                                                                <ListItemText primary={categoryPatientsItem.categoryName} sx={{'& .MuiListItemText-primary': {fontSize: '1.25rem', fontWeight: 'bolder', color: 'deeppink'}}}/>
+                                                                                            </Box>
+                                                                                        </ListItemButton>
 
-                                                                                    <Collapse in={openCollapseHealthRecordsItem[categoryPatientsIndex]} timeout="auto" unmountOnExit>
-                                                                                        {categoryPatientsItem.categoryContents.map((categoryPatientsContentsItem, categoryPatientsContentsIndex) => (
-                                                                                            <div className='header-health-record' key={categoryPatientsContentsIndex} style={{marginTop: '15px', marginBottom: '15px', border: '2px solid #00bcd4', borderRadius: '20px'}}>
-                                                                                                <Typography variant='subtitle1' sx={{fontWeight: 'bolder', textAlign: 'center'}}>{categoryPatientsContentsItem.categoryContentTitle}</Typography>
+                                                                                        <Collapse in={openCollapseHealthRecordsItem[categoryPatientsIndex]} timeout="auto" unmountOnExit>
+                                                                                            {categoryPatientsItem.categoryContents.map((categoryPatientsContentsItem, categoryPatientsContentsIndex) => (
+                                                                                                <div className='header-health-record' key={categoryPatientsContentsIndex} style={{marginTop: '15px', marginBottom: '15px', border: '2px solid #00bcd4', borderRadius: '20px'}}>
+                                                                                                    <Typography variant='subtitle1' sx={{fontWeight: 'bolder', textAlign: 'center'}}>{categoryPatientsContentsItem.categoryContentTitle}</Typography>
                                                                                                 
-                                                                                                <div className='content-health-record' style={{padding: '10px'}} >  
-                                                                                                    <Grid container rowSpacing={0}>
-                                                                                                        <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7}}>
-                                                                                                            <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{categoryPatientsContentsItem.categoryContentName}</Typography>
-                                                                                                        </Grid>
+                                                                                                    <div className='content-health-record' style={{padding: '10px'}} >  
+                                                                                                        <Grid container rowSpacing={0}>
+                                                                                                            <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7}}>
+                                                                                                                <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder'}}>{categoryPatientsContentsItem.categoryContentName}</Typography>
+                                                                                                            </Grid>
 
-                                                                                                        <Grid item xs={3} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                                                                                                            <CheckBoxIcon sx={{fontSize: '1.2rem', color: 'gray', mr: 0.4}}/>
-                                                                                                            <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', lineHeight: '1.6'}}>{categoryPatientsContentsItem.categoryContentCheck}</Typography>
-                                                                                                        </Grid>
+                                                                                                            <Grid item xs={3} sx={{border: '2px solid rgb(218,220,224)', borderRight: '0px', p: 0.7, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                                                                                                                <CheckBoxIcon sx={{fontSize: '1.2rem', color: 'gray', mr: 0.4}}/>
+                                                                                                                <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', lineHeight: '1.6'}}>{categoryPatientsContentsItem.categoryContentCheck}</Typography>
+                                                                                                            </Grid>
                                                                                                         
-                                                                                                        <Grid item xs={5} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
-                                                                                                            <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', ml: 0.5}}>{categoryPatientsContentsItem.categoryContentText}</Typography>
-                                                                                                        </Grid> 
+                                                                                                            <Grid item xs={5} sx={{border: '2px solid rgb(218,220,224)', p: 0.7}}>
+                                                                                                                <Typography variant='subtitle1' sx={{color: 'blue', fontWeight: 'bolder', ml: 0.5}}>{categoryPatientsContentsItem.categoryContentText}</Typography>
+                                                                                                            </Grid> 
 
-                                                                                                        {categoryPatientsContentsItem.categoryContentQuestions.map((questionItem, questionIndex) => (
-                                                                                                            <Box key={`questionItem ${questionIndex} healthRecordsName ${contentCategorySelectedExamining.healthRecordsName}`} style={{display: 'flex', width: '100%'}}>
-                                                                                                                <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', alignItems: 'center'}}>
-                                                                                                                    <Typography variant='subtitle1' sx={{fontSize: '1rem'}}>{questionItem.categoryContentQuestionName}</Typography>
-                                                                                                                 </Grid>    
+                                                                                                            {categoryPatientsContentsItem.categoryContentQuestions.map((questionItem, questionIndex) => (
+                                                                                                                <Box key={`questionItem ${questionIndex} healthRecordsName ${contentCategorySelectedExamining.healthRecordsName}`} style={{display: 'flex', width: '100%'}}>
+                                                                                                                    <Grid item xs={4} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', alignItems: 'center'}}>
+                                                                                                                        <Typography variant='subtitle1' sx={{fontSize: '1rem'}}>{questionItem.categoryContentQuestionName}</Typography>
+                                                                                                                    </Grid>    
 
-                                                                                                                {questionItem.categoryContentQuestionType === 'check' ?
-                                                                                                                    <>
-                                                                                                                        <Grid item xs={3} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center'}}>
-                                                                                                                            <Checkbox classes={{ root: classes.root }} checked={questionItem.categoryContentAnswer === true ? true : false }
-                                                                                                                                disabled={currentHealthRecordExamining.newMedicalBook === false ? true : false}
-                                                                                                                                sx={{'& .MuiSvgIcon-fontSizeMedium': {fontSize: '1.2rem'}}} color='error'
-                                                                                                                                onClick={(e) => handleAnswerCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsContentsIndex, questionIndex, questionItem.categoryContentAnswer)} 
-                                                                                                                            />
-                                                                                                                        </Grid>
+                                                                                                                    {questionItem.categoryContentQuestionType === 'check' ?
+                                                                                                                        <>
+                                                                                                                            <Grid item xs={3} sx={{border: '2px solid rgb(218,220,224)', borderTop: '0px', borderRight: '0px', p: 0.5, display: 'flex', justifyContent: 'center'}}>
+                                                                                                                                <Checkbox classes={{ root: classes.root }} checked={questionItem.categoryContentAnswer === true ? true : false }
+                                                                                                                                    disabled={currentHealthRecordExamining.newMedicalBook === false ? true : false}
+                                                                                                                                    sx={{'& .MuiSvgIcon-fontSizeMedium': {fontSize: '1.2rem'}}} color='error'
+                                                                                                                                    onClick={(e) => handleAnswerCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsContentsIndex, questionIndex, questionItem.categoryContentAnswer)} 
+                                                                                                                                />
+                                                                                                                            </Grid>
                                                                                                                     
-                                                                                                                        <Grid item xs={5} >
-                                                                                                                            <div className='note-for-answer'>
-                                                                                                                                <div className='suggest-note' key={`current ${categoryPatientsItem.currentHealthRecordsContent}-${questionIndex} examinationName ${currentHealthRecordExamining.healthRecordsName}`}>                                                                          
-                                                                                                                                    <TextareaAutosize className='textarea-autosize' rows={1} defaultValue={questionItem.categoryContentNote}
-                                                                                                                                        disabled={currentHealthRecordExamining.newMedicalBook === false ? true : false}
-                                                                                                                                        onChange={(e) => handleNoteCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsContentsIndex, questionIndex, e.target.value)}    
-                                                                                                                                    />
+                                                                                                                            <Grid item xs={5} >
+                                                                                                                                <div className='note-for-answer'>
+                                                                                                                                    <div className='suggest-note' key={`current ${categoryPatientsItem.currentHealthRecordsContent}-${questionIndex} examinationName ${currentHealthRecordExamining.healthRecordsName}`}>                                                                          
+                                                                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} defaultValue={questionItem.categoryContentNote}
+                                                                                                                                            disabled={currentHealthRecordExamining.newMedicalBook === false ? true : false}
+                                                                                                                                            onChange={(e) => handleNoteCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsContentsIndex, questionIndex, e.target.value)}    
+                                                                                                                                        />
+                                                                                                                                    </div>
                                                                                                                                 </div>
-                                                                                                                            </div>
-                                                                                                                        </Grid>
-                                                                                                                    </>
-                                                                                                                :
-                                                                                                                    <>
-                                                                                                                        <Grid item xs={8} >
-                                                                                                                            <div className='note-for-answer'>
-                                                                                                                                <div className='suggest-note' key={`current ${categoryPatientsItem.currentHealthRecordsContent}-${questionIndex} examinationName ${currentHealthRecordExamining.healthRecordsName}`}>                                                                          
-                                                                                                                                    <TextareaAutosize className='textarea-autosize' rows={1} defaultValue={questionItem.categoryContentNote}
-                                                                                                                                        disabled={currentHealthRecordExamining.newMedicalBook === false ? true : false}
-                                                                                                                                        onChange={(e) => handleNoteCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsContentsIndex, questionIndex, e.target.value)}    
-                                                                                                                                    />
+                                                                                                                            </Grid>
+                                                                                                                        </>
+                                                                                                                    :
+                                                                                                                        <>
+                                                                                                                            <Grid item xs={8} >
+                                                                                                                                <div className='note-for-answer'>
+                                                                                                                                    <div className='suggest-note' key={`current ${categoryPatientsItem.currentHealthRecordsContent}-${questionIndex} examinationName ${currentHealthRecordExamining.healthRecordsName}`}>                                                                          
+                                                                                                                                        <TextareaAutosize className='textarea-autosize' rows={1} defaultValue={questionItem.categoryContentNote}
+                                                                                                                                            disabled={currentHealthRecordExamining.newMedicalBook === false ? true : false}
+                                                                                                                                            onChange={(e) => handleNoteCheckQuestionHealthRecords(categoryPatientsIndex, categoryPatientsContentsIndex, questionIndex, e.target.value)}    
+                                                                                                                                        />
+                                                                                                                                    </div>
                                                                                                                                 </div>
-                                                                                                                            </div>
-                                                                                                                        </Grid>
-                                                                                                                    </>
-                                                                                                                }
-                                                                                                            </Box>
-                                                                                                        ))}
-                                                                                                    </Grid>
+                                                                                                                            </Grid>
+                                                                                                                        </>
+                                                                                                                    }
+                                                                                                                </Box>
+                                                                                                            ))}
+                                                                                                        </Grid>
                                                                                                 </div>
                                                                                             </div>
                                                                                         ))}
                                                                                     </Collapse>
                                                                                 </div>
                                                                             ))}
-                                                                        </List>
+                                                                            </List>
+                                                                        :
+                                                                            null
+                                                                        }
                                                                         
-                                                                        {currentHealthRecordExamining.conclusion !== null ?
-                                                                            <>
+
+                                                                        {currentHealthRecordExamining ?
+                                                                            currentHealthRecordExamining.conclusion !== null ?
+                                                                            <>  
                                                                                 <div className='conclusion' style={{marginLeft: '16px', marginTop: '4px'}}>
                                                                                     <Typography variant='h6' sx={{color: 'blue', fontWeight: 'bolder'}}>{`Kết luận của bác sĩ: ${currentHealthRecordExamining.conclusion}`}</Typography>
                                                                                 </div>
                                                                             </>
                                                                             :
+                                                                                null
+                                                                        :
                                                                             null
-                                                                            
                                                                         }
                                                                         
                                                                     </div>

@@ -13,15 +13,17 @@ import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import Avatar from '@mui/material/Avatar';
 import Logo from '../../assets/image/logo.png';
+import Button from '@mui/material/Button';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Skeleton from '@mui/material/Skeleton';
+//icon
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import MedicationLiquidIcon from '@mui/icons-material/MedicationLiquid';
 import LocalPhoneIcon from '@mui/icons-material/LocalPhone';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import HelpIcon from '@mui/icons-material/Help';
-import Button from '@mui/material/Button';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import Skeleton from '@mui/material/Skeleton';
+import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 //context
 import { UserContext } from '../../context/UserContext';
 //real-time
@@ -67,6 +69,7 @@ function Header(props) {
 
   const actionAdmin = [
     { key: 'statistical', maxWidth: '83px', label: 'Thống kê', icon: <BarChartIcon sx={{fontSize: 30}}/>, LinkComponent: NavLink, to: "/dashboard" },
+    { key: 'manage', maxWidth: '83px', label: 'Quản lý', icon: <SettingsSuggestIcon sx={{fontSize: 30}}/>, LinkComponent: NavLink, to: "/dashboard" },
   ]
 
   const [userAction, setUserAction] = useState([]);
@@ -79,7 +82,8 @@ function Header(props) {
   const value = handleChangeURL(props.location.pathname);
 
   const handleLogout = () => {
-    if(user.positionName === 'Doctor'){
+    const pathname = props.location.pathname;
+    if(user.positionName === 'Doctor' && pathname === 'doctor-examining'){
       triggerAlert(async () => {
         await removeFromGroup();
         localStorage.removeItem('jwt');
