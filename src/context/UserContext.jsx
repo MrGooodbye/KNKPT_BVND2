@@ -84,7 +84,7 @@ const UserProvider = ({ children }) => {
         let getJWT = localStorage.getItem('jwt');
         if(getJWT){
             let decodeJWT = parseJwt(getJWT);
-            let currentDate  = new Date();
+            let currentDate = new Date();
             if(decodeJWT.exp * 1000 < currentDate.getTime()) {
                 //console.log('Token đã hết hạn hoặc không tồn tại')
                 localStorage.removeItem('jwt'); //xóa localStorage
