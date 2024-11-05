@@ -348,12 +348,29 @@ function MainDoctorExamining() {
         await new Promise(resolve => setTimeout(resolve, 1 * 1000));
         const response = await getRegistersByDateNow();
         if(response !== 400){
-            const findListPantientNotExam = response.list.filter(item => item.state !== 1)
+            let responseListPantient = response.list;
+            const findPantientIsExam = responseListPantient.find(item => item.state === 1 && item.userIdDoctor === user.userId);
+            if(findPantientIsExam){
+                const responseDataExamining = await getMedicalDetailPatient(findPantientIsExam.id);
+                if(responseDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null)){
+                    await updateMedicalState(findPantientIsExam.id, 0);    
+                    const indexPantient = responseListPantient.findIndex(item => item.id === findPantientIsExam.id)
+                    responseListPantient[indexPantient].state = 0
+                }
+                else{
+                    await updateMedicalState(findPantientIsExam.id, 3);  
+                    const indexPantient = responseListPantient.findIndex(item => item.id === findPantientIsExam.id)
+                    responseListPantient[indexPantient].state = 3          
+                }
+            }
+
+            const findListPantientNotExam = responseListPantient.filter(item => item.state !== 1)
+
             setListDataPatientsRegister(findListPantientNotExam);
 
-            let listPantientRegisterWaiting = findListPantientNotExam.filter(patientsRegisterItem => patientsRegisterItem.state === 0 || patientsRegisterItem.state === 1 || patientsRegisterItem.state === 3) //chờ khám và đang khám
-            let listPantientRegisterDone = findListPantientNotExam.filter(patientsRegisterItem => patientsRegisterItem.state === 2 && patientsRegisterItem.userIdDoctor === user.userId) //đã khám
-
+            const listPantientRegisterWaiting = findListPantientNotExam.filter(patientsRegisterItem => patientsRegisterItem.state !== 2) //chờ khám và đang khám
+            const listPantientRegisterDone = findListPantientNotExam.filter(patientsRegisterItem => patientsRegisterItem.state === 2 && patientsRegisterItem.userIdDoctor === user.userId) //đã khám
+ 
             setListDataPatientsRegisterSort(listPantientRegisterWaiting);
             setListDataPatientsRegisterState(listPantientRegisterWaiting);
 
@@ -363,6 +380,7 @@ function MainDoctorExamining() {
             ]
             setListPantientChipState(updatedList);
         }
+
         setLoadingPatient(false);
         setLoadingInfoPatient(false);
     }
