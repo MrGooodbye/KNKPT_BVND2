@@ -1,4 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
+import { useHistory } from 'react-router-dom';
+//user context
+import { UserContext } from '../../context/UserContext';
 //mui theme
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
@@ -37,6 +40,9 @@ import { getAppointmentsNextWeek, updateStateAppointment } from '../../Service/M
 import { toast } from 'react-toastify';
 
 function MainAppointmentExamining() {
+    const { user, loading } = useContext(UserContext);
+
+    const history = useHistory();
 
     const [activeChip, setActiveChip] = useState({chipOrder: 0, chipLabel: 'BN chưa nhắc hẹn khám'});
     const [listPantientAppointmentChipState, setListPantientChipState] = useState(
@@ -55,7 +61,7 @@ function MainAppointmentExamining() {
     const [listDataPatientsAppointmentState, setListDataPatientsAppointmentState] = useState();
     const [listDataPatientsAppointmentSort, setListDataPatientsAppointmentSort] = useState([]);
     
-    const [loading, setLoading] = useState(false);
+    const [loadingComponent, setLoadingComponent] = useState(false);
 
     const [page, setPage] = useState(1);
     const [pageCount, setPageCount] = useState();
@@ -91,7 +97,7 @@ function MainAppointmentExamining() {
     }
 
     const handleGetAppointmentsNextWeek = async () => {
-        setLoading(true);
+        setLoadingComponent(true);
         const responseGetAppointmentsNextWeek = await getAppointmentsNextWeek();
 
         setListAppointment(responseGetAppointmentsNextWeek);
@@ -156,7 +162,7 @@ function MainAppointmentExamining() {
             handlePaginate(_listAppointmentRejectReExamining)
         }
 
-        setLoading(false);
+        setLoadingComponent(false);
     }
 
     const handleSelectedChip = (chipIndex, chipLabel) => {
@@ -257,7 +263,7 @@ function MainAppointmentExamining() {
     }
 
     const handleAcceptReExamining = async (medicalBookId) => {
-        setLoading(true);
+        setLoadingComponent(true);
 
         const findDataAppointment = dataAppointment.find(item => item.medicalBookId === medicalBookId);
         const responseUpdateStateAppointment = await updateStateAppointment(findDataAppointment, 1);
@@ -335,11 +341,11 @@ function MainAppointmentExamining() {
         else{
             toast.error(responseUpdateStateAppointment.data, {toastId: 'handleAcceptReExaminingError'});
         }
-        setLoading(false);
+        setLoadingComponent(false);
     }
 
     const handleRejectReExamining = async (medicalBookId) => {
-        setLoading(true);
+        setLoadingComponent(true);
         
         const findDataAppointment = dataAppointment.find(item => item.medicalBookId === medicalBookId);
         const responseUpdateStateAppointment = await updateStateAppointment(findDataAppointment, 2);
@@ -416,7 +422,7 @@ function MainAppointmentExamining() {
         else{
             toast.error(responseUpdateStateAppointment.data, {toastId: 'handleAcceptReExaminingError'});
         }
-        setLoading(false);
+        setLoadingComponent(false);
     }
 
     useEffect(() => {
@@ -424,13 +430,21 @@ function MainAppointmentExamining() {
     }, [])
 
     useEffect(() => {
+        if(loading === false && user.isLogin){
+          if(user.positionName !== 'Nursing'){
+            history.push('/404');
+          }
+        }
+      }, [loading, user])
+
+    useEffect(() => {
         handlePaginate();
     }, [page]);
 
     return (
         <Container maxWidth="xl" sx={{mt: 1, p: 0 }}>
-            <TableContainer component={Paper} sx={{height: loading ? '40rem' : 'auto', position: 'relative'}}>
-                {loading ? 
+            <TableContainer component={Paper} sx={{height: loadingComponent ? '40rem' : 'auto', position: 'relative'}}>
+                {loadingComponent ? 
                     <>
                         <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', height: '100%'}}>
                             <CircularProgress />
@@ -545,7 +559,7 @@ function MainAppointmentExamining() {
                 }
             </TableContainer>
 
-            {listDataPatientsAppointmentSort.length !== 0 && loading === false ?
+            {listDataPatientsAppointmentSort.length !== 0 && loadingComponent === false ?
                 <Box sx={{display: 'flex', justifyContent: 'center', mt: 1, width: '100%'}}>
                     <Pagination count={pageCount} page={page} onChange={handlePageChange} color="secondary" />
                 </Box>

@@ -22,7 +22,7 @@ const AppRoutes = (props) => {
           <PrivateRoutes path="/doctor-examining" component={MainDoctorExamining}></PrivateRoutes>
           <PrivateRoutes path="/remind-examining" component={MainAppointmentExamining}></PrivateRoutes>
           <PrivateRoutes path="/dashboard" component={MainDashboard}></PrivateRoutes>
-          <PrivateRoutes path="/list-user" component={MainListUser}></PrivateRoutes>
+          <PrivateRoutes path="/manage-user" component={MainListUser}></PrivateRoutes>
           <Route path="*"><Page404 />{" "}</Route>
           {/* <PrivateRoutes path="/users" component={Users} /> */}
         </Switch>

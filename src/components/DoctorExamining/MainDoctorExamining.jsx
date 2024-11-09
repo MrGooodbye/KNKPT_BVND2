@@ -2431,7 +2431,7 @@ function MainDoctorExamining() {
                                 :
                                     dataPantientsReadyExamining.id !== '' && dataPantientsReadyExamining.status === 0 ? 
                                         <div className='instruction' style={{display: 'flex', marginTop: '4.5px'}}>
-                                            <Button variant="contained" color="error" sx={{mr: 2}} onClick={() => handleDeleteExamining()}>Xóa khám (f1)</Button>
+                                            {/* <Button variant="contained" color="error" sx={{mr: 2}} onClick={() => handleDeleteExamining()}>Xóa khám (f1)</Button> */}
                                             <Button variant="contained" color="secondary" onClick={() => handleStartExaminingButtonClick()}>Sửa đổi (f2)</Button>
                                         </div>
                                     :

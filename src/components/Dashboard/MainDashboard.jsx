@@ -161,7 +161,7 @@ function MainDashboard() {
                 <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale="vi">
                     <DemoContainer components={['DatePicker']}> 
                         <DatePicker label="Từ ngày" format='DD/MM/YYYY' disableFuture onChange={(value) => onChangeDateStart(value)}/> 
-                        <DatePicker label="Đến ngày" format='DD/MM/YYYY' disableFuture onChange={(value) => onChangeDateEnd(value)}/>                                   
+                        <DatePicker label="Đến ngày" format='DD/MM/YYYY' disableFuture onChange={(value) => onChangeDateEnd(value)} minDate={moment(dateSelectedReport.dateStart)}/>                                   
                     </DemoContainer>
                 </LocalizationProvider>
             </Box>
@@ -189,9 +189,9 @@ function MainDashboard() {
                                     components={{
                                         Toolbar: CustomToolbar, // Chèn toolbar vào đây
                                       }}
-                                      componentsProps={{
+                                    componentsProps={{
                                         toolbar: { handleExportExcel }, // Truyền hàm export vào props của toolbar
-                                      }}
+                                    }}
                                     disableRowSelectionOnClick
                                     sx={{
                                         '.MuiTablePagination-selectLabel': {

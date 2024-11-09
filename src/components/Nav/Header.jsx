@@ -41,10 +41,12 @@ function Header(props) {
 
   //mui state menu
   const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorElManageMenuIcon, setAnchorElManageMenuIcon] = useState(null);
 
   const token = localStorage.getItem("jwt");
   
   const open = Boolean(anchorEl);
+  const openManageMenuIcon = Boolean(anchorElManageMenuIcon)
   
   const handleClick = (event) => {
     if(isOldDiseaseWithNullCodeWard === true){
@@ -53,9 +55,24 @@ function Header(props) {
       setAnchorEl(event.currentTarget)
     }
   };
-  
+
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleOpenManageMenuIcon = (event, key) => {
+    if(key === 'manage'){
+      setAnchorElManageMenuIcon(event.currentTarget);
+    }
+  }
+
+  const handleCloseManageMenuIcon = () => {
+    setAnchorElManageMenuIcon(null)
+  }
+
+  const handleMenuItemClick = (path) => {
+    history.push(path); // Điều hướng tới đường dẫn mới
+    handleCloseManageMenuIcon(); // Đóng Menu
   };
 
   const actionNursing = [
@@ -69,7 +86,7 @@ function Header(props) {
 
   const actionAdmin = [
     { key: 'statistical', maxWidth: '83px', label: 'Thống kê', icon: <BarChartIcon sx={{fontSize: 30}}/>, LinkComponent: NavLink, to: "/dashboard" },
-    { key: 'manage', maxWidth: '83px', label: 'Quản lý', icon: <SettingsSuggestIcon sx={{fontSize: 30}}/>, LinkComponent: NavLink, to: "/dashboard" },
+    { key: 'manage', maxWidth: '83px', label: 'Quản lý', icon: <SettingsSuggestIcon sx={{fontSize: 30}}/> },
   ]
 
   const [userAction, setUserAction] = useState([]);
@@ -137,18 +154,24 @@ function Header(props) {
                         key={actionItem.key}
                         label={actionItem.label}
                         icon={actionItem.icon}
-                        LinkComponent={actionItem.LinkComponent}
-                        to={actionItem.to}
+                        LinkComponent={actionItem.LinkComponent || 'div'}
+                        to={actionItem.to || undefined}
+                        onClick={(event) => handleOpenManageMenuIcon(event, actionItem.key)}
                         sx={{color: '#000', maxWidth: actionItem.maxWidth}}
                       />
                     ))}  
                   </BottomNavigation>
+
+                  <Menu anchorEl={anchorElManageMenuIcon} open={Boolean(openManageMenuIcon)} onClose={() => handleCloseManageMenuIcon()} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} transformOrigin={{ vertical: 'top', horizontal: 'center' }}>
+                    <MenuItem onClick={() => handleMenuItemClick('/manage-user')}>Người dùng</MenuItem>
+                  </Menu>
 
                   <Button onClick={(e) => handleClick(e)} sx={{color: '#000', textTransform: 'none'}}>{user.userFullName}</Button>
                   <Menu anchorEl={anchorEl} open={open} onClose={() => handleClose()}>
                     <MenuItem onClick={() => [setOpenModalChangePassword(true), setIsDialogChangePasswordOpen(true), setAnchorEl(null)]}>Đổi mật khẩu</MenuItem>
                     <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
                   </Menu>
+
                   {/* <HelpIcon titleAccess='Hướng dẫn' sx={{color: 'black', fontSize: '30px', cursor: 'pointer'}} onClick={() => setOpenModalUserManual(true)} /> */}
                 </>
                 :

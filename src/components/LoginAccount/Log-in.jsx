@@ -155,7 +155,7 @@ const Login = () => {
                             />
                             <Stack spacing={2} direction="column">
                                 <Button sx={{ height: '6.5vh', width: '28ch' }} variant="contained" style={{ margin: 'auto' }} onClick={(e) => handleLogin()}>Đăng nhập</Button>
-                                <Typography sx={{textAlign: 'center', color: 'red', fontSize: '18px'}} variant="subtitle1"><strong style={{cursor: 'pointer'}} onClick={() => setOpenModalRegister(true)}>Quên mật khẩu</strong></Typography>
+                                {/* <Typography sx={{textAlign: 'center', color: 'red', fontSize: '18px'}} variant="subtitle1"><strong style={{cursor: 'pointer'}} onClick={() => setOpenModalRegister(true)}>Quên mật khẩu</strong></Typography> */}
                                 {/* <Typography sx={{textAlign: 'center', mt: '10px !important'}} variant="subtitle1">Chưa có tài khoản? <strong style={{cursor: 'pointer'}} onClick={() => setOpenModalRegister(true)}>Đăng ký</strong></Typography> */}
                             </Stack>
                         </Box>

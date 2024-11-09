@@ -25,6 +25,23 @@ const userLogin = async (userName, password) => {
   })
 };
 
+const addUser = async (dataAddUser) => {
+  const token = localStorage.getItem("jwt");
+  return await axios.post(`${backendURL}/api/UserAccount/AddUser`, dataAddUser, { 
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${token}`,
+  },
+  })
+  .then(function (response) {
+    //SignalService.startSignalRConnection(response.data.tokenDTO.token)
+      return response
+  })
+  .catch(function (error) {
+    return error.response
+  })
+}
+
 const getUserLogin = async () => {
   const config = createConfig();
   return await axios.get(`${backendURL}/api/UserAccount/GetUserLogin`, config)
@@ -64,7 +81,7 @@ const updatePassword = async (inputPayloadPassword) => {
 }
 
 export {
-    userLogin, 
+    userLogin, addUser,
     getUserLogin, getGetListDoctor,
     updatePassword
 }

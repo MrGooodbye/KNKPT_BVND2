@@ -110,14 +110,16 @@ const UserProvider = ({ children }) => {
         if(getUserLogin){
             const result = checkJWTExpire();
             if(result){
-                const getUserLogin = JSON.parse(localStorage.getItem('userLogin'));
                 setUser(getUserLogin);
-            }else{
-                //không có token
+            }
+            else{
+                localStorage.removeItem('jwt'); //xóa localStorage
+                localStorage.removeItem('userLogin');
                 setUser(userDefault);
             }
         }else{
             localStorage.removeItem('jwt'); //xóa localStorage
+            localStorage.removeItem('userLogin');
             setUser(userDefault);
         }
         setLoading(false);
