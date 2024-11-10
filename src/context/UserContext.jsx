@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 //modal
 import AlertProcessingBackdrop from '../components/ManageAlertProcessingBackdrop/AlertProcessingBackdrop';
 
 const UserContext = React.createContext(null);
 
 const UserProvider = ({ children }) => {
+
+    const history = useHistory();
 
     const userDefault = {
         isAuthenticated: false,
@@ -116,6 +119,7 @@ const UserProvider = ({ children }) => {
                 localStorage.removeItem('jwt'); //xóa localStorage
                 localStorage.removeItem('userLogin');
                 setUser(userDefault);
+                history.push('/404');
             }
         }else{
             localStorage.removeItem('jwt'); //xóa localStorage

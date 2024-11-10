@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
+import _ from "lodash";
 //context
 import { UserContext } from '../../context/UserContext';
 //modal add user
@@ -16,6 +17,8 @@ import Switch from '@mui/material/Switch';
 import { HiUserAdd } from "react-icons/hi";
 //api
 import { getListUser } from '../../Service/StatisticsService';
+import { updateActiveUser } from '../../Service/UserService';
+import { toast } from 'react-toastify';
 
 
 function MainListUser() {
@@ -29,12 +32,43 @@ function MainListUser() {
 
     const history = useHistory();
 
+    const onChangeActiveUser = async (event, data) => {
+        setLoadingListUser(true);
+        const responseUpdateActiveUser = await updateActiveUser(data.userId, event.target.checked);
+        if(responseUpdateActiveUser.status === 200){
+            const responseGetListUser = await getListUser();
+            const editMainDataListUser = responseGetListUser.map((item) => {
+                const dataReportUser = {
+                    userId: item.userId,
+                    userName: item.userName,
+                    userFullName: item.userFullName,
+                    userEmail: item.userEmail,
+                    positionName: item.positionName,
+                    userIsActive: item.userIsActive
+                }
+
+                if(item.positionName === 'Doctor'){
+                    dataReportUser.positionName = 'Bác sĩ'
+                }
+                else if(item.positionName === 'Nursing'){
+                    dataReportUser.positionName = 'Tiếp nhận'
+                }
+
+                return dataReportUser
+            })
+            setListUser(editMainDataListUser);
+            
+            toast.success(event.target.checked === true ? `Đã vô hiệu hóa người dùng ${data.userFullName}` : `Đã kích hoạt lại người dùng ${data.userFullName}`)
+        }
+        setLoadingListUser(false);
+    }
+
     const columns = [
         { field: 'userName', headerName: 'Tên đăng nhập', width: 240, align: 'left', headerAlign: 'left', },
         { field: 'userFullName', headerName: 'Họ tên', width: 240, align: 'left', headerAlign: 'left', },
         { field: 'userEmail', headerName: 'Email', width: 340, align: 'left', headerAlign: 'left', },
         { field: 'positionName', headerName: 'Vị trí', width: 200, align: 'left', headerAlign: 'left' },
-        { field: 'userIsActive', headerName: 'Trạng thái', width: 165, align: 'left', headerAlign: 'left', },
+        { field: 'userIsActive', headerName: 'Trạng thái', width: 165, align: 'left', headerAlign: 'left', renderCell: (params) => params.row.userIsActive ? <Switch checked={true} onChange={(e) => onChangeActiveUser(e, params.row)} /> : <Switch checked={false} onChange={(e) => onChangeActiveUser(e, params.row)}/> },
     ];
 
     // Custom toolbar bao gồm nút thêm user

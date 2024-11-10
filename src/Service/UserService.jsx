@@ -80,8 +80,24 @@ const updatePassword = async (inputPayloadPassword) => {
     })
 }
 
+const updateActiveUser = async (userId, isActive) => {
+  const token = localStorage.getItem("jwt");
+    return await axios.put(`${backendURL}/api/UserAccount/EditIsActiveUser?userId=${userId}&isActive=${isActive}`, {}, {
+        headers: {
+            "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+    })
+    .then(function (response) {
+        return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
 export {
     userLogin, addUser,
     getUserLogin, getGetListDoctor,
-    updatePassword
+    updatePassword, updateActiveUser
 }

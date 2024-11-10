@@ -5,7 +5,7 @@ const PrivateRoutes = (props) => {
   const token = localStorage.getItem('jwt');
   const getUserLogin = JSON.parse(localStorage.getItem('userLogin'));
 
-  if (token.length > 0 && getUserLogin.isLogin) {
+  if (token && token.length > 0 && getUserLogin.isLogin === true) {
     return (
       <>
         <Route path={props.path} component={props.component}></Route>
