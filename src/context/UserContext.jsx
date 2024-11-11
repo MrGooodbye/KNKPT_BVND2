@@ -110,16 +110,14 @@ const UserProvider = ({ children }) => {
     useEffect(() => {
         setLoading(true);
         const getUserLogin = JSON.parse(localStorage.getItem('userLogin'));
-        if(getUserLogin){
+        const getToken = localStorage.getItem('jwt')
+        if(getUserLogin && getToken){
             const result = checkJWTExpire();
             if(result){
                 setUser(getUserLogin);
             }
-            else{
-                localStorage.removeItem('jwt'); //xóa localStorage
-                localStorage.removeItem('userLogin');
+            else if(result === false){
                 setUser(userDefault);
-                history.push('/404');
             }
         }else{
             localStorage.removeItem('jwt'); //xóa localStorage

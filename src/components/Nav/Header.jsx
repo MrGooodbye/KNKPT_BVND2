@@ -142,9 +142,9 @@ function Header(props) {
         <Box sx={{ width: '100%'}} >
           <AppBar sx={{position: 'unset'}}>
             <Toolbar sx={{backgroundColor: '#cfe8fc', height: '78px'}}>
-              {/* <Link to="/"> */}
+              <Link to="/">
                 <Avatar src={Logo} sx={{ width: 62, height: 62, mt: 'auto', mb: 'auto', mr: 4 }} />
-              {/* </Link> */}
+              </Link>
               {user.isAuthenticated === true || token ? 
                 <>
                   <BottomNavigation showLabels value={value}
