@@ -185,8 +185,17 @@ function BookMedical(props) {
     {
       if(event.key === 'Enter'){
         event.preventDefault();
-        const nextField = document.getElementById(dataPatientsRegister.oldDiseaseWithNullCodeWard && nextFieldId === 'patientAddress' ? 'patientWeight' : nextFieldId); // Tìm trường tiếp theo dựa trên ID
-        if (nextField) {
+        let nextField = null;
+        if(dataPatientsRegister.oldDiseaseWithNullCodeWard && nextFieldId === 'patientFullName'){
+          nextField = document.getElementById('patientProvince');
+        }
+        else if(dataPatientsRegister.oldDiseaseWithNullCodeWard && nextFieldId === 'patientAddress'){
+          nextField = document.getElementById('patientWeight');
+        }
+        else{
+          nextField = document.getElementById(nextFieldId);
+        }
+        if(nextField) {
           nextField.focus();
           nextField.select(); // Đảm bảo con trỏ chuột xuất hiện
         }
@@ -1418,7 +1427,7 @@ function BookMedical(props) {
         setDataPatientsRegisterError(dataPatientsRegisterErrorDefault);
         setOpenAlertProcessing(false);
 
-        setFocusField('province');
+        setFocusField('patientCode');
       }, 300)
     }
     else{
@@ -1490,7 +1499,6 @@ function BookMedical(props) {
     }
 
     setFocusField(null);
-
 
     const oldDisease = dataPatientsRegister.oldDisease ? true : false
 
@@ -1641,7 +1649,7 @@ function BookMedical(props) {
           <ThemeProvider theme={tooltipTheme}>
             <Tooltip title={<h6 style={{ margin: '0px' }}>{dataPatientsRegisterError.patientCode.title}</h6>} open={dataPatientsRegisterError.patientCode.openTooltip} placement="top" PopperProps={{sx: { zIndex: 2 } }}> 
               <div style={{width: '19%', marginTop: '20px'}}>
-                <TextField error={true ? dataPatientsRegisterError.patientCode.isError === true : false} disabled={dataPatientsRegister.oldDisease === true ? true : false}
+                <TextField error={true ? dataPatientsRegisterError.patientCode.isError === true : false} disabled={dataPatientsRegister.oldDisease === true && dataPatientsRegister.oldDiseaseWithNullCodeWard === false ? true : false}
                   label="Mã BN" variant="outlined" id='patientCode' autoComplete='off'
                   inputRef={(input) => input && focusField === 'patientCode' && input.focus()}
                   onChange={(e) => onChangePatientId(e.target.value)}

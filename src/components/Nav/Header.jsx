@@ -125,15 +125,17 @@ function Header(props) {
   }, [isOldDiseaseWithNullCodeWard])
   
   useEffect(() => {
-    if(user.positionName === 'Nursing'){        
-      setUserAction(actionNursing);
-    }
-    else if(user.positionName === 'Doctor'){
-      setUserAction(actionDoctor);
-    }
-    else if(user.positionName === 'Admin'){
-      setUserAction(actionAdmin);
-    }
+    if(user){
+      if(user.positionName === 'Nursing'){        
+        setUserAction(actionNursing);
+      }
+      else if(user.positionName === 'Doctor'){
+        setUserAction(actionDoctor);
+      }
+      else if(user.positionName === 'Admin'){
+        setUserAction(actionAdmin);
+      }
+    }  
   }, [user])
   
   if(location.pathname !== '/login'){
@@ -145,7 +147,7 @@ function Header(props) {
               <Link to="/">
                 <Avatar src={Logo} sx={{ width: 62, height: 62, mt: 'auto', mb: 'auto', mr: 4 }} />
               </Link>
-              {user.isAuthenticated === true || token ? 
+              {user && token ? 
                 <>
                   <BottomNavigation showLabels value={value}
                     sx={{display: 'flex', justifyContent: 'flex-start', backgroundColor: '#cfe8fc', flexGrow: 1}}>
@@ -174,14 +176,14 @@ function Header(props) {
 
                   {/* <HelpIcon titleAccess='Hướng dẫn' sx={{color: 'black', fontSize: '30px', cursor: 'pointer'}} onClick={() => setOpenModalUserManual(true)} /> */}
                 </>
-                :
-                  <>
-                    <Box sx={{position: 'absolute', right: 22}}>
-                      <NavLink exact to="/login"><Button sx={{textTransform: 'none', color: '#000'}}>Đăng nhập</Button></NavLink>
-                      {/* <HelpIcon titleAccess='Hướng dẫn' sx={{color: 'black', fontSize: '30px', cursor: 'pointer'}} onClick={() => setOpenModalUserManual(true)} /> */}
-                    </Box>
-                  </>
-                }            
+              :
+                <>
+                  <Box sx={{position: 'absolute', right: 22}}>
+                    <NavLink exact to="/login"><Button sx={{textTransform: 'none', color: '#000'}}>Đăng nhập</Button></NavLink>
+                    {/* <HelpIcon titleAccess='Hướng dẫn' sx={{color: 'black', fontSize: '30px', cursor: 'pointer'}} onClick={() => setOpenModalUserManual(true)} /> */}
+                  </Box>
+                </>
+              }            
             </Toolbar>
           </AppBar>
         </Box>

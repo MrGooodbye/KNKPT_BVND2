@@ -27,7 +27,7 @@ import { getCurrentDoctorExamining } from '../../Service/MedicalService';
 import { startSignalRConnection } from '../../Service/SignalService';
 
 const Login = () => {
-    const { user, loadingContext, loginContext } = useContext(UserContext);
+    const { user, loginContext } = useContext(UserContext);
     const history = useHistory();
 
     const [openAlertProcessingBackdrop, setOpenAlertProcessingBackdrop] = useState(false);

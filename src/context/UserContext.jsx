@@ -110,20 +110,21 @@ const UserProvider = ({ children }) => {
     useEffect(() => {
         setLoading(true);
         const getUserLogin = JSON.parse(localStorage.getItem('userLogin'));
-        const getToken = localStorage.getItem('jwt')
-        if(getUserLogin && getToken){
-            const result = checkJWTExpire();
-            if(result){
-                setUser(getUserLogin);
-            }
-            else if(result === false){
-                setUser(userDefault);
-            }
-        }else{
-            localStorage.removeItem('jwt'); //xóa localStorage
-            localStorage.removeItem('userLogin');
-            setUser(userDefault);
-        }
+        setUser(getUserLogin);
+        // const getToken = localStorage.getItem('jwt')
+        // if(getUserLogin && getToken){
+        //     const result = checkJWTExpire();
+        //     if(result){
+        //         setUser(getUserLogin);
+        //     }
+        //     else if(result === false){
+        //         setUser(userDefault);
+        //     }
+        // }else{
+        //     localStorage.removeItem('jwt'); //xóa localStorage
+        //     localStorage.removeItem('userLogin');
+        //     setUser(userDefault);
+        // }
         setLoading(false);
     }, [])
 

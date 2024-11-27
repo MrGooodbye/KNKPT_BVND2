@@ -193,8 +193,8 @@ function MainDoctorExamining() {
     const searchPatients = (patients, searchTerm) => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
         return patients.filter(patientObj => {
-          const { patientId, fullName, phoneMother, phoneFather } = patientObj.patient;
-          return patientId.toLowerCase().includes(lowerCaseSearchTerm) || fullName.toLowerCase().includes(lowerCaseSearchTerm) || phoneMother.toLowerCase().includes(lowerCaseSearchTerm) || phoneFather.toLowerCase().includes(lowerCaseSearchTerm);
+        const { patientCode, fullName, phoneMother, phoneFather } = patientObj.patient;
+            return patientCode.toLowerCase().includes(lowerCaseSearchTerm) || fullName.toLowerCase().includes(lowerCaseSearchTerm) || phoneMother.toLowerCase().includes(lowerCaseSearchTerm) || phoneFather.toLowerCase().includes(lowerCaseSearchTerm);
         });
     }
 
@@ -353,14 +353,14 @@ function MainDoctorExamining() {
             if(findPantientIsExam){
                 const responseDataExamining = await getMedicalDetailPatient(findPantientIsExam.id);
                 if(responseDataExamining.healthRecords.some(healthRecordsItem => healthRecordsItem.medicalBookId === null)){
-                    await updateMedicalState(findPantientIsExam.id, 0);    
+                    await updateMedicalState(findPantientIsExam.id, responseDataExamining.healthRecords.length === 1 ? 0 : 3);    
                     const indexPantient = responseListPantient.findIndex(item => item.id === findPantientIsExam.id)
-                    responseListPantient[indexPantient].state = 0
+                    responseListPantient[indexPantient].state = responseDataExamining.healthRecords.length === 1 ? 0 : 3
                 }
                 else{
-                    await updateMedicalState(findPantientIsExam.id, 3);  
+                    await updateMedicalState(findPantientIsExam.id, 2);  
                     const indexPantient = responseListPantient.findIndex(item => item.id === findPantientIsExam.id)
-                    responseListPantient[indexPantient].state = 3          
+                    responseListPantient[indexPantient].state = 2        
                 }
             }
 
@@ -751,7 +751,7 @@ function MainDoctorExamining() {
             toast.success(`Đang mở khám lại cho bệnh nhân ${dataPantientsReadyExamining.patientsName}`, {toastId: 'success1'});
         }
         else if(responseGetUpdateMedicalBook.status === 400){
-            toast.error('Bạn không phải bác sĩ khám hôm nay, không thể dùng chức năng này', {toastId: 'error1'});
+            toast.error(responseGetUpdateMedicalBook.data, {toastId: 'error1'});
         }
         setLoadingCategoryExamining(false);
     }

@@ -13,7 +13,7 @@ const PrivateRoutes = (props) => {
 
   const checkJWTExpire = () => {
     let result = false;
-    let getJWT = localStorage.getItem('jwt');
+    const getJWT = localStorage.getItem('jwt');
     if (getJWT) {
       let decodeJWT = parseJwt(getJWT);
       let currentDate = new Date();
@@ -31,6 +31,7 @@ const PrivateRoutes = (props) => {
       }
     }
     else {
+      localStorage.removeItem('jwt'); //xóa localStorage
       localStorage.removeItem('userLogin');
       return result
     }
@@ -57,6 +58,8 @@ const PrivateRoutes = (props) => {
     }
   }
   else {
+    localStorage.removeItem('jwt'); //xóa localStorage
+    localStorage.removeItem('userLogin');
     return (
       <>
         <Redirect to='/login'></Redirect>

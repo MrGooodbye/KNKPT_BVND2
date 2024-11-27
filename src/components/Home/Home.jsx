@@ -13,7 +13,7 @@ function Home() {
     return (
         <Container> 
             <Box sx={{mt: 1}}>
-                {loading === false && user.isLogin ?
+                {loading === false && user && user.isLogin ?
                     user.positionName === 'Nursing' ? 
                         <>
                             <Typography variant='subtitle1' sx={{ml: 2, fontSize: '1.35rem'}}>Nếu bạn thấy dòng chữ này hãy nhấn vào <span style={{fontWeight: 'bolder', color: 'blue'}}>"Đăng ký khám"</span> ở thanh menu có logo của bệnh viện để chuyển về trang đăng ký khám</Typography>
