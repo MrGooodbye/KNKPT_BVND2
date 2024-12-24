@@ -17,7 +17,6 @@ const PrivateRoutes = (props) => {
     if (getJWT) {
       let decodeJWT = parseJwt(getJWT);
       let currentDate = new Date();
-      console.log(decodeJWT.exp * 1000);
       if (decodeJWT.exp * 1000 < currentDate.getTime()) {
         //console.log('Token đã hết hạn hoặc không tồn tại')
         localStorage.removeItem('jwt'); //xóa localStorage
