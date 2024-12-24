@@ -425,6 +425,7 @@ function OldDisease(props) {
             medicalTypeId: responseVaccinationByPatientId.medicalTypeId,
             userIdDoctor: '',
             patient: {
+                patientId: foundOldDiseaseItem.patientId,
                 patientCode: foundOldDiseaseItem.patientCode,
                 identifier: foundOldDiseaseItem.identifier,
                 address: foundOldDiseaseItem.address,

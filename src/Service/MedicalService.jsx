@@ -141,9 +141,9 @@ const getListMedicalExaminationsGiveRegister = async (dayOfBirth) => {
     })
 }
 
-const getListMedicalExaminationsGiveOldRegister = async (dayOfBirth, patientCode) => {
+const getListMedicalExaminationsGiveOldRegister = async (dayOfBirth, patientId) => {
     const config = createConfig();
-    return await axios.get(`${backendURL}/api/Medical/GetExaminationsGiveRegister?dayOfBirth=${dayOfBirth}&patientCode=${patientCode}`, config)
+    return await axios.get(`${backendURL}/api/Medical/GetExaminationsGiveRegister?dayOfBirth=${dayOfBirth}&patientId=${patientId}`, config)
     .then(function (response) {
         return response.data
     })

@@ -39,7 +39,7 @@ function ExaminingSession(props) {
     const handleListMedicalExaminationsGiveRegister = async () =>  {
         if(props.dataPatientsRegister.oldDisease){
             setOpenAlertProcessing(true);
-            const response = await getListMedicalExaminationsGiveOldRegister(props.dataPatientsRegister.patient.dayOfBirth, props.dataPatientsRegister.patient.patientCode);
+            const response = await getListMedicalExaminationsGiveOldRegister(props.dataPatientsRegister.patient.dayOfBirth, props.dataPatientsRegister.patient.patientId);
             setListExaminingSession(response);
             props.dataPatientsRegister.examinationId = response.exams[0].id;
             setOpenAlertProcessing(false);
