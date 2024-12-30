@@ -107,27 +107,35 @@ function ConclusionPaper(props) {
             {/* <IconButton onClick={() => handleCloseModalConclusionPaper()}sx={{position: 'absolute', right: 5, top: 7}}>
                 <CloseIcon fontSize='medium'/>
             </IconButton> */}
-            <DialogContent sx={{padding: '0px 18px 0px 18px', mt: 2, mb: 2}} ref={contentRef}>
+            <DialogContent sx={{padding: '0px 18px 0px 18px', mt: 4, mb: 2}} ref={contentRef}>
                 <Box>
                     {dataConclusionPaper && dataPantientInfo ? 
                         <>
                             <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center', textTransform: 'uppercase'}}>Giấy kết luận</Typography>
-                            <div className='pantient-info' style={{marginTop: '10px', marginBottom: '10px'}}>
+                            <div className='pantient-info' style={{marginTop: '20px', marginBottom: '100px'}}>
                                 <Grid container rowSpacing={2} columnSpacing={{ xs: 1, sm: 2, md: 4}} sx={{display: 'flex'}}>
-                                    <Grid item xs={5.5}><Typography variant='subtitle1' sx={{ml: 1}}>Họ tên: <span style={{margin: 0, padding: 0, fontWeight: 'bolder'}}>{dataPantientInfo.patientsName}</span></Typography></Grid>
-                                    <Grid item xs={2}><Typography variant='subtitle1' sx={{ml: 1}}>Giới tính: <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsGender === true ? 'Nam' : 'Nữ'}</span></Typography></Grid>
-                                    <Grid item xs={4.5}><Typography variant='subtitle1' sx={{ml: 1}}>Tuổi: <span style={{margin: 0, padding: 0, fontWeight: 'bolder'}}>{dataPantientInfo.patientsMonthsOld}</span></Typography></Grid>
-                                    <Grid item xs={12}><Typography variant='subtitle1' sx={{ml: 1}}>Địa chỉ: <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsAddress}</span></Typography></Grid>
-                                    <Grid item xs={6}><Typography variant='subtitle1' sx={{ml: 1}}>Cha mẹ/người giám hộ: <span style={{margin: 0, padding: 0, fontWeight: 'bolder'}}>{dataPantientInfo.parentName}</span></Typography></Grid>
-                                    <Grid item xs={6}><Typography variant='subtitle1' sx={{ml: 1}}>SĐT: <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsPhone}</span></Typography></Grid>
-                                    <Grid item xs={3}><Typography variant='subtitle1' sx={{ml: 1}}>Chiều cao: <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsHeight + ' cm'}</span></Typography></Grid>
-                                    <Grid item xs={3}><Typography variant='subtitle1' sx={{ml: 1}}>Cân nặng: <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsWeight + ' kg'}</span></Typography></Grid>
-                                    <Grid item xs={3}><Typography variant='subtitle1' sx={{ml: 1}}>Vòng đầu <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsHeadCircumference + ' cm'}</span></Typography></Grid>
-                                    <Grid item xs={12}><Typography variant='subtitle1' sx={{ml: 1}}>Kết luận: <span style={{margin: 0, padding: 0, fontWeight: 'bolder'}}>{dataConclusionPaper.conclusion}</span></Typography></Grid>
+                                    <Grid item xs={12}><Typography variant='subtitle2' sx={{ml: 1}}>Mã BN: <span style={{margin: 0, padding: 0, fontWeight: 'bolder'}}>{dataPantientInfo.patientCode}</span></Typography></Grid>
+
+                                    <Grid item xs={7}><Typography variant='subtitle2' sx={{ml: 1}}>Họ tên: <span style={{margin: 0, padding: 0, fontWeight: 'bolder'}}>{dataPantientInfo.patientsName}</span></Typography></Grid>
+                                    <Grid item xs={5}><Typography variant='subtitle2' sx={{ml: 1}}>Giới tính: <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsGender === true ? 'Nam' : 'Nữ'}</span></Typography></Grid>
+
+                                    <Grid item xs={7}><Typography variant='subtitle2' sx={{ml: 1}}>Ngày sinh: <span style={{margin: 0, padding: 0, fontWeight: 'bolder'}}>{moment(dataPantientInfo.patientsDOB).format("DD/MM/YYYY")}</span></Typography></Grid>
+                                    <Grid item xs={5}><Typography variant='subtitle2' sx={{ml: 1}}>Tuổi: <span style={{margin: 0, padding: 0, fontWeight: 'bolder'}}>{dataPantientInfo.patientsMonthsOld}</span></Typography></Grid>
+                                    
+                                    <Grid item xs={12}><Typography variant='subtitle2' sx={{ml: 1}}>Địa chỉ: <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsAddress}</span></Typography></Grid>
+
+                                    <Grid item xs={7}><Typography variant='subtitle2' sx={{ml: 1}}>Cha mẹ/người giám hộ: <span style={{margin: 0, padding: 0, fontWeight: 'bolder'}}>{dataPantientInfo.parentName}</span></Typography></Grid>
+                                    <Grid item xs={5}><Typography variant='subtitle2' sx={{ml: 1}}>SĐT: <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsPhone}</span></Typography></Grid>
+
+                                    <Grid item xs={4}><Typography variant='subtitle2' sx={{ml: 1}}>Chiều cao: <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsHeight + ' cm'}</span></Typography></Grid>
+                                    <Grid item xs={4}><Typography variant='subtitle2' sx={{ml: 1}}>Cân nặng: <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsWeight + ' kg'}</span></Typography></Grid>
+                                    <Grid item xs={4}><Typography variant='subtitle2' sx={{ml: 1}}>Vòng đầu <span style={{margin: 0, padding: 0}}>{dataPantientInfo.patientsHeadCircumference + ' cm'}</span></Typography></Grid>
+
+                                    <Grid item xs={12} style={{height: '70px'}}><Typography variant='subtitle2' sx={{ml: 1}}>Kết luận: <span style={{margin: 0, padding: 0, fontWeight: 'bolder'}}>{dataConclusionPaper.conclusion}</span></Typography></Grid>
                                 </Grid>
                             </div>
                        
-                            <div className='category-examining' style={{marginBottom: '50px'}}>
+                            {/* <div className='category-examining' style={{marginBottom: '50px'}}>
                                 {dataConclusionPaper.categories.length !== 0 ?
                                     dataConclusionPaper.categories.map((categoriesItem, categoriesIndex) => (
                                         <div key={`categoriesItem ${categoriesIndex}`}>
@@ -210,18 +218,29 @@ function ConclusionPaper(props) {
                                 :
                                     <Typography variant='h6' sx={{color: 'blue', fontWeight: 'bolder', textAlign: 'center'}}>Không phát hiện gì bất thường khi khám.</Typography>                               
                                 }
-                            </div>
+                            </div> */}
 
-                            <Typography variant='subtitle1' sx={{fontWeight: 'bolder'}}>Ghi chú:</Typography>
-                            <div className='note' style={{display: 'flex', justifyContent: 'space-between'}}>
-                                <div className='appointment-date'>
-                                    <Typography variant='subtitle1' sx={{textTransform: 'uppercase', fontWeight: 'bolder'}}>Tái khám: {moment(dataConclusionPaper.appointmentDate).format("DD/MM/YYYY")}</Typography>
+                            <Typography variant='subtitle2' sx={{fontWeight: 'bolder', ml: 1, mt: 2}}>Ghi chú:</Typography>
+                            <div className='note' style={{display: 'flex', justifyContent: 'space-between', marginLeft: '8px'}}>
+                                <div className='appointment-date' style={{width: '270px'}}>
+                                    <Typography variant='subtitle2' sx={{textTransform: 'uppercase', fontWeight: 'bolder'}}>Tái khám: {moment(dataConclusionPaper.appointmentDate).format("DD/MM/YYYY")}</Typography>
+
+                                    {dataConclusionPaper.isVaccination && (
+                                        
+                                        <div className='vaccination' style={{display: 'block'}}>
+                                            <Typography variant='subtitle2' sx={{textTransform: 'uppercase', fontWeight: 'bolder'}}>Tiêm ngừa: </Typography>
+                                            <Typography variant='subtitle2'>{dataConclusionPaper.vaccination}</Typography>
+                                            <Typography variant='subtitle2'>{dataConclusionPaper.nextVaccination}</Typography>
+                                        </div>
+                                            
+                                    )
+                                    }
                                 </div>
                                 <div className='exam-info'>
-                                    <Typography variant='subtitle1'>{`${moment().format('LT')}, Ngày ${moment().format('LL')}`}</Typography>
-                                    <Typography variant='subtitle1' sx={{textTransform: 'uppercase', textAlign: 'center'}}>Bác sĩ khám bệnh</Typography>
-                                    <div className='doctor-signature' style={{padding: '30px'}}></div>
-                                    <Typography variant='h6' sx={{fontWeight: 'bolder', textAlign: 'center'}}>{user.userFullName}</Typography>
+                                    <Typography variant='subtitle2'>{`${moment().format('LT')}, Ngày ${moment().format('LL')}`}</Typography>
+                                    <Typography variant='subtitle2' sx={{textTransform: 'uppercase', textAlign: 'center'}}>Bác sĩ khám bệnh</Typography>
+                                    <div className='doctor-signature' style={{padding: '50px'}}></div>
+                                    <Typography variant='subtitle1' sx ={{fontWeight: 'bolder', textAlign: 'center'}}>{user.userFullName}</Typography>
                                 </div>
                             </div>
                         </>
