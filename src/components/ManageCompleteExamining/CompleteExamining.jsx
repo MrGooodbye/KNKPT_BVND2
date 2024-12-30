@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect, useRef } from 'react';
 import _ from 'lodash'
 //modal
 import AlertProcessing from '../ManageAlertProcessing/AlertProcessing';
+import ConclusionPaper, {waitForPrintComplete} from '../ManageConclusionPaper/ConclusionPaper';
 //mui theme
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -38,6 +39,7 @@ function CompleteExamining(props) {
     const [mainDataExaminingForConclusion, setMainDataExaminingForConclusion] = useState();
     const [openAlertProcessing, setOpenAlertProcessing] = useState(false);
 
+    const [openConclusionPaper, setOpenConclusionPaper] = useState(false);
 
     const typingRef = useRef(null);
     const textareaRef = useRef(null);
@@ -134,64 +136,40 @@ function CompleteExamining(props) {
         else{
             textareaRef.current.focus();
         }
+    }
 
-        // if(editDataExaminingForConclusion.categories.length !== 0){
-            
-        //     const responseAppointmentDate = await getAppointmentDate(props.dataExaminingForConclusion.medicalRegisterId);
-
-        //     if(responseAppointmentDate.status === 200){
-        //         editDataExaminingForConclusion.appointmentDate = responseAppointmentDate.data.appointmentDate
-        //         editDataExaminingForConclusion.nextExamId = responseAppointmentDate.data.nextExamId
-        //         editDataExaminingForConclusion.nextExamName = responseAppointmentDate.data.nextExamName
-
-        //         if(editDataExaminingForConclusion.isVaccination){
-        //             editDataExaminingForConclusion.nextVaccination = responseAppointmentDate.data.nextVaccination
-        //             editDataExaminingForConclusion.reminder = responseAppointmentDate.data.reminder
-        //             editDataExaminingForConclusion.vaccination = responseAppointmentDate.data.vaccination
-        //         }
-
-        //     }else{
-        //         toast.error(responseAppointmentDate.data, {toastId: 'error1'});
-        //     }
- 
-        //     setMainDataExaminingForConclusion(editDataExaminingForConclusion);
-
-        //     setOpenAlertProcessing(false);
-        //     if(props.dataExaminingForConclusion.conclusion !== ''){
-        //         const length = textareaRef.current.value.length;
-        //         textareaRef.current.setSelectionRange(length, length);
-        //         textareaRef.current.focus();
-        //     }
-        //     else{
-        //         textareaRef.current.focus();
-        //     }
-        // }
+    const handleWaitingPrintComplete = async () => {
+        setOpenConclusionPaper(true);
+        const printResult = await waitForPrintComplete(); // Đợi in xong
+        console.log("Kết quả in:", printResult);
     }
 
     const handleAddMedicalBook = async () => {
+        setOpenAlertProcessing(true);
         if(checkValidate()){
-            setOpenAlertProcessing(true);
-    
-                if(mainDataExaminingForConclusion.categories.some(categoriesItem => categoriesItem.isPredecessor === true)){
-                    const categoryPres = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isPredecessor === true)
-                    const dataPredecessor = { patientId: mainDataExaminingForConclusion.patientId, categoryPres: categoryPres }
-                    await createAddPredecessor(dataPredecessor);
-                }
-
-                const categoriesHealthRecordExamining = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isHealthRecord === true)
-                mainDataExaminingForConclusion.categories = categoriesHealthRecordExamining
-                const responseAddMedicalBook = await createAddMedicalBook(mainDataExaminingForConclusion);
-                if(responseAddMedicalBook.status === 200){
-                    toast.success(responseAddMedicalBook.data, {toastId: 'success3'});
-                    props.handleCompleteExaminingForPantient();
-                    setMainDataExaminingForConclusion();
-                    props.setOpenModalCompleteExamining(false);
-                }
-                else{
-                    toast.error(responseAddMedicalBook.data, {toastId: 'error1'});
-                }
-            }
-            setOpenAlertProcessing(false);
+            await handleWaitingPrintComplete();
+            // if(mainDataExaminingForConclusion.categories.some(categoriesItem => categoriesItem.isPredecessor === true)){
+            //     const categoryPres = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isPredecessor === true)
+            //     const dataPredecessor = { patientId: mainDataExaminingForConclusion.patientId, categoryPres: categoryPres }
+            //     await createAddPredecessor(dataPredecessor);
+            // }
+            // const categoriesHealthRecordExamining = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isHealthRecord === true)
+            // mainDataExaminingForConclusion.categories = categoriesHealthRecordExamining
+            // const responseAddMedicalBook = await createAddMedicalBook(mainDataExaminingForConclusion);
+            // if(responseAddMedicalBook.status === 200){   
+            //     toast.success(responseAddMedicalBook.data, {toastId: 'success3'});
+            //     props.handleCompleteExaminingForPantient();
+            //     setMainDataExaminingForConclusion();
+            //     props.setOpenModalCompleteExamining(false);
+            // }
+            // else{
+            //     toast.error(responseAddMedicalBook.data, {toastId: 'error1'});
+            // }
+            // props.handleCompleteExaminingForPantient();
+            // setMainDataExaminingForConclusion();
+            // props.setOpenModalCompleteExamining(false);
+        }
+        setOpenAlertProcessing(false);
     }
 
     const checkValidate = () => {
@@ -399,6 +377,12 @@ function CompleteExamining(props) {
 
             <AlertProcessing
                 openAlertProcessing={openAlertProcessing} setOpenAlertProcessing={setOpenAlertProcessing}            
+            />
+
+            <ConclusionPaper 
+                openConclusionPaper={openConclusionPaper} setOpenConclusionPaper={setOpenConclusionPaper} 
+                dataPantientInfo={props.dataPantientInfo} dataConclusionPaper={mainDataExaminingForConclusion}
+                predecessorToPrint={props.predecessorToPrint}
             />
         </>
     )

@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 //context
 import { UserContext } from '../../context/UserContext';
 //lodash
-import _, { constant } from "lodash";
+import _, { cloneDeep, constant } from "lodash";
 //modal
 import CompleteExamining from '../ManageCompleteExamining/CompleteExamining';
 import AlertProcessingBackdrop from '../ManageAlertProcessingBackdrop/AlertProcessingBackdrop';
@@ -90,7 +90,8 @@ function MainDoctorExamining() {
         patientsWeight: '',
         patientsHeadCircumference: '',
         patientsPhone: '',
-        patientsAddress: ''
+        patientsAddress: '',
+        parentName: ''
     }
 
     const { user, loading, alertVisible, confirmAlert, resetAlert, isLogOutClick, isDialogChangePasswordOpen } = useContext(UserContext);
@@ -127,6 +128,8 @@ function MainDoctorExamining() {
     //tiền căn show ở thông tin bệnh nhân
     const [previewPredecessor, setPreviewPredecessor] = useState();
     const [oldPreviewPredecessor, setOldPreviewPredecessor] = useState();
+    //tiền căn mới đã được lưu lại, dùng để hiển thị trên giấy kết luận
+    const [predecessorToPrint, setPredecessorToPrint] = useState();
 
     //state các câu hỏi được bác sĩ khám tích hoặc gõ vào
     const [dataExaminingForConclusion , setDataExaminingForConclusion ] = useState({});
@@ -188,7 +191,7 @@ function MainDoctorExamining() {
         }else{
           setListDataPatientsRegisterSort(searchPatients(listDataPatientsRegisterState, takenValue));
         }
-      }
+    }
     
     const searchPatients = (patients, searchTerm) => {
         const lowerCaseSearchTerm = searchTerm.toLowerCase();
@@ -213,6 +216,7 @@ function MainDoctorExamining() {
         setCurrentHealthRecordExamining();
         setOldDataPredecessor();
         setPreviewPredecessor();
+        setPredecessorToPrint();
         handleGetRegistersByDateNow();
     }
 
@@ -237,10 +241,8 @@ function MainDoctorExamining() {
             setCurrentHealthRecordExamining();
             setOldDataPredecessor();
             setPreviewPredecessor();
+            setPredecessorToPrint();
             handleGetRegistersByDateNow();
-        }
-        else if(response.status === 400){
-            toast.error('Bạn không phải bác sĩ khám hôm nay, không thể dùng chức năng này', {toastId: 'error1'});
         }
         setLoadingCategoryExamining(false);
         setLoadingContentsExamining(false);
@@ -426,6 +428,7 @@ function MainDoctorExamining() {
         _dataPantientsReadyExamining.patientsWeight = dataPantientItem.weight;
         _dataPantientsReadyExamining.patientsHeadCircumference = dataPantientItem.headCircumference;
         _dataPantientsReadyExamining.patientsHeadCircumference = dataPantientItem.headCircumference;
+        _dataPantientsReadyExamining.parentName = dataPantientItem.patient.fullNameMother ? dataPantientItem.patient.fullNameMother : dataPantientItem.patient.fullNameFather;
         _dataPantientsReadyExamining.patientsPhone = dataPantientItem.patient.phoneMother ? dataPantientItem.patient.phoneMother : dataPantientItem.patient.phoneFather;
         _dataPantientsReadyExamining.patientsAddress = dataPantientItem.patient.fullAddress;
         _dataPantientsReadyExamining.vaccination = dataPantientItem.vaccination === true ? true : false;
@@ -976,6 +979,8 @@ function MainDoctorExamining() {
             _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].categoryContentAnswer = true
             setCategorySelectedExamining(_categorySelectedExamining);
 
+            _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].hasEdit = true;
+
             createSelectedQuestionsPredecessorForReExamOrBackExam(categoryContentsIndex, _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentOrder, _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex])
         }
         else if(answer === true){
@@ -983,11 +988,13 @@ function MainDoctorExamining() {
             _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].categoryContentAnswer = null
             setCategorySelectedExamining(_categorySelectedExamining);
 
+            _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].hasEdit = true;
+
             createSelectedQuestionsPredecessorForReExamOrBackExam(categoryContentsIndex, _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentOrder, _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex])
         }
     }
 
-    //câu trả lời dạng check chọn sửa lại note
+    //câu trả lời dạng check chọn true false, sửa lại note
     const handleNoteCheckQuestionPredecessorForReExamOrBackExam = (categoryContentsIndex, questionIndex, value) => {
         const takenValue = value;
         const isEditNote = true;
@@ -1000,6 +1007,8 @@ function MainDoctorExamining() {
             const _categorySelectedExamining = {...categorySelectedExamining};
             _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].categoryContentNote = takenValue
             setCategorySelectedExamining(_categorySelectedExamining);
+
+            _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].hasEdit = true;
 
             createSelectedQuestionsPredecessorForReExamOrBackExam(categoryContentsIndex, _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentOrder, _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex], takenValue, isEditNote)
         }, 0)
@@ -1017,6 +1026,8 @@ function MainDoctorExamining() {
             const _categorySelectedExamining = {...categorySelectedExamining};
             _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].categoryContentNote = takenValue
             setCategorySelectedExamining(_categorySelectedExamining);
+
+            _categorySelectedExamining.categoryContents[categoryContentsIndex].categoryContentQuestions[questionIndex].hasEdit = true;
 
             createSelectedQuestionsValuePredecessorForReExamOrBackExam(
                 categoryContentsIndex,
@@ -1042,6 +1053,9 @@ function MainDoctorExamining() {
                 if(questionIndex !== -1){
                     // nếu tìm thấy câu hỏi cũ, và taken value khác rỗng => gán note cũ bằng note mới
                     findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].categoryContentNote = takenValue;
+                    if(!findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit){
+                        findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit = true;
+                    }
                 }
 
                 else if(questionIndexRemove !== -1){
@@ -1109,6 +1123,9 @@ function MainDoctorExamining() {
                         if(questionIndex !== -1){
                             // thay thế ghi chú bằng ghi chú mới
                             findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].categoryContentNote = takenValue
+                            if(!findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit){
+                                findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit = true;
+                            }
                         }
                     }
                 }
@@ -1128,6 +1145,9 @@ function MainDoctorExamining() {
                         if(questionIndex !== -1){
                             // thay thế ghi chú bằng rỗng
                             findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].categoryContentNote = null
+                            if(!findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit){
+                                findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit = true;
+                            }
                         }
                     }
                 }
@@ -1147,6 +1167,9 @@ function MainDoctorExamining() {
                         if(questionIndex !== -1){
                             // thay thế ghi chú bằng ghi chú mới
                             findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].categoryContentNote = takenValue
+                            if(!findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit){
+                                findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit = true;
+                            }
                         }
                         else{
                             findNewDataPredecessorCategoryContents.categoryContentQuestions.push(categoryContentQuestion);
@@ -1222,6 +1245,9 @@ function MainDoctorExamining() {
                         if(questionIndex !== -1){
                             // thay thế ghi chú bằng ghi chú mới
                             findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].categoryContentAnswer = true
+                            if(!findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit){
+                                findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit = true;
+                            }
                         }
                         else{
                             // Nếu tìm thấy categoryContentOrder, thêm câu hỏi mới
@@ -1281,6 +1307,9 @@ function MainDoctorExamining() {
                         else{
                             const questionIndex = findNewDataPredecessorCategoryContents.categoryContentQuestions.findIndex(newDataPredecessorcategoryContentQuestionsItem => newDataPredecessorcategoryContentQuestionsItem.categoryContentQuestionOrder === categoryContentQuestion.categoryContentQuestionOrder);
                             findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].categoryContentAnswer = null
+                            if(!findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit){
+                                findNewDataPredecessorCategoryContents.categoryContentQuestions[questionIndex].hasEdit = true;
+                            }
                         }
                     }
                 }
@@ -1292,6 +1321,7 @@ function MainDoctorExamining() {
 
     //lưu dữ liệu tiền căn khi sửa xong
     const handleEditDataPredecessorForSaving = (categoryOrder) => {
+        setPredecessorToPrint(_.cloneDeep(newDataPredecessor));
         setOpenAlertProcessingBackdrop(true);
         setTimeout(() => {
             const findNewDataPredecessor = newDataPredecessor.categoryPres.find(newDataPredecessorCategoryPres => newDataPredecessorCategoryPres.categoryOrder === categoryOrder)
@@ -2813,7 +2843,8 @@ function MainDoctorExamining() {
             </Container>
 
             <CompleteExamining openModalCompleteExamining={openModalCompleteExamining} setOpenModalCompleteExamining={setOpenModalCompleteExamining} 
-                handleCompleteExaminingForPantient={handleCompleteExaminingForPantient} dataExaminingForConclusion={dataExaminingForConclusion}
+                handleCompleteExaminingForPantient={handleCompleteExaminingForPantient} dataExaminingForConclusion={dataExaminingForConclusion} dataPantientInfo={dataPantientsReadyExamining}
+                predecessorToPrint={predecessorToPrint}
             />
             <AlertProcessingBackdrop 
                 openAlertProcessingBackdrop={openAlertProcessingBackdrop} changeBackground={true}
