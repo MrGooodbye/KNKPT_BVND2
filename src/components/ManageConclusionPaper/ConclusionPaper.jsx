@@ -18,7 +18,7 @@ import { useReactToPrint } from "react-to-print";
 //moment
 import moment from 'moment';
 //lodash
-import _, { cloneDeep, constant } from "lodash";
+import _ from "lodash";
 
 let resolvePromise; // Biến toàn cục lưu hàm `resolve`
 
@@ -53,7 +53,7 @@ function ConclusionPaper(props) {
     const reactToPrintFn = useReactToPrint({ 
         contentRef: contentRef,
         onAfterPrint: () => {
-            console.log("Hoàn tất in");
+            //console.log("Hoàn tất in");
             if (resolvePromise) {
                 resolvePromise(true); // Đánh dấu Promise đã hoàn thành
             }

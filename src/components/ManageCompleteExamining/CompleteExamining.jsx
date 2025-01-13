@@ -140,34 +140,33 @@ function CompleteExamining(props) {
 
     const handleWaitingPrintComplete = async () => {
         setOpenConclusionPaper(true);
-        const printResult = await waitForPrintComplete(); // Đợi in xong
-        console.log("Kết quả in:", printResult);
+        await waitForPrintComplete(); // Đợi in xong
     }
 
     const handleAddMedicalBook = async () => {
         setOpenAlertProcessing(true);
         if(checkValidate()){
-            await handleWaitingPrintComplete();
-            // if(mainDataExaminingForConclusion.categories.some(categoriesItem => categoriesItem.isPredecessor === true)){
-            //     const categoryPres = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isPredecessor === true)
-            //     const dataPredecessor = { patientId: mainDataExaminingForConclusion.patientId, categoryPres: categoryPres }
-            //     await createAddPredecessor(dataPredecessor);
-            // }
-            // const categoriesHealthRecordExamining = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isHealthRecord === true)
-            // mainDataExaminingForConclusion.categories = categoriesHealthRecordExamining
-            // const responseAddMedicalBook = await createAddMedicalBook(mainDataExaminingForConclusion);
-            // if(responseAddMedicalBook.status === 200){   
-            //     toast.success(responseAddMedicalBook.data, {toastId: 'success3'});
-            //     props.handleCompleteExaminingForPantient();
-            //     setMainDataExaminingForConclusion();
-            //     props.setOpenModalCompleteExamining(false);
-            // }
-            // else{
-            //     toast.error(responseAddMedicalBook.data, {toastId: 'error1'});
-            // }
-            // props.handleCompleteExaminingForPantient();
-            // setMainDataExaminingForConclusion();
-            // props.setOpenModalCompleteExamining(false);
+            if(mainDataExaminingForConclusion.categories.some(categoriesItem => categoriesItem.isPredecessor === true)){
+                const categoryPres = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isPredecessor === true)
+                const dataPredecessor = { patientId: mainDataExaminingForConclusion.patientId, categoryPres: categoryPres }
+                await createAddPredecessor(dataPredecessor);
+            }
+            const categoriesHealthRecordExamining = mainDataExaminingForConclusion.categories.filter(categoriesItem => categoriesItem.isHealthRecord === true)
+            mainDataExaminingForConclusion.categories = categoriesHealthRecordExamining
+            const responseAddMedicalBook = await createAddMedicalBook(mainDataExaminingForConclusion);
+            if(responseAddMedicalBook.status === 200){   
+                await handleWaitingPrintComplete();
+                toast.success(responseAddMedicalBook.data, {toastId: 'success3'});
+                props.handleCompleteExaminingForPantient();
+                setMainDataExaminingForConclusion();
+                props.setOpenModalCompleteExamining(false);
+            }
+            else{
+                toast.error(responseAddMedicalBook.data, {toastId: 'error1'});
+            }
+            props.handleCompleteExaminingForPantient();
+            setMainDataExaminingForConclusion();
+            props.setOpenModalCompleteExamining(false);
         }
         setOpenAlertProcessing(false);
     }
