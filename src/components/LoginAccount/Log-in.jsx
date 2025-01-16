@@ -82,6 +82,7 @@ const Login = () => {
                     userId: response.data.userId,
                     userName: response.data.userName, 
                     userFullName: response.data.userFullName, 
+                    userEmail: response.data.userEmail,
                     positionName: response.data.positionName
                 }
 

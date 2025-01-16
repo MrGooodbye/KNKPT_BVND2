@@ -19,6 +19,7 @@ import { HiUserAdd } from "react-icons/hi";
 import { getListUser } from '../../Service/StatisticsService';
 import { updateActiveUser } from '../../Service/UserService';
 import { toast } from 'react-toastify';
+import ChangeUserInfo from '../ManageUserInfo/ChangeUserInfo';
 
 
 function MainListUser() {
@@ -29,6 +30,9 @@ function MainListUser() {
     const [listUser, setListUser] = useState([]);
 
     const [openModalAddUser, setOpenModalAddUser] = useState(false);
+    const [openModalChangeUserInfo, setOpenModalChangeUserInfo] = useState(false);
+
+    const [dataUserInfo, setDataUserInfo] = useState();
 
     const history = useHistory();
 
@@ -86,6 +90,11 @@ function MainListUser() {
 
     const handleOpenModalAddUser = () => {
         setOpenModalAddUser(true);
+    }
+
+    const handleDoubleClickUser = (e) => {
+        setDataUserInfo(e.row);
+        setOpenModalChangeUserInfo(true);
     }
 
     const handleGetListUser = async () => {
@@ -165,6 +174,7 @@ function MainListUser() {
                                 componentsProps={{
                                     toolbar: { handleOpenModalAddUser },
                                 }}
+                                onCellDoubleClick={(e) => handleDoubleClickUser(e)}
                                 disableRowSelectionOnClick
                                 sx={{ 
                                     '.MuiTablePagination-selectLabel': { marginBottom: '3px', }, 
@@ -177,6 +187,12 @@ function MainListUser() {
             </Container>
             
             <AddUser openModalAddUser={openModalAddUser} setOpenModalAddUser={setOpenModalAddUser} setReloadComponent={setReloadComponent}/>
+            <ChangeUserInfo 
+                dataUserInfo={dataUserInfo} 
+                setDataUserInfo={setDataUserInfo} openModalChangeUserInfo={openModalChangeUserInfo} 
+                setOpenModalChangeUserInfo={setOpenModalChangeUserInfo}
+                setReloadComponent={setReloadComponent}
+            />
         </>
     )
 }

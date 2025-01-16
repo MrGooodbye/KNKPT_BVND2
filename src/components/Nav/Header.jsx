@@ -5,6 +5,7 @@ import { withRouter } from 'react-router';
 //modal
 //import UserManual from '../ManageUserManual/UserManual';
 import ChangePassword from '../ManageChangePassword/ChangePassword';
+import ChangeUserInfo from '../ManageUserInfo/ChangeUserInfo';
 //mui theme
 import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
@@ -31,13 +32,14 @@ import {removeFromGroup} from '../../Service/SignalService';
 
 function Header(props) {
 
-  const { user, logoutContext, triggerAlert, isDialogChangePasswordOpen, setIsDialogChangePasswordOpen, isOldDiseaseWithNullCodeWard } = useContext(UserContext);
+  const { user, logoutContext, triggerAlert, setIsDialogChangePasswordOpen, setIsDialogChangeInfoUserOpen, isOldDiseaseWithNullCodeWard } = useContext(UserContext);
 
   const location = useLocation();
   const history = useHistory();
 
   // const [openModalUserManual, setOpenModalUserManual] = useState(false);
   const [openModalChangePassword, setOpenModalChangePassword] = useState(false);
+  const [openModalChangeUserInfo, setOpenModalChangeUserInfo] = useState(false);
 
   //mui state menu
   const [anchorEl, setAnchorEl] = useState(null);
@@ -171,6 +173,7 @@ function Header(props) {
                   <Button onClick={(e) => handleClick(e)} sx={{color: '#000', textTransform: 'none'}}>{user.userFullName}</Button>
                   <Menu anchorEl={anchorEl} open={open} onClose={() => handleClose()}>
                     <MenuItem onClick={() => [setOpenModalChangePassword(true), setIsDialogChangePasswordOpen(true), setAnchorEl(null)]}>Đổi mật khẩu</MenuItem>
+                    <MenuItem onClick={() => [setOpenModalChangeUserInfo(true), setIsDialogChangeInfoUserOpen(true), setAnchorEl(null)]}>Đổi thông tin</MenuItem>
                     <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
                   </Menu>
 
@@ -190,6 +193,7 @@ function Header(props) {
   
         {/* <UserManual openModalUserManual={openModalUserManual} setOpenModalUserManual={setOpenModalUserManual}/> */}
         <ChangePassword openModalChangePassword={openModalChangePassword} setOpenModalChangePassword={setOpenModalChangePassword} setIsDialogChangePasswordOpen={setIsDialogChangePasswordOpen}/>
+        <ChangeUserInfo openModalChangeUserInfo={openModalChangeUserInfo} setOpenModalChangeUserInfo={setOpenModalChangeUserInfo} setIsDialogChangeInfoUserOpen={setIsDialogChangeInfoUserOpen}/>
       </>
     )
   }

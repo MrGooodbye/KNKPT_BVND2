@@ -118,7 +118,7 @@ function BookMedical(props) {
     {medicalTypeOrder: 2, medicalTypeName: 'Khám trẻ nguy cơ cao', medicalTypeId: 2},
   ]
 
-  const { isDialogChangePasswordOpen, isOldDiseaseWithNullCodeWard, setIsOldDiseaseWithNullCodeWard } = useContext(UserContext);
+  const { isDialogChangePasswordOpen, isOldDiseaseWithNullCodeWard, isDialogChangeInfoUserOpen, setIsOldDiseaseWithNullCodeWard } = useContext(UserContext);
 
   const [openModalExaminingSession, setOpenModalExaminingSession] = useState(false);
   const [isContinueSelectedExaminingSession, setIsContinueSelectedExaminingSession] = useState(false);
@@ -1589,7 +1589,7 @@ function BookMedical(props) {
   }, [props.dataPantientAppointmentsToday]) 
 
   useEffect(() => {
-    if(isDialogChangePasswordOpen === false){
+    if(isDialogChangePasswordOpen === false && isDialogChangeInfoUserOpen === false){
       if(props.onF2Press){
         if(openModalExaminingSession === true && openModalOldDisease === false){
           setIsContinueSelectedExaminingSession(true);
@@ -1621,7 +1621,7 @@ function BookMedical(props) {
         }
       }
     }
-  }, [props.onF2Press, props.onF4Press, props.onF8Press, isDialogChangePasswordOpen])
+  }, [props.onF2Press, props.onF4Press, props.onF8Press, isDialogChangePasswordOpen, isDialogChangeInfoUserOpen])
 
   return (
     <>

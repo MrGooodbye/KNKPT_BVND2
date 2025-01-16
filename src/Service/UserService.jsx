@@ -96,8 +96,40 @@ const updateActiveUser = async (userId, isActive) => {
     })
 }
 
+const editUserLogin = async (dataUpdateUser) => {
+  const token = localStorage.getItem("jwt");
+  return await axios.put(`${backendURL}/api/UserAccount/EditUserLogin?`, dataUpdateUser, {
+      headers: {
+          "content-type": "application/json",
+          Authorization: `Bearer ${token}`,
+      },
+  })
+  .then(function (response) {
+      return response
+  })
+  .catch(function (error) {
+      return error.response
+  })
+}
+
+const updateUserAccount = async (dataUpdateUser) => {
+  const token = localStorage.getItem("jwt");
+    return await axios.put(`${backendURL}/api/UserAccount/UpdateUserAccount?`, dataUpdateUser, {
+        headers: {
+            "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+    })
+    .then(function (response) {
+        return response
+    })
+    .catch(function (error) {
+        return error.response
+    })
+}
+
 export {
     userLogin, addUser,
     getUserLogin, getGetListDoctor,
-    updatePassword, updateActiveUser
+    updatePassword, updateActiveUser, editUserLogin, updateUserAccount
 }

@@ -27,6 +27,8 @@ const UserProvider = ({ children }) => {
 
     const [isDialogChangePasswordOpen, setIsDialogChangePasswordOpen] = useState(false);
 
+    const [isDialogChangeInfoUserOpen, setIsDialogChangeInfoUserOpen] = useState(false);
+
     const [isOldDiseaseWithNullCodeWard, setIsOldDiseaseWithNullCodeWard] = useState(false);
 
     const loginContext = (userContextLogin) => {
@@ -110,21 +112,21 @@ const UserProvider = ({ children }) => {
     useEffect(() => {
         setLoading(true);
         const getUserLogin = JSON.parse(localStorage.getItem('userLogin'));
-        setUser(getUserLogin);
-        // const getToken = localStorage.getItem('jwt')
-        // if(getUserLogin && getToken){
-        //     const result = checkJWTExpire();
-        //     if(result){
-        //         setUser(getUserLogin);
-        //     }
-        //     else if(result === false){
-        //         setUser(userDefault);
-        //     }
-        // }else{
-        //     localStorage.removeItem('jwt'); //xóa localStorage
-        //     localStorage.removeItem('userLogin');
-        //     setUser(userDefault);
-        // }
+        //setUser(getUserLogin);
+        const getToken = localStorage.getItem('jwt')
+        if(getUserLogin && getToken){
+            const result = checkJWTExpire();
+            if(result){
+                setUser(getUserLogin);
+            }
+            else if(result === false){
+                setUser(userDefault);
+            }
+        }else{
+            localStorage.removeItem('jwt'); //xóa localStorage
+            localStorage.removeItem('userLogin');
+            setUser(userDefault);
+        }
         setLoading(false);
     }, [])
 
@@ -134,6 +136,7 @@ const UserProvider = ({ children }) => {
                 value={{ user, loading, loadingContext, loginContext, 
                     logoutContext, alertVisible, triggerAlert, confirmAlert, resetAlert, isLogOutClick,
                     isDialogChangePasswordOpen, setIsDialogChangePasswordOpen,
+                    isDialogChangeInfoUserOpen, setIsDialogChangeInfoUserOpen,
                     isOldDiseaseWithNullCodeWard, setIsOldDiseaseWithNullCodeWard
                 }}>
                 {children}
